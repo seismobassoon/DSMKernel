@@ -1,0 +1,24 @@
+# Nobuaki Fuji generated this for ./configure
+# 0. DSM configuration file
+@abs_top_builddir@/etc/DSMconfiguration/DSM.config 
+# 1. outputDir
+@abs_top_builddir@/database_example/
+# 2. psvmodel
+@abs_top_builddir@/etc/models/PREM.psv.model
+#3. modelname
+PREM
+# 4. tlen (preferred to be set as 2^n*0.1 seconds
+3276.8d0
+# 5. minQ radius (km), maxQ radius, delta radius
+20.d0 6350.d0 20.d0
+# 6. source radius (km)
+5771.d0
+# 7. minQ theta (degrees), maxQ theta, delta theta
+0.d0 180.d0 2.d-1
+# 8. imin imax (omega index: tlen/imax is the shortest period)
+0 256  
+# 9. switching calculation of RSGT, TSGT, synthetics
+# if 1 we calculate
+1 1 1
+# don't forget to write 'end'
+end
