@@ -8,11 +8,9 @@ subroutine pinput(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdel
   character(200) :: commandline
 
   character(120) :: tmpfile
-  integer, external :: getpid
 
-
-  write(tmpfile,"(Z5.5)") getpid()
-  tmpfile='tmpworkingfile_for_SGTforSinv'//tmpfile
+  tmpfile='tmpworkingfile_for_SGTforSinv'
+  call tmpfileNameGenerator(tmpfile,tmpfile)
 
   open(unit=1, file=tmpfile,status='unknown')
 100 continue

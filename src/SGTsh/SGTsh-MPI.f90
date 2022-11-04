@@ -21,7 +21,6 @@ program  SGTsh
   use mpi
   use parameters
   implicit none
-  integer, external :: getpid
 
 
   call MPI_INIT(ierr)
@@ -32,8 +31,9 @@ program  SGTsh
   if(my_rank.eq.0) then
      call pinput(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch)
      call readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
-     write(tmpfile,"(Z5.5)") getpid()
-     tmpfile = 'tmpworkingfile_for_psvmodel'//tmpfile
+     
+     tmpfile = 'tmpworkingfile_for_psvmodel'
+     call tmpfileNameGenerator(tmpfile, tmpfile)
      call readpsvmodel(psvmodel,tmpfile)
      psvmodel=tmpfile
      open(20, file = psvmodel, status = 'old', action='read', position='rewind')
@@ -581,7 +581,7 @@ program  SGTsh
            
            close(1)          
            
-           if(rsgtswitch) then
+           if(rsgtswitch.eq.1) then
               write(coutfile, '(I7,".",I7,".RSGT_SH")') int(r_(ir_)*1.d3),i
               do j = 1,21
                  if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
@@ -597,7 +597,7 @@ program  SGTsh
         enddo
         
         ir0 = 1
-        if(synnswitch) then
+        if(synnswitch.eq.1) then
            write(coutfile, '(I7,".",I7,".SYNN_SH") ') intir0,i
            do j = 1,21
               if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'

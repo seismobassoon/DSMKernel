@@ -8,7 +8,5 @@ add_library(sgtSHlib
 		trial.f90
 	)
 	
-#target_compile_options(sgtSHlib PUBLIC ${DKS_options})
 add_executable(xSGTsh SGTsh-MPI.f90)
-#target_compile_options(xSGTpsv ${DKS_options})
-#target_compile_options(xSGTsh ${DKS_options})
+target_link_libraries(xSGTsh sgtSHlib commonlib)
