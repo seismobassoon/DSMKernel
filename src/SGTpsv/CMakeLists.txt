@@ -9,12 +9,6 @@ add_library(sgtPSVlib
 		trial.f90
 	)
 
-#target_compile_options(sgtPSVlib PUBLIC ${DKS_options})
 add_executable(xSGTpsv SGTpsv-MPI.f90)
-target_link_libraries(xSGTpsv sgtPSVlib)
-#target_compile_options(xSGTpsv ${DKS_options})
+target_link_libraries(xSGTpsv sgtPSVlib commonlib)
 
-#target_compile_options(xSGTpsv PUBLIC
-#	$<$<FORTRAN_COMPILER_ID:GNU>:-g -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -assume byterecl -O4>
-#	$<$FORTRAN_COMPILER_ID:Intel>:-O4 -heap-arrays -check nobounds -xAVX -ftz -assume buffered_io -assume byterecl  -implicitnone -warn truncated_source  -warn declarations -warn alignments -warn ignore_loc -warn usage -mcmodel=medium -shared-intel>
-#	)

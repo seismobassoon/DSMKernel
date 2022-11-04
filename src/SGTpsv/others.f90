@@ -8,21 +8,17 @@ subroutine pinput(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdel
   character(120) :: commandline
   character(120) :: tmpfile,tmpfile0
   integer(4) :: istat
-  integer, external :: getpid
     
 
 
   !call getarg(1,tmpfile0)
 
-  write(tmpfile,"(Z5.5)") getpid()
+  !write(tmpfile,"(Z5.5)") getpid()
+
+  
   tmpfile='tmpworkingfile_for_SGTforPinv'//tmpfile
-  !print *, tmpfile
-
-  !istat=getpid()
-  !tmpfile=trim(tmpfile)//ichar(istat)
-
-  !open(unit=5,file=tmpfile0,status='old')
-  !open(unit=1,status='scratch',form='formatted')
+  call tmpfileNameGenerator(tmpfile,tmpfile)
+  
   open(unit=1, file=tmpfile,status='unknown')
 100 continue
   read(5,110) dummy
@@ -77,12 +73,13 @@ subroutine readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
   character(120) :: dummy,DSMconfFile
   real(kind(0d0)) :: re,ratc,ratl,omegai
   integer  :: maxlmax
-  integer, external :: getpid
+
   character(120) :: tmpfile
 
 
-  write(tmpfile,"(Z5.5)") getpid()
-  tmpfile='tmpworkingfile_for_DSMconf'//tmpfile
+  
+  tmpfile='tmpworkingfile_for_DSMconf'
+  call tmpfileNameGenerator(tmpfile,tmpfile)
 
 
   open(unit=2, file=DSMconfFile, status='old',action='read',position='rewind')

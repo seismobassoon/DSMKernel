@@ -1,3 +1,4 @@
+CMakeLists.txt
 $ git status
 # ignore objects and archives
 *.[oa]

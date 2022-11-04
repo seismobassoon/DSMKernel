@@ -25,21 +25,22 @@ program  SGTpsv
   use mpi
   use parameters
   implicit none
-  integer, external :: getpid
   character(120) :: tmpfile
-
   call MPI_INIT(ierr)
   call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
   call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
   
 
+  
 
   if(my_rank.eq.0) then 
 
      call pinput(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch)
      call readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
-     write(tmpfile,"(Z5.5)") getpid()
-     tmpfile='tmpworkingfile_for_psvmodel'//tmpfile
+   
+     tmpfile='tmpworkingfile_for_psvmodel'
+     call tmpfileNameGenerator(tmpfile,tmpfile)
+  
      call readpsvmodel(psvmodel,tmpfile)
      psvmodel=tmpfile
      open(20, file = psvmodel, status = 'old', action='read', position='rewind')
@@ -1117,7 +1118,7 @@ program  SGTpsv
            close(1)                     
            !enddo
            
-           if(rsgtswitch) then
+           if(rsgtswitch.eq.1) then
               write(coutfile, '(I7,".",I7,".RSGT_PSV")') int(r_(ir_)*1.d3),i
               do j = 1,21
                  if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
@@ -1135,7 +1136,7 @@ program  SGTpsv
         !do ir0 = 1, r0_n
         ir0 =1
         
-        if(synnswitch) then
+        if(synnswitch.eq.1) then
            write(coutfile, '(I7,".",I7,".SYNN_PSV") ') intir0,i
            do j = 1,21
               if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
