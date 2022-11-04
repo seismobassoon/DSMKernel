@@ -7,12 +7,11 @@ subroutine pinputKernel
   character(120) :: dummy
   integer :: iitmp,maxlmax
   character(200) :: commandline
-  integer, external :: getpid
-
+ 
 
   
-  write(tmpfile,"(Z5.5)") getpid()
-  tmpfile='tmpworkingfile_for_SynViewer'//tmpfile
+  tmpfile='tmpworkingfile_for_SynViewer'
+  timefileNameGenerator(tmpfile,tmpfile)
   
   open(unit=1, file=tmpfile,status='unknown')
 100 continue
@@ -133,9 +132,9 @@ subroutine pinputKernel
   call pinputDSM(DSMconfFile,PoutputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,SGTinfo)
   call readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
  
-  write(tmpfile,"(Z5.5)") getpid()
-  tmpfile = 'tmpworkingfile_for_psvmodel'//tmpfile
-  
+  tmpfile = 'tmpworkingfile_for_psvmodel'
+  call tmpfileNameGenerator(tmpfile,tmpfile)
+  tmppsvfile=tmpfile
   call readpsvmodel(psvmodel,tmpfile)
   INFO_TSGT = trim(parentDir)//"/INFO_TSGT.TXT"
   INFO_RSGT = trim(parentDir)//"/INFO_RSGT.TXT"
@@ -164,11 +163,11 @@ subroutine pinputDSM(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,r
   real(kind(0d0)) :: tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta
   real(kind(0d0)) :: thetamin,thetamax,thetadelta
   integer :: imin,imax,rsgtswitch,tsgtswitch,synnswitch,dummyint
-  integer, external :: getpid
   character(120) :: tmpfile
 
-  write(tmpfile, "(Z5.5)") getpid()
-  tmpfile='tmpworkingfile_for_SGTcalcul'//tmpfile
+ 
+  tmpfile='tmpworkingfile_for_SGTcalcul'
+  call tmpfileNameGenerator(tmpfile,tmpfile)
 
   open(unit=2, file=SGTinfo)
   open(unit=1, file=tmpfile,status='unknown')
@@ -209,12 +208,10 @@ subroutine readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
   character(120) :: dummy,DSMconfFile
   real(kind(0d0)) :: re,ratc,ratl,omegai
   integer  :: maxlmax
-  integer, external :: getpid
   character(120) :: tmpfile
-
-  write(tmpfile,"(Z5.5)") getpid()
-  tmpfile='tmpworkingfile_for_DSMconf'//tmpfile
-
+  
+  tmpfile='tmpworkingfile_for_DSMconf'
+  call tmpfileNameGenerator(tmpfile,tmpfile)
 
   open(unit=2, file=DSMconfFile, status='old',action='read',position='rewind')
   open(unit=1, file=tmpfile,status='unknown')

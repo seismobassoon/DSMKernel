@@ -53,6 +53,7 @@ module parameters
   integer, parameter :: nkvtype = 3 ! isotropic video kernels
   real(kind(0d0)), parameter ::  pi=3.1415926535897932d0 
   character(120) :: SGTinfo,parentDir,eventName,stationName,phase,compo,paramWRT
+  character(120) :: tmppsvfile
   character(120) :: synnfile
   character(120) :: INFO_TSGT,INFO_RSGT,rsampletxt,modelcard
   character(120) :: Poutputdir,psvmodel,modelname,DSMconfFile

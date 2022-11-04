@@ -42,8 +42,6 @@ program KernelMaker
   real(kind(0d0)) :: thetargcs,phirgcs
   real(kind(0d0)) :: distan,azim,bazim
 
-  integer, external :: getpid  
-
   ! ignoring scheme
   integer :: iitype,itype
   integer(2), allocatable :: iflagForRapidity(:),iflagForRapidityOld(:), iflagForRapidityNext(:)
@@ -252,8 +250,7 @@ program KernelMaker
   !-----------------------------------------------------------------------
   ! model parameters
   if(my_rank.eq.0) then
-     write(psvmodel,"(Z5.5)") getpid()
-     psvmodel = 'tmpworkingfile_for_psvmodel'//psvmodel
+     psvmodel = tmppsvfile
      open(20, file = psvmodel, status = 'old', action='read', position='rewind')
      read(20,*) nzone
      close(20)
@@ -270,8 +267,7 @@ program KernelMaker
   allocate(qmuD(1:nzone))
   allocate(qkappaD(1:nzone))
   if(my_rank.eq.0) then
-     write(psvmodel,"(Z5.5)") getpid()
-     psvmodel = 'tmpworkingfile_for_psvmodel'//psvmodel  
+     psvmodel = tmppsvfile
      open(20, file = psvmodel, status = 'old', action='read', position='rewind')
      read(20,*) nzone
      do i = 1, nzone
