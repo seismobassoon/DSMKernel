@@ -16,7 +16,7 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   integer(4) :: istat
   
   character(200) :: argv
-  integer :: argc,iFind
+  integer :: argc,iFind,numberLines,io,iLine
   character(200) :: DSMinffile
   character(200) :: paramName
 
@@ -31,20 +31,32 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
      stop
   endif
 
+  
+  open(5,file=DSMinffile,status='unknown',action='read')
+  numberLines = 0 
+  do
+    read(5,*,iostat=io)
+    if (io/=0) exit
+    numberLines = numberLines + 1
+  enddo
+
+
+
+  
   open(unit=5,file=DSMinffile,status='unknown')
   
   tmpfile='tmpworkingfile_for_SGTforPinv'//tmpfile
   call tmpfileNameGenerator(tmpfile,tmpfile)
   
   open(unit=1, file=tmpfile,status='unknown')
-100 continue
-  read(5,110) dummy
+
+  do iLine=1,numberLines
+  
+     read(5,110) dummy
 110 format(a200)
-  if(dummy(1:1).eq.'#') goto 100
-  if(dummy(1:3).eq.'end') goto 120
-  write(1,110) dummy
-  goto 100
-120 continue
+     if((dummy(1:1).ne.'#').and.(dummy(1:1).eq.'!')) write(1,110) dummy
+  enddo
+  
   close(1)
   close(5)
 
@@ -79,30 +91,57 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   call searchForParam(tmpfile,"epicentralDistancesQ",dummy,1)
   read(dummy,*) thetamin,thetamax,thetadelta
 
+  imax=0
+  
   iFind=0
   call searchForParamsOption(tmpfile,"shortestPeriod",dummy,1,iFind)
-  if(iFind.eq.2) read(dummy,*) shortestPeriod
+  if(iFind.eq.1) read(dummy,*) shortestPeriod
   imin=0
   imax=int(tlen/shortestPeriod)
 
   iFind=0
   call searchForParamsOption(tmpfile,"imin",dummy,1,iFind)
-  if(iFind.eq.2) read(dummy,*) imin
+  if(iFind.eq.1) read(dummy,*) imin
 
   iFind=0
   call searchForParamsOption(tmpfile,"imax",dummy,1,iFind)
-  if(iFind.eq.2) read(dummy,*) imax
+  if(iFind.eq.1) read(dummy,*) imax
+
+  if(imax.eq.0) then
+     print *, "You need to define either shortestPeriod or imax"
+     stop
+  endif
   
 
+  rsgtswitch = 1
+  tsgtswitch = 1
+  synnswitch = 1
+  psgtswitch = 1
+
+  iFind=0
+  call searchForParamsOption(tmpfile,"rsgtswitch",dummy,1,iFind)
+  if(iFind.eq.1) read(dummy,*) rsgtswitch
+
+  iFind=0
+  call searchForParamsOption(tmpfile,"tsgtswitch",dummy,1,iFind)
+  if(iFind.eq.1) read(dummy,*) tsgtswitch
+
+  iFind=0
+  call searchForParamsOption(tmpfile,"synnswitch",dummy,1,iFind)
+  if(iFind.eq.1) read(dummy,*) synnswitch
+
+  iFind=0
+  call searchForParamsOption(tmpfile,"psgtswitch",dummy,1,iFind)
+  if(iFind.eq.1) read(dummy,*) psgtswitch
   
-  read(1,*) imin,imax
-  read(1,*) rsgtswitch,tsgtswitch,synnswitch,psgtswitch
+  ! delete this tmpfile when thi is safely read
+  open(1,file=tmpfile,status='unknown')
   close(1,status='delete')
  
   ! making directories
 
-  commandline = 'mkdir -p '//trim(outputDir)
-  call system(commandline)
+  !commandline = 'mkdir -p '//trim(outputDir)
+  !call system(commandline)
   commandline = 'mkdir -p '//trim(outputDir)//'/RSGT'
   call system(commandline)
   commandline = 'mkdir -p '//trim(outputDir)//'/TSGT'
