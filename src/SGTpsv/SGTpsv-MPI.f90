@@ -25,22 +25,16 @@ program  SGTpsv
   use mpi
   use parameters
   implicit none
-  character(120) :: tmpfile
+  character(200) :: tmpfile
   call MPI_INIT(ierr)
   call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
   call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
-  
-
-  
 
   if(my_rank.eq.0) then 
-
-     call pinput(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch)
-     call readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
-   
+     call pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch)
+     call readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
      tmpfile='tmpworkingfile_for_psvmodel'
      call tmpfileNameGenerator(tmpfile,tmpfile)
-  
      call readpsvmodel(psvmodel,tmpfile)
      psvmodel=tmpfile
      open(20, file = psvmodel, status = 'old', action='read', position='rewind')

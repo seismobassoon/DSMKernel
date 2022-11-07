@@ -1,7 +1,4 @@
 
-
-
-
 !
 subroutine udertorsgtPinv(icomp,uder,rsgt)
   implicit none
