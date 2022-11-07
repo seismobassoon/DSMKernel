@@ -53,6 +53,9 @@ subroutine pinputKernel
   enddo
   close(1)
   close(5)
+
+
+
   
   open(unit=1,file=tmpfile,status='unknown')
   ! 0a
