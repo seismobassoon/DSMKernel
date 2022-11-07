@@ -35,10 +35,11 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   open(5,file=DSMinffile,status='unknown',action='read')
   numberLines = 0 
   do
-    read(5,*,iostat=io)
-    if (io/=0) exit
-    numberLines = numberLines + 1
+     read(5,*,iostat=io)
+     if (io/=0) exit
+     numberLines = numberLines + 1
   enddo
+  close(5)
 
 
 
@@ -150,4 +151,78 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   call system(commandline)  
 
 
-end subroutine pinput
+end subroutine pinputDatabaseFile
+
+
+subroutine readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
+  implicit none
+  character(200) :: dummy,DSMconfFile
+  real(kind(0d0)) :: re,ratc,ratl,omegai
+  integer  :: maxlmax
+  integer :: numberLines,io,iLine
+  character(120) :: tmpfile
+  
+  tmpfile='tmpworkingfile_for_DSMconf'
+  call tmpfileNameGenerator(tmpfile,tmpfile)
+
+  open(5,file=DSMconfFile,status='unknown',action='read')
+  numberLines = 0 
+  do
+     read(5,*,iostat=io)
+     if (io/=0) exit
+     numberLines = numberLines + 1
+  enddo
+  close(5)
+  
+
+  open(unit=2, file=DSMconfFile, status='old',action='read',position='rewind')
+  open(unit=1, file=tmpfile,status='unknown')
+
+  do iLine=1,numberLines
+  
+     read(2,110) dummy
+110  format(a200)
+     if((dummy(1:1).ne.'#').and.(dummy(1:1).eq.'!')) write(1,110) dummy
+  enddo
+  close(1)
+  close(2)
+  
+ 
+  open(unit=1,file=tmpfile,status='unknown')
+  read(1,*) re
+  read(1,*) ratc
+  read(1,*) ratl
+  read(1,*) omegai
+  read(1,*) maxlmax
+  close(1,status='delete')
+
+end subroutine readDSMconfFile
+
+
+subroutine readpsvmodel(psvmodel,tmpfile)
+  implicit none
+  character(200) :: psvmodel, tmpfile, dummy
+  integer :: numberLines,io,iLine
+
+
+  open(5,file=psvmodel,status='unknown',action='read')
+  numberLines = 0 
+  do
+     read(5,*,iostat=io)
+     if (io/=0) exit
+     numberLines = numberLines + 1
+  enddo
+  close(5)  
+  
+  open(unit=2, file=psvmodel, status='old',action='read',position='rewind')
+  open(unit=1, file=tmpfile,status='unknown')
+
+  do iLine=1,numberLines
+     read(2,110) dummy
+110  format(a200)
+     if((dummy(1:1).ne.'#').and.(dummy(1:1).eq.'!')) write(1,110) dummy
+  enddo
+  close(1)
+  close(2)
+  
+end subroutine readpsvmodel
