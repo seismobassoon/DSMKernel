@@ -1,6 +1,6 @@
 # This is the input file for SGTforPinv generated b/gpfs/users/meschede/DSM_Kernel makingInputFile.pl
 # 0. DSM configuration file
-$(CMAKESOURCE_DIR)/etc/DSMconfiguration/DSM.config
+${PROJECT_SOURCE_DIR}/etc/DSMconfiguration/DSM.config
 # 1. outputDir
 [mydatabase/]
 # 2. psvmodel
