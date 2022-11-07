@@ -1,6 +1,6 @@
 
 
-module parameters
+module parametersKernel
 
   implicit none
 
@@ -126,7 +126,7 @@ module parameters
 
        
 
-end module parameters
+end module parametersKernel
 
 
 module angles

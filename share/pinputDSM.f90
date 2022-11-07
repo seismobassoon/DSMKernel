@@ -26,7 +26,7 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   argc=iargc()
 
   if(argc.ne.1) then
-     print *, "DSM2022 will no more use \"<\" to specify DSM inffile for SGTpsv and SGTsh"
+     print *, "usage (DSM2022): (mpirun) SGTpsv/sh DSMinffile"
      print *, "cheers"
      stop
   endif
@@ -46,7 +46,7 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   
   open(unit=5,file=DSMinffile,status='unknown')
   
-  tmpfile='tmpworkingfile_for_SGTforPinv'//tmpfile
+  tmpfile='tmpworkingfile_for_SGTforPinv'//trim(tmpfile)
   call tmpfileNameGenerator(tmpfile,tmpfile)
   
   open(unit=1, file=tmpfile,status='unknown')
@@ -89,7 +89,7 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   r0max=r0min
   r0delta=20.d0
 
-  call searchForParam(tmpfile,"epicentralDistancesQ",dummy,1)
+  call searchForParams(tmpfile,"epicentralDistancesQ",dummy,1)
   read(dummy,*) thetamin,thetamax,thetadelta
 
   imax=0
