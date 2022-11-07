@@ -19,9 +19,10 @@ program KernelMaker
   use angles
   use kernels
   use rotate
+  use mpi
   
   implicit none
-  include 'mpif.h'
+  !include 'mpif.h'
   include '../../etc/config_calcul/constants.h'
 
 
@@ -584,7 +585,7 @@ program KernelMaker
      hu=0.d0
      call hilbert(iWindowEnd-iWindowStart,dtn,t,u(iWindowStart:iWindowEnd),hu(iWindowStart:iWindowEnd))     
 
-     if(ibwfilt) then
+     if(ibwfilt.eq.1) then
         do ift = 0,nfilter
            call bwfilt(u(iWindowStart:iWindowEnd),u0(ift,iWindowStart:iWindowEnd),1.d0/samplingHz,(iWindowEnd-iWindowStart+1),0,npButterworth,fclp(ift),fchp(ift))
            call bwfilt(v(iWindowStart:iWindowEnd),v0(ift,iWindowStart:iWindowEnd),1.d0/samplingHz,(iWindowEnd-iWindowStart+1),0,npButterworth,fclp(ift),fchp(ift))
@@ -936,7 +937,7 @@ program KernelMaker
                  if(minval(iflagForRapidity(1:nphi)).eq.1) exit
                  !print *,    searchiteration, int(nphi/nMinlengthFor0)+1
                  do ip = 1,nphi
-                     if(iflagForRapidity(ip)) then
+                     if(iflagForRapidity(ip).eq.1) then
                        !ker(ip,ith,2,0)=1.d0       
                        !cycle ! don't calculate if 1
                     else
@@ -1018,7 +1019,7 @@ program KernelMaker
                  if(minval(iflagForRapidity(1:nphi)).eq.1) exit
                  !print *,    searchiteration, int(nphi/nMinlengthFor0)+1
                  do ip = 1,nphi
-                     if(iflagForRapidity(ip)) then
+                     if(iflagForRapidity(ip).eq.1) then
                        !ker(ip,ith,2,0)=1.d0       
                        !cycle ! don't calculate if 1
                     else

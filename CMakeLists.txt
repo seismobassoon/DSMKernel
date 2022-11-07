@@ -9,7 +9,10 @@ set(EXECUTABLE_OUTPUT_PATH ../../../bin)
 
 add_compile_options(-ffree-line-length-none  -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace -O4)
 #add_compile_options(-O4 -heap-arrays -check nobounds -xAVX -ftz -assume buffered_io -assume byterecl  -implicitnone -warn truncated_source  -warn declarations -warn alignments -warn ignore_loc -warn usage -mcmodel=medium -shared-intel)
-add_subdirectory(src/SGTpsv)
-add_subdirectory(src/SGTsh)
+#add_subdirectory(src/SGTpsv)
+#add_subdirectory(src/SGTsh)
 #add_subdirectory(src/KernelMaker)
-add_subdirectory(share)
+#add_subdirectory(share)
+
+# some example information files
+add_subdirectory(examples/single_kernel)

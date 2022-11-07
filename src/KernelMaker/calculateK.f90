@@ -39,7 +39,7 @@ subroutine calculateRSGT
      call vectorFFT_double(fmin,fmax,np1,h3(i_sgt,fmin:fmax),du(iWindowStart:iWindowEnd),omegai,tlen,iWindowStart,iWindowEnd)
 
 
-     if(ibwfilt) then
+     if(ibwfilt.eq.1) then
         do ift = 0,nfilter
            call bwfilt(du(iWindowStart:iWindowEnd),duf(ift,iWindowStart:iWindowEnd),1.d0/samplingHz,(iWindowEnd-iWindowStart+1),0,npButterworth,fclp(ift),fchp(ift))
         enddo
@@ -101,7 +101,7 @@ subroutine calculateTSGT
      call vectorFFT_double(fmin,fmax,np1,h3(i_sgt,fmin:fmax),du(iWindowStart:iWindowEnd),omegai,tlen,iWindowStart,iWindowEnd)
 
 
-     if(ibwfilt) then
+     if(ibwfilt.eq.1) then
         do ift = 0,nfilter
            call bwfilt(du(iWindowStart:iWindowEnd),duf(ift,iWindowStart:iWindowEnd),1.d0/samplingHz,(iWindowEnd-iWindowStart+1),0,npButterworth,fclp(ift),fchp(ift))
         enddo
@@ -266,7 +266,7 @@ subroutine isovpfreq
      u_freq(jt) = u_freq(jt)*dcmplx(1.d3)
   enddo
   call vectorFFT_double(fmin,fmax,np1,u_freq(fmin:fmax),du(iWindowStart:iWindowEnd),omegai,tlen,iWindowStart,iWindowEnd)
-  if(ibwfilt) then
+  if(ibwfilt.eq.1) then
      do ift = 0,nfilter
         call bwfilt(du(iWindowStart:iWindowEnd),duf(ift,iWindowStart:iWindowEnd),1.d0/samplingHz,(iWindowEnd-iWindowStart+1),0,npButterworth,fclp(ift),fchp(ift))
      enddo
@@ -408,7 +408,7 @@ subroutine isovsfreq
   call vectorFFT_double(fmin,fmax,np1,u_freq(fmin:fmax),duq(iWindowStart:iWindowEnd),omegai,tlen,iWindowStart,iWindowEnd)
   
 
-  if(ibwfilt) then
+  if(ibwfilt.eq.1) then
      do ift = 0,nfilter
         call bwfilt(du(iWindowStart:iWindowEnd),duf(ift,iWindowStart:iWindowEnd),1.d0/samplingHz,(iWindowEnd-iWindowStart+1),0,npButterworth,fclp(ift),fchp(ift))
         call bwfilt(duq(iWindowStart:iWindowEnd),duqf(ift,iWindowStart:iWindowEnd),1.d0/samplingHz,(iWindowEnd-iWindowStart+1),0,npButterworth,fclp(ift),fchp(ift))

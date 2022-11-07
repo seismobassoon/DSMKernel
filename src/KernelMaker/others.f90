@@ -11,7 +11,7 @@ subroutine pinputKernel
 
   
   tmpfile='tmpworkingfile_for_SynViewer'
-  timefileNameGenerator(tmpfile,tmpfile)
+  call tmpfileNameGenerator(tmpfile,tmpfile)
   
   open(unit=1, file=tmpfile,status='unknown')
 100 continue
