@@ -2,9 +2,9 @@
 ! This is an effort to unify some redundant DSM legacy subroutines
 ! for further maintenance
 
-subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch)
+subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,SGTinfo)
   implicit none
-  character(200) :: dummy,outputDir,psvmodel,modelname,DSMconfFile
+  character(200) :: dummy,outputDir,psvmodel,modelname,DSMconfFile,SGTinfo
   real(kind(0d0)) :: tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta
   real(kind(0d0)) :: thetamin,thetamax,thetadelta
 
@@ -20,17 +20,27 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   character(200) :: DSMinffile
   character(200) :: paramName
 
-  call getarg(1,argv)
-  DSMinffile=argv
+  integer :: noDirMaking
 
-  argc=iargc()
-
-  if(argc.ne.1) then
-     print *, "usage (DSM2022): (mpirun) SGTpsv/sh DSMinffile"
-     print *, "cheers"
-     stop
+  noDirMaking=0
+  if(SGTinfo.eq."argvModeUsed") then
+     call getarg(1,argv)
+     DSMinffile=argv
+     
+     argc=iargc()
+  
+     if(argc.ne.1) then
+        print *, "usage (DSM2022): (mpirun) SGTpsv/sh DSMinffile"
+        print *, "cheers"
+        stop
+     endif
+     
+  else
+     ! if this subroutine is read without SGTinfo="argvModeUsed", it is only reading
+     ! and not for SGTpsv/sh
+     DSMinffile=trim(SGTinfo)
+     noDirMaking=1
   endif
-
   
   open(5,file=DSMinffile,status='unknown',action='read')
   numberLines = 0 
@@ -69,14 +79,15 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   outputDir=trim(outputDir)
   psvmodel=trim(psvmodel)
   modelname=trim(modelname)
+
+  if(noDirMaking.eq.0) then
+     dummy = 'mkdir -p '//trim(outputDir)
+     call system(dummy)
   
-  dummy = 'mkdir -p '//trim(outputDir)
-  call system(dummy)
-  
-  outputDir=outputDir//modelname
-  dummy = 'mkdir -p '//trim(outputDir)
-  call system(dummy)
-  
+     outputDir=outputDir//modelname
+     dummy = 'mkdir -p '//trim(outputDir)
+     call system(dummy)
+  endif
 
   call searchForParams(tmpfile,"tlen",dummy,1)
   read(dummy,*)tlen
@@ -141,15 +152,14 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
  
   ! making directories
 
-  !commandline = 'mkdir -p '//trim(outputDir)
-  !call system(commandline)
-  commandline = 'mkdir -p '//trim(outputDir)//'/RSGT'
-  call system(commandline)
-  commandline = 'mkdir -p '//trim(outputDir)//'/TSGT'
-  call system(commandline)
-  commandline = 'mkdir -p '//trim(outputDir)//'/log'
-  call system(commandline)  
-
+  if(noDirMaking.eq.0) then
+     commandline = 'mkdir -p '//trim(outputDir)//'/RSGT'
+     call system(commandline)
+     commandline = 'mkdir -p '//trim(outputDir)//'/TSGT'
+     call system(commandline)
+     commandline = 'mkdir -p '//trim(outputDir)//'/log'
+     call system(commandline)  
+  endif
 
 end subroutine pinputDatabaseFile
 

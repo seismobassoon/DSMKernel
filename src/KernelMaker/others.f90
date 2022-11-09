@@ -1,51 +1,5 @@
 
 
-subroutine pinputDSM(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,SGTinfo)
-  implicit none
-  !character(120), parameter :: tmpfile='tmpworkingfile_for_SGTcalcul'
-  character(120) :: dummy,outputDir,psvmodel,modelname,DSMconfFile,SGTinfo
-  real(kind(0d0)) :: tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta
-  real(kind(0d0)) :: thetamin,thetamax,thetadelta
-  integer :: imin,imax,rsgtswitch,tsgtswitch,synnswitch,dummyint
-  character(120) :: tmpfile
-
- 
-  tmpfile='tmpworkingfile_for_SGTcalcul'
-  call tmpfileNameGenerator(tmpfile,tmpfile)
-
-  open(unit=2, file=SGTinfo)
-  open(unit=1, file=tmpfile,status='unknown')
-100 continue
-  read(2,110) dummy
-110 format(a120)
-  if(dummy(1:1).eq.'#') goto 100
-  if(dummy(1:3).eq.'end') goto 120
-  write(1,110) dummy
-  goto 100
-120 continue
-  close(1)
-  close(2)
- 
-  open(unit=1,file=tmpfile,status='unknown')
-  read(1,110) DSMconfFile
-  read(1,110) outputDir
-  read(1,110) psvmodel
-  read(1,110) modelname
-  outputDir=trim(outputDir)
-  psvmodel=trim(psvmodel)
-  modelname=trim(modelname)
-  read(1,*) tlen
-  read(1,*) rmin_,rmax_,rdelta_
-  read(1,*) r0min
-  r0max=r0min
-  r0delta=20.d0
-  read(1,*) thetamin,thetamax,thetadelta
-  read(1,*) imin,imax
-  read(1,*) rsgtswitch,tsgtswitch,synnswitch,dummyint
-  close(1,status='delete')
-
-end subroutine pinputDSM
-
 subroutine readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
   implicit none
   !character(120), parameter :: tmpfile='tmpworkingfile_for_DSMconf'

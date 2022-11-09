@@ -1,6 +1,8 @@
 ! Nobuaki Fuji for DSM Suite (2022)
 ! This is an effort to unify some redundant DSM legacy subroutines
 ! for further maintenance
+! I put this in share because some other softwares (e.g. MarsMTInversion)
+! use this
 
 
 
@@ -56,14 +58,10 @@ subroutine pinputKernel
 
 
 
+  call searchForParams(tmpfile,"DatabaseInput",SGTinfo,0)
+  call searchForParams(tmpfile,"KernelOutputDir",parentDir,0)
   
-  open(unit=1,file=tmpfile,status='unknown')
-  ! 0a
-  read(1,110) SGTinfo
-  SGTinfo = trim(SGTinfo)
-  ! 0b
-  read(1,110) parentDir
-  parentDir = trim(parentDir)
+
   ! 1a
   read(1,110) eventName
   eventName = trim(eventName)
@@ -162,8 +160,8 @@ subroutine pinputKernel
     commandline = 'mkdir -p '//trim(parentDir)//'/seriousfrechet'
   call system(commandline)   
 
-  call pinputDSM(DSMconfFile,PoutputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,SGTinfo)
-  call readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
+  call pinputDatabaseFile(DSMconfFile,PoutputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,SGTinfo)
+  call readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
  
   tmpfile = 'tmpworkingfile_for_psvmodel'
   call tmpfileNameGenerator(tmpfile,tmpfile)

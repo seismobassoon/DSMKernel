@@ -28,7 +28,7 @@ program  SGTsh
 
   
   if(my_rank.eq.0) then
-     call pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch)
+     call pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,"argvModeUsed")
      call readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
      tmpfile = 'tmpworkingfile_for_psvmodel'
      call tmpfileNameGenerator(tmpfile, tmpfile)
