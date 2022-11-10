@@ -60,37 +60,32 @@ subroutine pinputKernel
 
   call searchForParams(tmpfile,"DatabaseInput",SGTinfo,0)
   call searchForParams(tmpfile,"KernelOutputDir",parentDir,0)
+  call searchForParams(tmpfile,"eventName",eventName,0)
+  call searchForParams(tmpfile,"eventLocation",dummy,1)
+  read(dummy,*) evla, evlo, evdepth
+  call searchForParams(tmpfile,"MomentTensor",dummy,1)
+  read(dummy,*) mt(1), mt(2), mt(3), mt(4), mt(5), mt(6)
+  call searchForParams(tmpfile,"stationName",stationName,0)
+  call searchForParams(tmpfile,"stationLocation",dummy,1)
+  read(dummy,*) stla, stlo
+  call searchForParams(tmpfile,"phaseName",normalP,0)
+  call searchForParams(tmpfile,"component",compo,0)
+  call searchForParams(tmpfile,"paramWRT",paramWRT,0)
   
-
-  ! 1a
-  read(1,110) eventName
-  eventName = trim(eventName)
-  ! 1b
-  read(1,*) evla, evlo, evdepth
-  ! 1c
-  read(1,*) mt(1), mt(2), mt(3), mt(4), mt(5), mt(6)
-  ! 2a
-  read(1,110) stationName
-  stationName = trim(stationName)
-  ! 2b 
-  read(1,*) stla, stlo
-  ! 3
-  read(1,110) phase
-  phase = trim(phase)
-  ! 4
-  read(1,110) compo
-  compo = trim(compo)
-  ! 5
-  read(1,110) paramWRT
-  paramWRT = trim(paramWRT)
   timeincrementV=0.d0
+  
   if((trim(paramWRT).eq.'alphaV').or.(trim(paramWRT).eq.'betaV').or.&
      (trim(paramWRT).eq.'allV').or.(trim(paramWRT).eq.'video').or.&
      (trim(paramWRT).eq.'vRSGT').or.(trim(paramWRT).eq.'vTSGT')) then
      ! alphaV, betaV, allV are for waveform partials, video for forward modelling (Green's function)
-    ! 5-bis
-      read(1,*) timeincrementV ! in second 
-  endif  
+     ! 5-bis
+     call searchForParams(tmpfile,"timeincrementV",dummy,1)
+     read(dummy,*) timeincrementV ! in second 
+  endif
+
+  !! NF restarts from here
+
+  
   ! 6a
   read(1,*) ibwfilt
   ! 6b

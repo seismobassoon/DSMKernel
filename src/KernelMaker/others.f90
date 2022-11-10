@@ -1,58 +1,5 @@
 
 
-subroutine readDSMconf(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
-  implicit none
-  !character(120), parameter :: tmpfile='tmpworkingfile_for_DSMconf'
-  character(120) :: dummy,DSMconfFile
-  real(kind(0d0)) :: re,ratc,ratl,omegai
-  integer  :: maxlmax
-  character(120) :: tmpfile
-  
-  tmpfile='tmpworkingfile_for_DSMconf'
-  call tmpfileNameGenerator(tmpfile,tmpfile)
-
-  open(unit=2, file=DSMconfFile, status='old',action='read',position='rewind')
-  open(unit=1, file=tmpfile,status='unknown')
-100 continue
-  read(2,110) dummy
-110 format(a120)
-  if(dummy(1:1).eq.'#') goto 100
-  if(dummy(1:3).eq.'end') goto 120
-  write(1,110) dummy
-  goto 100
-120 continue
-  close(1)
-  close(2)
-  
- 
-  open(unit=1,file=tmpfile,status='unknown')
-  read(1,*) re
-  read(1,*) ratc
-  read(1,*) ratl
-  read(1,*) omegai
-  read(1,*) maxlmax
-  close(1,status='delete')
-
-
-end subroutine readDSMconf
-  
-subroutine readpsvmodel(psvmodel,tmpfile)
-  implicit none
-  character(120) :: psvmodel, tmpfile, dummy
-  open(unit=2, file=psvmodel, status='old',action='read',position='rewind')
-  open(unit=1, file=tmpfile,status='unknown')
-100 continue
-  read(2,110) dummy
-110 format(a120)
-  if(dummy(1:1).eq.'#') goto 100
-  if(dummy(1:3).eq.'end') goto 120
-  write(1,110) dummy
-  goto 100
-120 continue
-  close(1)
-  close(2)
-end subroutine readpsvmodel
-
 
 
 subroutine translat(geodetic,geocentric)
