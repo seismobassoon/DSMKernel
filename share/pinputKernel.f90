@@ -68,7 +68,7 @@ subroutine pinputKernel
   call searchForParams(tmpfile,"stationName",stationName,0)
   call searchForParams(tmpfile,"stationLocation",dummy,1)
   read(dummy,*) stla, stlo
-  call searchForParams(tmpfile,"phaseName",normalP,0)
+  call searchForParams(tmpfile,"phaseName",phase,0)
   call searchForParams(tmpfile,"component",compo,0)
   call searchForParams(tmpfile,"paramWRT",paramWRT,0)
   
@@ -83,17 +83,24 @@ subroutine pinputKernel
      read(dummy,*) timeincrementV ! in second 
   endif
 
-  !! NF restarts from here
+  ! NF starts from here
 
+  call searchForParms(tmpfile,"ibwfilt",dummy,1)
+  read(dummy,*) ibwfilt
+  if(ibwfilt.eq.1) then
+     call searchForParams(tmpfile,"lowHighPoles",dummy,0
+     read(dummy,*) fclp(0), fchp(0), npButterworth
+     write(dummy,"(A)") int(1/fchp(0))
+     
+     call searchForParams(tmpfile,"filterName",dummy,0)
+     freqid(0) = trim(dummy)
+     
+  endif
   
-  ! 6a
-  read(1,*) ibwfilt
-  ! 6b
-  read(1,110) dummy
-  freqid(0) = trim(dummy)
+  
   if(ibwfilt.eq.1) then
      ! 6c
-     read(1,*) fclp(0), fchp(0), npButterworth
+    
      ! in the near future we will calculate multiple frequencies in the same time
   endif
   ! 7

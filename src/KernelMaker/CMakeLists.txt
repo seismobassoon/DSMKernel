@@ -2,7 +2,6 @@ add_library(KernelMakerlib
 		bwfilt.f90
 		calculateK.f90
 		fourier.f90
-		module.f90
 		others.f90
 	)
 
