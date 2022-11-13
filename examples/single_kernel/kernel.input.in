@@ -86,7 +86,19 @@ iBananaCentred = 0
 	 !
 	 ! if this parameter is not defined, we take iBananaCentred = 1 to show bananas
 	 !
-	 
+
+
+
+qlat_min_max_delta = 30.d0 50.d0 1.d0
+qlon_min_max_delta = 120.d0 140.d0 1.d0
+qrad_min_max_delta = 0.d0 0.d0 0.d0
+
+! if iBananaCentred = 1 the user needs to define lat/lon/radius range and increment 
+ ! since we will then decide the volume of each element to compute the partials for
+ ! each block
+ ! be careful with radii, it should match perfectly the radii with which SGTs were computed
+ ! you can put 0.d0 0.d0 0.d0 if you don't be bothered
+
 
 
 ! Below are minor parameters for kernel computation: if you don't want to touch,
@@ -115,6 +127,32 @@ fminfmax = 0 256
 	 ! if ifastFFT = 1; lowest i(freq), highest i(freq) (note that freq = i(freq)/tlen)
 	 ! if ifastFFT = 0; just don't write anything (anyways the code will ignore this)
 
+start = 0.d0
+end = 1.d3
+         ! start and end defines the seismogram window, which will be taken into account
+	 ! for waveform partials and other Frechet derivatives (twin(1:4) should be inside)
+
+samplingHz = 2.d0
+
+
+iPSVSH = 3
+	 ! PSV/SH (PSV only = 2; SH only = 1; PSV+SH =3)
+
+
+!!! below are for the ignoring scheme
+
+calculrapide = 0.d0
+	  ! ignoring criteria
+	  !     calculrapide: we ignore the values below; if 0.d0 we don't use the algo)
+	  !     in Fuji et al. 2012, we chose 5.d-3
+
+nntype = 1
+          ! number of kernel types for the ignoring scheme
+
+  idecidetypes = 1 3 5
+	  ! kernel types for ignoring scheme (if calculrapide = 0.d0 we don't care)
+	  ! type 0 means envelop
+
 
 
 !!! This is for iBananaCentred=1 mode
@@ -135,21 +173,7 @@ rmin_rmax_rdelta = 0.d0 0.d0 0.d0
 
 
 
-# Da. time window (start, end in sec)  
-400.d0 460.d0
-# Db. sampling Hz 
-2.0d0
-# Ea. ignoring criteria (calculrapide: we ignore the values below; if 0.d0 we don't use the algo)
-#         (in Fuji et al. 2012b, we chose 5.d-3)
-0.d0
-#
-# Eb. number of kernel types for the ignoring scheme (if Ea. = 0.d0, just comment out all)
-#1
-#    
-# Ec. kernel type for ignoring scheme (if 0 we calculate for the envelop) note them vertically
-#0
-#
-# F. PSV/SH (PSV only = 2; SH only = 1; PSV+SH =3)
+
 3
 # don't forget write 'end' at the end 
 end

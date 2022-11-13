@@ -89,7 +89,7 @@ program KernelMaker
      endif     
   endif
   
-
+  
   call MPI_BCAST(SGTinfo,    120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(parentDir,  120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(eventName,  120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
@@ -135,6 +135,7 @@ program KernelMaker
   call MPI_BCAST(calculrapide,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(nntype,       1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(iPSVSH,       1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(iBananaCentred,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   mtype=0
   if(compo.eq.'Z') then

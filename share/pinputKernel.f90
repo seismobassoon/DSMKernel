@@ -99,6 +99,7 @@ subroutine pinputKernel
         freqid(0) = trim(dummy)
      else
         freqid(0) = trim(period1)//'s_'//trim(period2)//'s_np'//npolesChar
+        print *, "filterName is automatically determined:", freqid(0)
      endif    
   else
      freqid(0)="nofilter"
@@ -115,15 +116,27 @@ subroutine pinputKernel
 
   ipdistance = 10.d0 
   call searchForParamsOption(tmpfile,"ipdistance",dummy,0,iFind)
-  if(iFind.eq.1) read(dummy,*) ipdistance
-
+  if(iFind.eq.1) then
+     read(dummy,*) ipdistance
+  else
+     print *, "since ipdistance is not read, we use default:", ipdistance
+  endif
+     
   c_red_reci = 0.d0
   call searchForParamsOption(tmpfile,"c_red_reci",dummy,0,iFind)
-  if(iFind.eq.1) read(dummy,*) c_red_reci
+  if(iFind.eq.1) then
+     read(dummy,*) c_red_reci
+  else
+     print *, "since c_red_reci is not read, we use default:", c_red_reci
+  endif
   
   ifastFFT=0
   call searchForParamsOption(tmpfile,"ifastFFT",dummy,0,iFind)
-  if(iFind.eq.1) read(dummy,*) ifastFFT
+  if(iFind.eq.1) then
+     read(dummy,*) ifastFFT
+  else
+     print *, "since ifastFFT is not read, we use:" ,ifastFFT
+  endif
 
   
   if(ifastFFT.eq.1) then
@@ -134,9 +147,26 @@ subroutine pinputKernel
 
   iBananaCentred = 1
   call searchForParamsOption(tmpfile,"iBananaCentred",dummy,0,iFind)
-  if(iFind.eq.1) read(dummy,*) iBananaCentred
+  if(iFind.eq.1) then
+     read(dummy,*) iBananaCentred
+  else
+     print *, "since iBananaCentred is not read, we use:", iBananaCentred
+  endif
 
-
+  if(iBananaCentred.eq.0) then
+     rmin=0.d0
+     rmax=0.d0
+     rdelta=0.d0
+     call searchForParams(tmpfile,"qlat_min_max_delta",dummy)
+     read(dummy,*) qlat_min,qlat_max,qlat_delta
+     call searchForParams(tmpfile,"qlon_min_max_delta",dummy)
+     read(dummy,*) qlon_min,qlon_max,qlon_delta
+     call searchForParams(tmpfile,"qrad_min_max_delta",dummy)
+     read(dummy,*) rmin,rmax,rdelta
+  endif
+     
+     
+     
   if(iBananaCentred.eq.1) then
      dph=5.d-1
      ph1=10.d0
@@ -147,48 +177,116 @@ subroutine pinputKernel
      rdelta=0.d0
 
      call searchForParamsOption(tmpfile,"delta_distance",dummy,0,iFind)
-     if(iFind.eq.1) read(dummy,*) dph
+     if(iFind.eq.1) then
+        read(dummy,*) dph
+     else
+        print *, "since dph is not read, we use:", dph
+     endif
 
      call searchForParamsOption(tmpfile,"extension_distance",dummy,0,iFind)
-     if(iFind.eq.1) read(dummy,*) ph1
+     if(iFind.eq.1) then
+        read(dummy,*) ph1
+     else
+        print *, "since ph1 is not read, we use:", ph1
+     endif
 
      call searchForParamsOption(tmpfile,"delta_width",dummy,0,iFind)
-     if(iFind.eq.1) read(dummy,*) dth
+     if(iFind.eq.1) then
+        read(dummy,*) dth
+     else
+        print *, "since dth is not read, we use:", dth
+     elseif
 
      call searchForParamsOption(tmpfile,"extension_width",dummy,0,iFind)
-     if(iFind.eq.1) read(dummy,*) thw
+     if(iFind.eq.1) then
+        read(dummy,*) thw
+     else
+        print *, "since thw is not read, we use:", thw
+     endif
 
      call searchForParamsOption(tmpfile,"rmin_rmax_rdelta",dummy,0,iFind)
-     if(iFind.eq.1) read(dummy,*) rmin,rmax,rdelta
+     if(iFind.eq.1) then
+        read(dummy,*) rmin,rmax,rdelta
+     else
+        print *, "since rmin/rmax/rdelta are not read, ue use:", rmin, rmax, rdelta
   endif
 
 
-  ! NF starts here
+
+  start = max(0.d0,twin(1)-1.d0/fclp(0))
+  end = twin(4)+1.d0/fclp(0) ! Here, tlen is not read so will be corrected later
+
+  call searchForParamsOption(tmpfile,"start",dummy,0,iFind)
+  if(iFind.eq.1) then
+     read(dummy,*) start
+  else
+     print *, "since start is not read, we use:", start
+  endif
+
+  call searchForParamsOption(tmpfile,"end",dummy,0,iFind)
+  if(iFind.eq.1) then
+     read(dummy,*) end
+  else
+     print *, "since end is not read, we use:", end
+  endif
+
+  samplingHz = 2.d0
+  call searchForParamsOption(tmpfile,"samplingHz",dummy,0,iFind)
+  if(iFind.eq.1) then
+     read(dummy,*) samplingHz
+  else
+     print *, "since samplingHz is not read, we use:", samplingHz
+  endif
   
-  read(1,*) start, end
-  ! Db
-  read(1,*) samplingHz
-  ! Ea
-  read(1,*) calculrapide
+
+  calculrapide = 0.d0
+  call searchForParamsOption(tmpfile,"calculrapide",dummy,0,iFind)
+  if(iFind.eq.1) then
+     read(dummy,*) calculrapide
+  else
+     print *, "since calculrapide is not read, we use:", calculrapide
+  endif
+
+
+  nntype = 1
   if(calculrapide.ne.0.d0) then
-     ! Eb
-     read(1,*)  nntype
+     call searchForParamsOption(tmpfile,"nntype",dummy,0,iFind)
+     if(iFind.eq.1) then
+        read(dummy,*)  nntype
+     else
+        print *, "since nntype is not read, we use:", nntype
+     endif
+  endif
   else
      nntype = 1
   endif
   allocate(minici(1:nntype,0:nfilter))
   allocate(idecidetype(1:nntype))
+
+  idecidetype(1) = 0
   
   if(calculrapide.ne.0.d0) then
-     do iitmp = 1, nntype
-        ! Ec 
-        read(1,*) idecidetype(iitmp)
-     enddo
+     call searchForParamsOption(tmpfile,"idecidetypes",dummy,0,iFind)
+     if(iFind.eq.1) then
+        do iitmp = 1, nntype        
+           read(dummy,*) idecidetype(iitmp)
+        enddo
+     else
+        print *, "idecidetypes are not read, we use:", idecidetype(:)
+     endif
   endif
-  read(1,*) iPSVSH
-  close(1,status='delete')
 
+  iPSVSH=3
 
+  call searchForParamsOption(tmpfile,"iPSVSH",dummy,0,iFind)
+  if(iFind.eq.1) then
+     read(dummy,*) iPSVSH
+  else
+     print *, "iPSVSH is not read, we use:", iPSVSH
+  endif
+
+  commandline = 'rm '//trim(tmpfile)
+  call system(commandline)
   commandline = 'mkdir -p '//trim(parentDir)
   call system(commandline)
   commandline = 'mkdir -p '//trim(parentDir)//'/log'
