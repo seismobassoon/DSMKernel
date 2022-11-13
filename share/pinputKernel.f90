@@ -124,12 +124,19 @@ subroutine pinputKernel
   ifastFFT=0
   call searchForParamsOption(tmpfile,"ifastFFT",dummy,0,iFind)
   if(iFind.eq.1) read(dummy,*) ifastFFT
+
+  
+  if(ifastFFT.eq.1) then
+     call searchForParams(tmpfile,"fminfmax",dummy,0)
+     read(dummy,*) fmin, fmax
+  endif
   
 
-  if(ifastFFT.eq.1) then
-     ! Bb
-     read(1,*) fmin, fmax
-  endif
+  iBananaCentred = 0
+  call searchForParamsOption(tmpfile,"iBananaCentred",dummy,0,iFind)
+  if(iFind.eq.1) read(dummy,*) iBananaCentred
+  
+  
   ! Ca
   read(1,*) dph, ph1
   ! Cb

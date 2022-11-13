@@ -74,8 +74,17 @@ twin = 410.d0 420.d0 440.d0 450.d0
      (otherwise we use sine functions for tapering between t1-t2 and t3-t4)
 
 itraslat = 0
-	 !itranslat (1 if you convert geodetic latitude to geocentric latitude)
+	 ! itranslat (1 if you convert geodetic latitude to geocentric latitude)
 
+
+
+iBananaCentred = 0
+	 ! if you want to look at a simple banana doughnut between the epicentre and
+	 ! the station, check 1
+	 ! if you need to know partials (banana as well) for specific locations in
+	 ! the real coordinates, check 0
+	 !
+	 ! if this parameter is not defined, we take iBananaCentred = 0
 
 
 ! Below are minor parameters for kernel computation: if you don't want to touch,
@@ -98,10 +107,13 @@ ifastFFT  = 0
 	  ! thence you can avoid reading frequencies for which you don't have to account.
 
 
+fminfmax = 0 256
 
-# Bb. if fast FFT = 1; lowest i(freq), highest i(freq) (note that freq = i(freq)/tlen)
-#     if fast FFT = 0; just comment out those parameters (subroutine won't read them)
-#0  256 
+	 ! 
+	 ! if ifastFFT = 1; lowest i(freq), highest i(freq) (note that freq = i(freq)/tlen)
+	 ! if ifastFFT = 0; just don't write anything (anyways the code will ignore this)
+
+
 # Ca. gridding and extent in R(longitudinal) direction (dph, ph1)
 5.d-1 10.d0
 # Cb. gridding and extent in T(transverse) direction (dth, thw)
@@ -110,6 +122,10 @@ ifastFFT  = 0
 # if you put 0.d0 0.d0 0.d0 then the program will take the grids in catalogue
 #0.d0 0.d0 0.d0
 5471.d0 6371.d0 20.d0
+
+
+
+
 # Da. time window (start, end in sec)  
 400.d0 460.d0
 # Db. sampling Hz 
