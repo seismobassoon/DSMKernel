@@ -13,10 +13,12 @@ subroutine pinputKernel
   implicit none
   character(200) :: tmpfile,kernelInfFile
   character(200) :: dummy
+  character(10) :: period1, period2
+  character(1) :: npolesChar
   integer :: iitmp,maxlmax
   character(200) :: commandline
   integer :: numberLines,io,iLine
-
+  integer :: iFind
   call getarg(1,argv)
   kernelInfFile=argv
 
@@ -90,10 +92,17 @@ subroutine pinputKernel
   if(ibwfilt.eq.1) then
      call searchForParams(tmpfile,"lowHighPoles",dummy,0
      read(dummy,*) fclp(0), fchp(0), npButterworth
-     write(dummy,"(A)") int(1/fchp(0))
+     write(period1,"(A)") int(1/fchp(0))
+     write(period2,"(A)") int(1/fclp(0))
+     write(npolesChar,"(A)") npButterworth
+     call searchForParamsOption(tmpfile,"filterName",dummy,1,iFind)
+     if(iFind.eq.1) then
+        freqid(0) = trim(dummy)
+     else
+        freqid(0) = trim(period1)//'s_'//trim(period2)//'s_np'//npolesChar
+     endif
+
      
-     call searchForParams(tmpfile,"filterName",dummy,0)
-     freqid(0) = trim(dummy)
      
   endif
   

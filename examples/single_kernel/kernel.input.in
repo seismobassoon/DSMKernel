@@ -67,6 +67,8 @@ lowHighPoles = 1d-2 1.d-1 2
 
 	   lowest freq. [Hz], highest freq. [Hz], number of poles
 
+
+
 	     
 
 # 6c. if butterworth = 1; lowest freq. [Hz], highest freq. [Hz], number of poles
