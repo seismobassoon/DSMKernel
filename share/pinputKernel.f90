@@ -85,12 +85,11 @@ subroutine pinputKernel
      read(dummy,*) timeincrementV ! in second 
   endif
 
-  ! NF starts from here
-
   call searchForParms(tmpfile,"ibwfilt",dummy,1)
   read(dummy,*) ibwfilt
+ 
   if(ibwfilt.eq.1) then
-     call searchForParams(tmpfile,"lowHighPoles",dummy,0
+     call searchForParams(tmpfile,"lowHighPoles",dummy,0)
      read(dummy,*) fclp(0), fchp(0), npButterworth
      write(period1,"(A)") int(1/fchp(0))
      write(period2,"(A)") int(1/fclp(0))
@@ -100,29 +99,33 @@ subroutine pinputKernel
         freqid(0) = trim(dummy)
      else
         freqid(0) = trim(period1)//'s_'//trim(period2)//'s_np'//npolesChar
-     endif
+     endif    
+  else
+     freqid(0)="nofilter"
+  endif
 
-     
-     
-  endif
-  
-  
-  if(ibwfilt.eq.1) then
-     ! 6c
-    
-     ! in the near future we will calculate multiple frequencies in the same time
-  endif
-  ! 7
   twin(1:4) = 0.d0
-  read(1,*) twin(1),twin(2),twin(3),twin(4)
-  ! 8
-  read(1,*) itranslat
-  ! Aa
-  read(1,*) ipdistance
-  ! Ab
-  read(1,*) c_red_reci
-  ! Ba
-  read(1,*) ifastFFT
+  call searchForParams(tmpfile,"twin",dummy,0)
+  read(dummy,*) twin(1),twin(2),twin(3),twin(4)
+  
+  call searchForParams(tmpfile,"itranslat",dummy,0)
+  read(dummy,*) itranslat
+
+  ! First we take default values for minor parameters
+
+  ipdistance = 10.d0 
+  call searchForParamsOption(tmpfile,"ipdistance",dummy,0,iFind)
+  if(iFind.eq.1) read(dummy,*) ipdistance
+
+  c_red_reci = 0.d0
+  call searchForParamsOption(tmpfile,"c_red_reci",dummy,0,iFind)
+  if(iFind.eq.1) read(dummy,*) c_red_reci
+  
+  ifastFFT=0
+  call searchForParamsOption(tmpfile,"ifastFFT",dummy,0,iFind)
+  if(iFind.eq.1) read(dummy,*) ifastFFT
+  
+
   if(ifastFFT.eq.1) then
      ! Bb
      read(1,*) fmin, fmax

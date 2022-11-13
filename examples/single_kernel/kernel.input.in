@@ -67,33 +67,38 @@ lowHighPoles = 1d-2 1.d-1 2
 
 	   lowest freq. [Hz], highest freq. [Hz], number of poles
 
+twin = 410.d0 420.d0 440.d0 450.d0
+     
+     time window t1, t2, t3, t4 
+     (if t1=t2 and t3=t4, fwin(:) will be rectangular)
+     (otherwise we use sine functions for tapering between t1-t2 and t3-t4)
+
+itraslat = 0
+	 !itranslat (1 if you convert geodetic latitude to geocentric latitude)
 
 
-	     
 
-# 6c. if butterworth = 1; lowest freq. [Hz], highest freq. [Hz], number of poles
-#     if butterworth = 0; just comment out those parameters (subroutine won't read them)
+! Below are minor parameters for kernel computation: if you don't want to touch,
+! you do not have to write them (erase all below) and we will take a default values
 
-# 7. time wi4dow t1, t2, t3, t4 
-#  (if t1=t2 and t3=t4, fwin(:) will be rectangular)
-#  (normally taper functions are sine functions) 
-410.d0 420.d0 440.d0 450.d0
-# 8. itranslat (1 if you convert geodetic latitude to geocentric latitude)
-0
-#
-#
-#  Below are minor parameters for kernel calculations
-#                         (i.e. you can leave them as they are to start with)
-#
-# Aa. SINC interpolation window (ipdistance deg) (it works well with 10-20 degrees)
-10.d0
-# Ab. reducing slowness for interpolation (c_red_reci s/deg) (if 0.d0 we do not
-# perform slowness reduction)
-0.d0
-# Ba. fast FFT (if 1 on; if 0 off)
-#   you can re-define imin and imax for FFT of Green functions
-#   thence you can avoid reading frequencies for which you don't have to account.
-0
+
+ipdistance = 10.d0
+	   ! ipdistance is a SINC interpolation window
+	   ! (ipdistance deg) (it works well with 10-20 degrees)
+
+
+c_red_reci = 0.d0
+	   ! reducing slowness for interpolation (c_red_reci s/deg)
+	   (if 0.d0 we do not perform slowness reduction)
+
+
+ifastFFT  = 0
+	  ! fast FFT (if 1 on; if 0 off)
+	  ! you can re-define imin and imax for FFT of Green functions
+	  ! thence you can avoid reading frequencies for which you don't have to account.
+
+
+
 # Bb. if fast FFT = 1; lowest i(freq), highest i(freq) (note that freq = i(freq)/tlen)
 #     if fast FFT = 0; just comment out those parameters (subroutine won't read them)
 #0  256 
