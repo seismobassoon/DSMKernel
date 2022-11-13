@@ -132,18 +132,39 @@ subroutine pinputKernel
   endif
   
 
-  iBananaCentred = 0
+  iBananaCentred = 1
   call searchForParamsOption(tmpfile,"iBananaCentred",dummy,0,iFind)
   if(iFind.eq.1) read(dummy,*) iBananaCentred
+
+
+  if(iBananaCentred.eq.1) then
+     dph=5.d-1
+     ph1=10.d0
+     dth=5.d-1
+     thw=10.d0
+     rmin=0.d0
+     rmax=0.d0
+     rdelta=0.d0
+
+     call searchForParamsOption(tmpfile,"delta_distance",dummy,0,iFind)
+     if(iFind.eq.1) read(dummy,*) dph
+
+     call searchForParamsOption(tmpfile,"extension_distance",dummy,0,iFind)
+     if(iFind.eq.1) read(dummy,*) ph1
+
+     call searchForParamsOption(tmpfile,"delta_width",dummy,0,iFind)
+     if(iFind.eq.1) read(dummy,*) dth
+
+     call searchForParamsOption(tmpfile,"extension_width",dummy,0,iFind)
+     if(iFind.eq.1) read(dummy,*) thw
+
+     call searchForParamsOption(tmpfile,"rmin_rmax_rdelta",dummy,0,iFind)
+     if(iFind.eq.1) read(dummy,*) rmin,rmax,rdelta
+  endif
+
+
+  ! NF starts here
   
-  
-  ! Ca
-  read(1,*) dph, ph1
-  ! Cb
-  read(1,*) dth, thw
-  ! Cd
-  read(1,*) rmin,rmax,rdelta
-  ! Da
   read(1,*) start, end
   ! Db
   read(1,*) samplingHz

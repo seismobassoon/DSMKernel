@@ -84,7 +84,9 @@ iBananaCentred = 0
 	 ! if you need to know partials (banana as well) for specific locations in
 	 ! the real coordinates, check 0
 	 !
-	 ! if this parameter is not defined, we take iBananaCentred = 0
+	 ! if this parameter is not defined, we take iBananaCentred = 1 to show bananas
+	 !
+	 
 
 
 ! Below are minor parameters for kernel computation: if you don't want to touch,
@@ -114,14 +116,21 @@ fminfmax = 0 256
 	 ! if ifastFFT = 0; just don't write anything (anyways the code will ignore this)
 
 
-# Ca. gridding and extent in R(longitudinal) direction (dph, ph1)
-5.d-1 10.d0
-# Cb. gridding and extent in T(transverse) direction (dth, thw)
-5.d-1 10.d0
-# Cd. gridding in radius (rmin, rmax, deltar : should correspond to grids in catalogue)
-# if you put 0.d0 0.d0 0.d0 then the program will take the grids in catalogue
-#0.d0 0.d0 0.d0
-5471.d0 6371.d0 20.d0
+
+!!! This is for iBananaCentred=1 mode
+
+delta_distance = 5.d-1
+	  ! gridding in longitudinal direction
+extension_distance = 10.d0
+          ! extension in longitudinal direction
+delta_width = 5.d-1
+	  ! gridding in transverse direction
+extension_width = 10.d0
+          ! extension in transverse direction
+rmin_rmax_rdelta = 0.d0 0.d0 0.d0
+          ! gridding in radius (rmin, rmax, deltar)
+	  ! they should correspond to grids in catalogue
+	  ! if you put 0.d0 0.d0 0.d0 the program will take the grids in catalogue
 
 
 
