@@ -90,15 +90,21 @@ iCompute = 1
 
 
 
-qlat_min_max_delta = 30.d0 50.d0 1.d0
-qlon_min_max_delta = 120.d0 140.d0 1.d0
-qrad_min_max_delta = 0.d0 0.d0 0.d0
+ qlat_min_max_delta = 30.d0 50.d0 1.d0
+ qlon_min_max_delta = 120.d0 140.d0 1.d0
+ qrad_min_max_delta = 0.d0 0.d0 0.d0
 
  ! if iCompute = 1 the user needs to define lat/lon/radius range and increment 
  ! since we will then decide the volume of each element to compute the partials for
  ! each block
  ! be careful with radii, it should match perfectly the radii with which SGTs were computed
  ! you can put 0.d0 0.d0 0.d0 if you don't be bothered
+
+
+ fileForQlocation = XXXX.qloc
+
+ ! if iCompute = 2 the user should provide lat/lon/radius/volume(/vp/vs/qp/qs perturbation)
+ ! in a file
 
 
 

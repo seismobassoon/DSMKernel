@@ -165,7 +165,10 @@ subroutine pinputKernel
      read(dummy,*) rmin,rmax,rdelta
   endif
      
-     
+
+  if(iCompute.eq.2) then
+     call searchForParams(tmpfile,"fileForQlocation",fileForQlocation,0)
+  endif
      
   if(iCompute.eq.0) then
      dph=5.d-1
@@ -314,7 +317,7 @@ subroutine pinputKernel
 
   synnfile = trim(parentDir)//"/"//trim(stationName)//"."//trim(eventName)//"."//trim(compo)//"s.dat"
 
-
+  
 
 
   if(itranslat.eq.1) then
