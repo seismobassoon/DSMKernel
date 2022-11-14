@@ -84,8 +84,8 @@ module parametersKernel
   real(kind(0d0)), parameter :: sym = 0.d0
   real(kind(0d0)) :: csym,ssym
 
-  ! Banana centred or not
-  integer :: iBananaCentred  
+  ! Computation modet
+  integer :: iCompute  
 
   ! Kernel
   integer :: nr,ntot

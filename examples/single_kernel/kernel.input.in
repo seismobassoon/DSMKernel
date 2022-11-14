@@ -78,13 +78,14 @@ itraslat = 0
 
 
 
-iBananaCentred = 0
+iCompute = 1
 	 ! if you want to look at a simple banana doughnut between the epicentre and
-	 ! the station, check 1
-	 ! if you need to know partials (banana as well) for specific locations in
-	 ! the real coordinates, check 0
+	 ! the station, check 0
 	 !
-	 ! if this parameter is not defined, we take iBananaCentred = 1 to show bananas
+	 ! if you need to know partials (banana as well) for specific locations in
+	 ! the real coordinates, check 1
+	 !
+	 ! if this parameter is not defined, we take iCompute = 0 to show bananas
 	 !
 
 
@@ -93,7 +94,7 @@ qlat_min_max_delta = 30.d0 50.d0 1.d0
 qlon_min_max_delta = 120.d0 140.d0 1.d0
 qrad_min_max_delta = 0.d0 0.d0 0.d0
 
-! if iBananaCentred = 1 the user needs to define lat/lon/radius range and increment 
+ ! if iCompute = 1 the user needs to define lat/lon/radius range and increment 
  ! since we will then decide the volume of each element to compute the partials for
  ! each block
  ! be careful with radii, it should match perfectly the radii with which SGTs were computed
@@ -155,7 +156,7 @@ nntype = 1
 
 
 
-!!! This is for iBananaCentred=1 mode
+!!! This is for iCompute=0 mode
 
 delta_distance = 5.d-1
 	  ! gridding in longitudinal direction
@@ -171,9 +172,3 @@ rmin_rmax_rdelta = 0.d0 0.d0 0.d0
 	  ! if you put 0.d0 0.d0 0.d0 the program will take the grids in catalogue
 
 
-
-
-
-3
-# don't forget write 'end' at the end 
-end

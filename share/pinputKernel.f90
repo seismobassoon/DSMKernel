@@ -145,15 +145,15 @@ subroutine pinputKernel
   endif
   
 
-  iBananaCentred = 1
-  call searchForParamsOption(tmpfile,"iBananaCentred",dummy,0,iFind)
+  iCompute = 0
+  call searchForParamsOption(tmpfile,"iCompute",dummy,0,iFind)
   if(iFind.eq.1) then
-     read(dummy,*) iBananaCentred
+     read(dummy,*) iCompute
   else
-     print *, "since iBananaCentred is not read, we use:", iBananaCentred
+     print *, "since iCompute is not read, we use:", iCompute
   endif
 
-  if(iBananaCentred.eq.0) then
+  if(iCompute.eq.1) then
      rmin=0.d0
      rmax=0.d0
      rdelta=0.d0
@@ -167,7 +167,7 @@ subroutine pinputKernel
      
      
      
-  if(iBananaCentred.eq.1) then
+  if(iCompute.eq.0) then
      dph=5.d-1
      ph1=10.d0
      dth=5.d-1
