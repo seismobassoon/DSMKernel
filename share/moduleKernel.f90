@@ -92,6 +92,8 @@ module parametersKernel
 
   ! Kernel
   integer :: nr,ntot
+  real(kind(0d0)) :: qlat_min,qlat_max,qlat_delta
+  real(kind(0d0)) :: qlon_min,qlon_max,qlon_delta
   real(kind(0d0)) :: rcmb,rmin,rmax,rdelta
   real(kind(0d0)), allocatable :: r(:)
   real(kind(0d0)), allocatable :: rhom(:),vpm(:),vsm(:),qmm(:),qkp(:)
@@ -133,21 +135,6 @@ module parametersKernel
 
 end module parametersKernel
 
-
-module angles
-  implicit none
-  real(kind(0d0)), allocatable :: phi00(:),phi0(:),theta0(:)
-  integer :: nphi0, ntheta,nphi
-  real(kind(0d0)), allocatable :: phitheta(:,:),thetaphi(:,:)
-  real(kind(0d0)), allocatable :: phi(:,:), theta(:,:)
-  real(kind(0d0)), allocatable :: crq(:,:),srq(:,:),crq2(:,:),srq2(:,:)
-  real(kind(0d0)), allocatable :: csq(:,:),ssq(:,:),csq2(:,:),ssq2(:,:)
-  real(kind(0d0)), allocatable :: cqs(:,:),sqs(:,:),cqs2(:,:),sqs2(:,:)
-  real(kind(0d0)), allocatable :: deltar(:,:),deltas(:,:)
-  real(kind(0d0)) :: slat,slon,sdep,rlat,rlon
-  
-end module angles
-  
 
 
 module tmpSGTs
@@ -209,6 +196,3 @@ module kernels
 end module kernels
   
   
-module rotate
-  real(kind(0d0)) :: cc(3,3),ct(3,3)
-end module rotate

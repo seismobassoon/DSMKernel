@@ -31,7 +31,7 @@ subroutine caldvecphi0( l,theta,plm,bvec,bvecdt,bvecdp)
   
   implicit none
   real(kind(0d0)), parameter ::  pi=3.1415926535897932d0 
-  integer  :: l,m,i,j
+  integer  :: l,m,i
   real(kind(0d0)) :: theta,x,plm(1:3,0:3),fact,coef
   complex(kind(0d0)) :: bvec(1:3,-2:2)
   complex(kind(0d0)) :: bvecdt(1:3,-2:2),bvecdp(1:3,-2:2)
@@ -227,7 +227,7 @@ subroutine caldvecphi0_good( l,theta,plm,bvec,bvecdt,bvecdp)
   
   implicit none
   real(kind(0d0)), parameter ::  pi=3.1415926535897932d0 
-  integer  :: l,m,i,j
+  integer  :: l,m,i
   real(kind(0d0)) :: theta,x,plm(1:3,0:3),fact,coef
   complex(kind(0d0)) :: bvec(1:3,-2:2)
   complex(kind(0d0)) :: bvecdt(1:3,-2:2),bvecdp(1:3,-2:2)

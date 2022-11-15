@@ -19,6 +19,8 @@ subroutine pinputKernel
   character(200) :: commandline
   integer :: numberLines,io,iLine
   integer :: iFind
+  character(200) :: argv
+  integer :: argc
   call getarg(1,argv)
   kernelInfFile=argv
 
@@ -85,11 +87,11 @@ subroutine pinputKernel
      read(dummy,*) timeincrementV ! in second 
   endif
 
-  call searchForParms(tmpfile,"ibwfilt",dummy,1)
+  call searchForParams(tmpfile,"ibwfilt",dummy,1)
   read(dummy,*) ibwfilt
  
   if(ibwfilt.eq.1) then
-     call searchForParams(tmpfile,"lowHighPoles",dummy,0)
+     call searchForParams(tmpfile,"lowHighPoles",dummy,1)
      read(dummy,*) fclp(0), fchp(0), npButterworth
      write(period1,"(A)") int(1/fchp(0))
      write(period2,"(A)") int(1/fclp(0))
@@ -106,16 +108,16 @@ subroutine pinputKernel
   endif
 
   twin(1:4) = 0.d0
-  call searchForParams(tmpfile,"twin",dummy,0)
+  call searchForParams(tmpfile,"twin",dummy,1)
   read(dummy,*) twin(1),twin(2),twin(3),twin(4)
   
-  call searchForParams(tmpfile,"itranslat",dummy,0)
+  call searchForParams(tmpfile,"itranslat",dummy,1)
   read(dummy,*) itranslat
 
   ! First we take default values for minor parameters
 
   ipdistance = 10.d0 
-  call searchForParamsOption(tmpfile,"ipdistance",dummy,0,iFind)
+  call searchForParamsOption(tmpfile,"ipdistance",dummy,1,iFind)
   if(iFind.eq.1) then
      read(dummy,*) ipdistance
   else
@@ -123,7 +125,7 @@ subroutine pinputKernel
   endif
      
   c_red_reci = 0.d0
-  call searchForParamsOption(tmpfile,"c_red_reci",dummy,0,iFind)
+  call searchForParamsOption(tmpfile,"c_red_reci",dummy,1,iFind)
   if(iFind.eq.1) then
      read(dummy,*) c_red_reci
   else
@@ -131,7 +133,7 @@ subroutine pinputKernel
   endif
   
   ifastFFT=0
-  call searchForParamsOption(tmpfile,"ifastFFT",dummy,0,iFind)
+  call searchForParamsOption(tmpfile,"ifastFFT",dummy,1,iFind)
   if(iFind.eq.1) then
      read(dummy,*) ifastFFT
   else
@@ -140,13 +142,13 @@ subroutine pinputKernel
 
   
   if(ifastFFT.eq.1) then
-     call searchForParams(tmpfile,"fminfmax",dummy,0)
+     call searchForParams(tmpfile,"fminfmax",dummy,1)
      read(dummy,*) fmin, fmax
   endif
   
 
   iCompute = 0
-  call searchForParamsOption(tmpfile,"iCompute",dummy,0,iFind)
+  call searchForParamsOption(tmpfile,"iCompute",dummy,1,iFind)
   if(iFind.eq.1) then
      read(dummy,*) iCompute
   else
@@ -157,11 +159,11 @@ subroutine pinputKernel
      rmin=0.d0
      rmax=0.d0
      rdelta=0.d0
-     call searchForParams(tmpfile,"qlat_min_max_delta",dummy)
+     call searchForParams(tmpfile,"qlat_min_max_delta",dummy,1)
      read(dummy,*) qlat_min,qlat_max,qlat_delta
-     call searchForParams(tmpfile,"qlon_min_max_delta",dummy)
+     call searchForParams(tmpfile,"qlon_min_max_delta",dummy,1)
      read(dummy,*) qlon_min,qlon_max,qlon_delta
-     call searchForParams(tmpfile,"qrad_min_max_delta",dummy)
+     call searchForParams(tmpfile,"qrad_min_max_delta",dummy,1)
      read(dummy,*) rmin,rmax,rdelta
   endif
      
@@ -179,39 +181,40 @@ subroutine pinputKernel
      rmax=0.d0
      rdelta=0.d0
 
-     call searchForParamsOption(tmpfile,"delta_distance",dummy,0,iFind)
+     call searchForParamsOption(tmpfile,"delta_distance",dummy,1,iFind)
      if(iFind.eq.1) then
         read(dummy,*) dph
      else
         print *, "since dph is not read, we use:", dph
      endif
 
-     call searchForParamsOption(tmpfile,"extension_distance",dummy,0,iFind)
+     call searchForParamsOption(tmpfile,"extension_distance",dummy,1,iFind)
      if(iFind.eq.1) then
         read(dummy,*) ph1
      else
         print *, "since ph1 is not read, we use:", ph1
      endif
 
-     call searchForParamsOption(tmpfile,"delta_width",dummy,0,iFind)
+     call searchForParamsOption(tmpfile,"delta_width",dummy,1,iFind)
      if(iFind.eq.1) then
         read(dummy,*) dth
      else
         print *, "since dth is not read, we use:", dth
-     elseif
+     endif
 
-     call searchForParamsOption(tmpfile,"extension_width",dummy,0,iFind)
+     call searchForParamsOption(tmpfile,"extension_width",dummy,1,iFind)
      if(iFind.eq.1) then
         read(dummy,*) thw
      else
         print *, "since thw is not read, we use:", thw
      endif
 
-     call searchForParamsOption(tmpfile,"rmin_rmax_rdelta",dummy,0,iFind)
+     call searchForParamsOption(tmpfile,"rmin_rmax_rdelta",dummy,1,iFind)
      if(iFind.eq.1) then
         read(dummy,*) rmin,rmax,rdelta
      else
         print *, "since rmin/rmax/rdelta are not read, ue use:", rmin, rmax, rdelta
+     endif
   endif
 
 
@@ -219,14 +222,14 @@ subroutine pinputKernel
   start = max(0.d0,twin(1)-1.d0/fclp(0))
   end = twin(4)+1.d0/fclp(0) ! Here, tlen is not read so will be corrected later
 
-  call searchForParamsOption(tmpfile,"start",dummy,0,iFind)
+  call searchForParamsOption(tmpfile,"start",dummy,1,iFind)
   if(iFind.eq.1) then
      read(dummy,*) start
   else
      print *, "since start is not read, we use:", start
   endif
 
-  call searchForParamsOption(tmpfile,"end",dummy,0,iFind)
+  call searchForParamsOption(tmpfile,"end",dummy,1,iFind)
   if(iFind.eq.1) then
      read(dummy,*) end
   else
@@ -234,7 +237,7 @@ subroutine pinputKernel
   endif
 
   samplingHz = 2.d0
-  call searchForParamsOption(tmpfile,"samplingHz",dummy,0,iFind)
+  call searchForParamsOption(tmpfile,"samplingHz",dummy,1,iFind)
   if(iFind.eq.1) then
      read(dummy,*) samplingHz
   else
@@ -243,7 +246,7 @@ subroutine pinputKernel
   
 
   calculrapide = 0.d0
-  call searchForParamsOption(tmpfile,"calculrapide",dummy,0,iFind)
+  call searchForParamsOption(tmpfile,"calculrapide",dummy,1,iFind)
   if(iFind.eq.1) then
      read(dummy,*) calculrapide
   else
@@ -253,13 +256,12 @@ subroutine pinputKernel
 
   nntype = 1
   if(calculrapide.ne.0.d0) then
-     call searchForParamsOption(tmpfile,"nntype",dummy,0,iFind)
+     call searchForParamsOption(tmpfile,"nntype",dummy,1,iFind)
      if(iFind.eq.1) then
         read(dummy,*)  nntype
      else
         print *, "since nntype is not read, we use:", nntype
      endif
-  endif
   else
      nntype = 1
   endif
@@ -269,7 +271,7 @@ subroutine pinputKernel
   idecidetype(1) = 0
   
   if(calculrapide.ne.0.d0) then
-     call searchForParamsOption(tmpfile,"idecidetypes",dummy,0,iFind)
+     call searchForParamsOption(tmpfile,"idecidetypes",dummy,1,iFind)
      if(iFind.eq.1) then
         do iitmp = 1, nntype        
            read(dummy,*) idecidetype(iitmp)
@@ -281,7 +283,7 @@ subroutine pinputKernel
 
   iPSVSH=3
 
-  call searchForParamsOption(tmpfile,"iPSVSH",dummy,0,iFind)
+  call searchForParamsOption(tmpfile,"iPSVSH",dummy,1,iFind)
   if(iFind.eq.1) then
      read(dummy,*) iPSVSH
   else

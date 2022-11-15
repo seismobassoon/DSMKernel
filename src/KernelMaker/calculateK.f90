@@ -1,5 +1,5 @@
 subroutine calculateRSGT
-  use parameters
+  use parametersKernel
   use tmpSGTs
   use angles
   use kernels
