@@ -14,7 +14,7 @@ program KernelMaker
   !              
 
 
-  use parameters
+  use parametersKernel
   use tmpSGTs
   use angles
   use kernels

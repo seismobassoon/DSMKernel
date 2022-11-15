@@ -21,7 +21,7 @@ subroutine lsmoothfinder (tlen, np0, freq, lsmooth)
 end subroutine lsmoothfinder
 
 subroutine fwinDeterminator
-  use parameters
+  use parametersKernel
   use tmpSGTs
   implicit none
   real(kind(0d0)) :: dt,tpw1,tpw2,xfwin
@@ -159,7 +159,7 @@ end subroutine calstg_for_card
 
 subroutine rdsgtomega(rx,ry,num_sgt,num_psv,ipsvorsh)
 
-  use parameters
+  use parametersKernel
   use tmpSGTs
   implicit none
   real(kind(0d0)) :: rx,ry,redtime ! in order to read the catalogue
@@ -285,7 +285,7 @@ end subroutine rdsgtomega
 
 
 subroutine clsgt(distance,num_sgt,sgtF,sgtomega)
-  use parameters
+  use parametersKernel
   implicit none
   integer :: idelta,nhregion,idstart,idend,kk,j,num_sgt
   real(kind(0d0)) :: distance,tmpnakami,normalisefactorInt
@@ -394,7 +394,7 @@ subroutine synn2h3freq(ip,ith)
   !   SSGT from the 10 azimuth independent coefficients and the sines and 
   !   cosines of the azimuths.
 	
-  use parameters
+  use parametersKernel
   use angles
   use tmpSGTs
   implicit none
@@ -435,7 +435,7 @@ subroutine synn2h3freq(ip,ith)
 end subroutine synn2h3freq
 
 subroutine rsgt2h3freq
-  use parameters
+  use parametersKernel
   use angles
   use tmpSGTs
   use kernels
@@ -479,7 +479,7 @@ subroutine rsgt2h3freq
 end subroutine rsgt2h3freq
 
 subroutine tsgt2h4freq	
-  use parameters
+  use parametersKernel
   use angles
   use tmpSGTs
   use kernels
