@@ -224,7 +224,8 @@ program KernelMaker
   endif
   call MPI_BCAST(r,nr,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
         
-  ! check r(:) and r_(:) because we don't interpolate for depth 
+  ! check r(:) and r_(:) because we don't interpolate for depth
+  ! NF wants to limit the number of r(:) and avoid Specfem3D connection: regSEM should be better for Earth problems, i.e. DSM's interest
   
   do ir=1,nr
      icheck=0
@@ -257,6 +258,7 @@ program KernelMaker
   endif
   call MPI_BCAST(r0D,r0_n,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)   
   ir0 = r0_n
+
   
   call MPI_BCAST(thetamin,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(thetamax,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -497,9 +499,16 @@ program KernelMaker
   nMinLengthFor0=int(MinLengthFor0/dph)
   ! see the explication above
 
+  
+
   ! Creating horizontal grid 
   ! and converting horizontal grid from path-specific system to geographic system
-  call hgridsimple(distan,ph1,dph,thw,dth)
+
+  
+  if(iCompute.eq.0) call hgridsimple(distan,ph1,dph,thw,dth)
+  
+  
+
   allocate(iflagForRapidity(1:nphi))
   allocate(iflagForRapidityOld(1:nphi))
   allocate(iflagForRapidityNext(1:nphi))

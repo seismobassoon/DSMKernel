@@ -1,5 +1,12 @@
 
+
+
+
+
+
 subroutine hgridsimple(distan,edge,dph0,width,dth0)
+  ! This subroutine is generating grids in horizontal direction (2D) for iCompute=1 mode
+
   use angles
   implicit none
   real(kind(0d0)) :: dph0,dth0,dph,dth,distan,edge,width 
