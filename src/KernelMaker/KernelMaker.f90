@@ -14,6 +14,9 @@ program KernelMaker
   !              
 
 
+  !! NF did not at all take care of iCompute = 2 (future bridge to regSEM) 2022.11.22
+
+  
   use parametersKernel
   use tmpSGTs
   use angles
@@ -89,7 +92,7 @@ program KernelMaker
      endif     
   endif
   
-  
+  call MPI_BCAST(iCompute,     1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(SGTinfo,    120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(parentDir,  120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(eventName,  120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
@@ -137,6 +140,10 @@ program KernelMaker
   call MPI_BCAST(iPSVSH,       1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(iBananaCentred,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+
+
+  
   mtype=0
   if(compo.eq.'Z') then
      mtype=mtype+10
@@ -152,8 +159,11 @@ program KernelMaker
      allocate(minici(1:nntype,0:nfilter))
      allocate(idecidetype(1:nntype))
   endif
+
+  
   call MPI_BCAST(idecidetype,nntype,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   ! minici should be for each node
+  ! NF: I cannot make this simpler for the moment Nov. 2022
   
   ! exporting DSM parameters
   call MPI_BCAST(re,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -164,36 +174,50 @@ program KernelMaker
   call MPI_BCAST(rmin_,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(rmax_,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(rdelta_,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-  if(my_rank.eq.0) then
-     r_n =  int((rmax_-rmin_)/rdelta_)+1
-  endif
-  call MPI_BCAST(r_n,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-  allocate(r_(1:r_n))
-    if(my_rank.eq.0) then
-     do i = 1, r_n
-        r_(i) = rmin_ + dble(i-1)*rdelta_
-     enddo
-  endif
-  call MPI_BCAST(r_,r_n,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+
+
+
+
+
+  if((iCompute.eq.0).or.(iCompute.eq.1)) then
+     if(my_rank.eq.0) then
+        r_n =  int((rmax_-rmin_)/rdelta_)+1
+     endif
+     call MPI_BCAST(r_n,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+     allocate(r_(1:r_n))
+     if(my_rank.eq.0) then
+        do i = 1, r_n
+           r_(i) = rmin_ + dble(i-1)*rdelta_
+        enddo
+     endif
+     call MPI_BCAST(r_,r_n,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
 
   
 
-  if(my_rank.eq.0) then
-     if((rmin.eq.0.d0).and.(rmax.eq.0.d0).and.(rdelta.eq.0.d0)) then
-        rmin=rmin_
-        rmax=rmax_
-        rdelta=rdelta_
+     if(my_rank.eq.0) then
+        if((rmin.eq.0.d0).and.(rmax.eq.0.d0).and.(rdelta.eq.0.d0)) then
+           rmin=rmin_
+           rmax=rmax_
+           rdelta=rdelta_
+        endif
      endif
+     
   endif
+
+  !! NF here iCompute=2 option should be treated: r_(:) should be constructed from the whole list of points
+
+  
   call MPI_BCAST(rmin,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(rmax,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(rdelta,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+
+  
   if(my_rank.eq.0) then
      nr =  int((rmax-rmin)/rdelta)+1
   endif
   call MPI_BCAST(nr,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   allocate(r(1:nr))
-    if(my_rank.eq.0) then
+  if(my_rank.eq.0) then
      do i = 1, nr
         r(i) = rmin + dble(i-1)*rdelta
      enddo
