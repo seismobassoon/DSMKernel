@@ -511,31 +511,12 @@ program KernelMaker
 
   
 
-  ! Creating horizontal grid 
-  ! and converting horizontal grid from path-specific system to geographic system
+  ! Creating horizontal grid and computing sines and cosines
 
-  
-  if(iCompute.eq.0) call hgridsimple(distan,ph1,dph,thw,dth)
-  if(iCompute.eq.1) call gridMakingSimple
+  if(iCompute.eq.0) call greatCircleBasedGridding
+  if(iCompute.eq.1) call gridMakingGeograhic
   
 
-  allocate(iflagForRapidity(1:nphi))
-  allocate(iflagForRapidityOld(1:nphi))
-  allocate(iflagForRapidityNext(1:nphi))
-  allocate(iflagForRapidity0(1:nphi))
-  allocate(modiflag(1:nphi-nMinLengthFor0+1))
-  if(iCompute.eq.0) call convertPath2Geo
-  if(iCompute.eq.0) call convertPath2GeoAbsolute
-  ! Calculate the cosine and sine functions in SGT expressions for scattering points (ZC10a)
-  allocate(crq(0:nphi,0:ntheta),crq2(0:nphi,0:ntheta))
-  allocate(srq(0:nphi,0:ntheta),srq2(0:nphi,0:ntheta))
-  allocate(csq(0:nphi,0:ntheta),csq2(0:nphi,0:ntheta))
-  allocate(ssq(0:nphi,0:ntheta),ssq2(0:nphi,0:ntheta))
-  allocate(cqs(0:nphi,0:ntheta),cqs2(0:nphi,0:ntheta))
-  allocate(sqs(0:nphi,0:ntheta),sqs2(0:nphi,0:ntheta))
-  allocate(deltar(nphi,ntheta),deltas(nphi,ntheta))
-  if(iCompute.eq.0) call calculateSineCosine(azim)
-  if(iCompute.eq.1) call calculateSineCosineAbsolute
 
 
   if(my_rank.eq.0) then

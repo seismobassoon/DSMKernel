@@ -1,4 +1,4 @@
-subroutine gridMakingSimple
+subroutine gridMakingGeographic
   use parametersKernel
   use angles
   implicit none
@@ -20,7 +20,6 @@ subroutine gridMakingSimple
      if(itranslat.eq.1) call translat(geolat(i),geolat(i))
   enddo
 
-  
   ! longitude grid
 
   nlon = int((qlon_max-qlon_min)/qlon_delta)+1
@@ -29,22 +28,53 @@ subroutine gridMakingSimple
      geolon(i) = qlon_min+dble(i-1)*qlon_delta
   enddo
   
+  ! rapid computation
   
-  
+  allocate(iflagForRapidity(1:nphi))
+  allocate(iflagForRapidityOld(1:nphi))
+  allocate(iflagForRapidityNext(1:nphi))
+  allocate(iflagForRapidity0(1:nphi))
+  allocate(modiflag(1:nphi-nMinLengthFor0+1))
   
   ! rotation
-
-  ! give thetaphi and phitheta for each point
+  ! we use evla, evlo, stla, stlo (converted to geocentric but raw coordinates)
   
 
   nphi = nlat
   ntheta = nlon
-end subroutine gridMakingSimple
+end subroutine gridMakingGeographic
 
 
+subroutine GreatCircleBasedGridding
+  use angles
+  use parametersKernel
+  implicit none
+  
+  call hgridsimple(distan,ph1,dph,thw,dth)
+  
+  allocate(iflagForRapidity(1:nphi))
+  allocate(iflagForRapidityOld(1:nphi))
+  allocate(iflagForRapidityNext(1:nphi))
+  allocate(iflagForRapidity0(1:nphi))
+  allocate(modiflag(1:nphi-nMinLengthFor0+1))
+  
+  call convertPath2Geo
+  
+  ! Calculate the cosine and sine functions in SGT expressions for scattering points (ZC10a)
+  allocate(crq(0:nphi,0:ntheta),crq2(0:nphi,0:ntheta))
+  allocate(srq(0:nphi,0:ntheta),srq2(0:nphi,0:ntheta))
+  allocate(csq(0:nphi,0:ntheta),csq2(0:nphi,0:ntheta))
+  allocate(ssq(0:nphi,0:ntheta),ssq2(0:nphi,0:ntheta))
+  allocate(cqs(0:nphi,0:ntheta),cqs2(0:nphi,0:ntheta))
+  allocate(sqs(0:nphi,0:ntheta),sqs2(0:nphi,0:ntheta))
+  allocate(deltar(nphi,ntheta),deltas(nphi,ntheta))
 
+  call calculateSineCosine(azim)
+ 
+  
+end subroutine GreatCircleBasedGridding
 
-
+  
 subroutine hgridsimple(distan,edge,dph0,width,dth0)
   ! This subroutine is generating grids in horizontal direction (2D) for iCompute=1 mode
 
