@@ -27,6 +27,10 @@ subroutine gridMakingGeographic
   do i = 1, nlon
      geolon(i) = qlon_min+dble(i-1)*qlon_delta
   enddo
+
+  ! lat -> phi; lon -> theta
+  nphi = nlat
+  ntheta = nlon
   
   ! rapid computation
   
@@ -38,10 +42,20 @@ subroutine gridMakingGeographic
   
   ! rotation
   ! we use evla, evlo, stla, stlo (converted to geocentric but raw coordinates)
-  
 
-  nphi = nlat
-  ntheta = nlon
+
+  allocate(crq(0:nphi,0:ntheta),crq2(0:nphi,0:ntheta))
+  allocate(srq(0:nphi,0:ntheta),srq2(0:nphi,0:ntheta))
+  allocate(csq(0:nphi,0:ntheta),csq2(0:nphi,0:ntheta))
+  allocate(ssq(0:nphi,0:ntheta),ssq2(0:nphi,0:ntheta))
+  allocate(cqs(0:nphi,0:ntheta),cqs2(0:nphi,0:ntheta))
+  allocate(sqs(0:nphi,0:ntheta),sqs2(0:nphi,0:ntheta))
+  allocate(deltar(nphi,ntheta),deltas(nphi,ntheta))
+
+  call calculateSineCosineAbsolute(evla,evlo,stla,stlo,geolat,geolon)
+
+  
+ 
 end subroutine gridMakingGeographic
 
 

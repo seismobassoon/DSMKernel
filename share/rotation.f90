@@ -89,6 +89,64 @@ subroutine convertPath2Geo
 end subroutine convertPath2Geo
 
 
+subroutine calculateSineCosineAbsolute(evla,evlo,stla,stlo,geolat,geolon)
+  
+  !   Compute the distances, azimuths and back-azimuths needed in calculating 
+  !   the kernels. Note: these calculations are done in the absolute
+  !   coordinate system (cf. calculateSineCosine is based on a great circle)
+  
+  use angles
+  
+  implicit none
+  real(kind(0d0)) :: pi,xlat,xlon,phisq,phiqs,phirq,phirs
+  integer :: ith,ip
+  real(kind(0d0)) :: distanx,azimr,bazimr,azims,bazims
+  real(kind(0d0)) :: evla,evlo,stla,stlo,geolat(nphi),geolon(ntheta)
+  
+  pi=4.d0*datan(1.d0) 
+  do ith=1,ntheta
+     do ip=1,nphi
+        call azimth(0,geolat(ith),geolon(ip),stla,stlon,distanx,azimr,bazimr)
+        deltar(ip,ith)=distanx
+        call azimth(0,evla,evlo,geolat(ith),geolon(ip),distanx,azims,bazims)
+        deltas(ip,ith)=distanx
+        phirq=pi-azimr*pi/180.d0
+        if(phirq.lt.0.d0) phirq=phirq+2.d0*pi
+        if(phirq.gt.(2.d0*pi)) phirq=phirq-2.d0*pi
+        phiqs=pi-azims*pi/180.d0
+        if(phiqs.lt.0.d0) phiqs=phiqs+2.d0*pi
+        if(phiqs.gt.(2.d0*pi)) phiqs=phiqs-2.d0*pi
+        phisq=pi-bazims*pi/180.d0
+        if(phisq.lt.0.d0) phisq=phisq+2.d0*pi
+        if(phisq.gt.(2.d0*pi)) phisq=phisq-2.d0*pi
+        crq(ip,ith)=dcos(phirq)
+        srq(ip,ith)=dsin(phirq)
+        crq2(ip,ith)=dcos(2.d0*phirq)
+        srq2(ip,ith)=dsin(2.d0*phirq)
+        csq(ip,ith)=dcos(phisq)
+        ssq(ip,ith)=dsin(phisq)
+        csq2(ip,ith)=dcos(2.d0*phisq)
+        ssq2(ip,ith)=dsin(2.d0*phisq)
+         cqs(ip,ith)=dcos(phiqs)
+        sqs(ip,ith)=dsin(phiqs)
+        cqs2(ip,ith)=dcos(2.d0*phiqs)
+        sqs2(ip,ith)=dsin(2.d0*phiqs)
+     enddo
+  enddo
+
+  ! for computing the reference seismogram. 
+  call azimth(0,evla,evlo,stla,stlo,distan,azim,bazim)
+  phirs=pi-azim*pi/180.d0
+  crq(0,0)=dcos(phirs)
+  srq(0,0)=dsin(phirs)
+  crq2(0,0)=dcos(2.d0*phirs)
+  srq2(0,0)=dsin(2.d0*phirs)
+
+  return
+end subroutine calculateSineCosineAbsolute
+
+
+
 subroutine calculateSineCosine(azim)
   
   !   Compute the distances, azimuths and back-azimuths needed in calculating 
