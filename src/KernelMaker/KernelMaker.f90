@@ -263,6 +263,16 @@ program KernelMaker
   call MPI_BCAST(thetamin,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(thetamax,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(thetadelta,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+
+  if(iCompute.eq.1) then
+     call MPI_BCAST(qlat_min,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+     call MPI_BCAST(qlat_max,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+     call MPI_BCAST(qlat_delta,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+     call MPI_BCAST(qlon_min,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+     call MPI_BCAST(qlon_max,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+     call MPI_BCAST(qlon_delta,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  endif
+  
   if(my_rank.eq.0) then
      theta_n = int((thetamax-thetamin)/thetadelta)+1
   endif
@@ -506,7 +516,7 @@ program KernelMaker
 
   
   if(iCompute.eq.0) call hgridsimple(distan,ph1,dph,thw,dth)
-  
+  if(iCompute.eq.1) call gridMakingSimple
   
 
   allocate(iflagForRapidity(1:nphi))
@@ -514,7 +524,8 @@ program KernelMaker
   allocate(iflagForRapidityNext(1:nphi))
   allocate(iflagForRapidity0(1:nphi))
   allocate(modiflag(1:nphi-nMinLengthFor0+1))
-  call convertPath2Geo
+  if(iCompute.eq.0) call convertPath2Geo
+  if(iCompute.eq.0) call convertPath2GeoAbsolute
   ! Calculate the cosine and sine functions in SGT expressions for scattering points (ZC10a)
   allocate(crq(0:nphi,0:ntheta),crq2(0:nphi,0:ntheta))
   allocate(srq(0:nphi,0:ntheta),srq2(0:nphi,0:ntheta))
@@ -523,7 +534,8 @@ program KernelMaker
   allocate(cqs(0:nphi,0:ntheta),cqs2(0:nphi,0:ntheta))
   allocate(sqs(0:nphi,0:ntheta),sqs2(0:nphi,0:ntheta))
   allocate(deltar(nphi,ntheta),deltas(nphi,ntheta))
-  call calculateSineCosine(azim)
+  if(iCompute.eq.0) call calculateSineCosine(azim)
+  if(iCompute.eq.1) call calculateSineCosineAbsolute
 
 
   if(my_rank.eq.0) then

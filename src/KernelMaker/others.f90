@@ -1,4 +1,45 @@
+subroutine gridMakingSimple
+  use parametersKernel
+  use angles
+  implicit none
 
+  real(kind(0d0)), allocatable :: geolat(:), geolon(:)
+  integer :: nlat, nlon
+  integer ::, i
+
+  ! NF in this iCompute = 1 mode, nphi and ntheta are just symbolic
+  ! but at least it is in order of lat and lon
+
+  ! latitude grid 
+  
+  nlat = int((qlat_max-qlat_min)/qlat_delta)+1
+  allocate(geolat(1:nlat))
+  do i = 1, nlat
+     geolat(i) = qlat_min+dble(i-1)*qlat_delta
+     ! geodetic -> geocentric
+     if(itranslat.eq.1) call translat(geolat(i),geolat(i))
+  enddo
+
+  
+  ! longitude grid
+
+  nlon = int((qlon_max-qlon_min)/qlon_delta)+1
+  allocate(geolon(1:nlon))
+  do i = 1, nlon
+     geolon(i) = qlon_min+dble(i-1)*qlon_delta
+  enddo
+  
+  
+  
+  
+  ! rotation
+
+  ! give thetaphi and phitheta for each point
+  
+
+  nphi = nlat
+  ntheta = nlon
+end subroutine gridMakingSimple
 
 
 

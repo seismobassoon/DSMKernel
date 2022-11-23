@@ -323,8 +323,8 @@ subroutine pinputKernel
 
 
   if(itranslat.eq.1) then
-     call translat (stla,stla)
-     call translat (evla,evla)
+     call translat(stla,stla)
+     call translat(evla,evla)
   endif
 
 
