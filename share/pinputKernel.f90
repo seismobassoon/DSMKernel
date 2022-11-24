@@ -328,6 +328,12 @@ subroutine pinputKernel
   endif
 
 
+  ! DSM constants calculation
+  omegai = - dlog(omegai) / tlen
+  if(ifastFFT.ne.1) then
+     fmin = imin
+     fmax = imax
+  endif
   return
 end subroutine pinputKernel
      

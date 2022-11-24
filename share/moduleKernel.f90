@@ -52,11 +52,11 @@ module parametersKernel
   integer, parameter :: nktype = 8 ! isotropic kernels 
   integer, parameter :: nkvtype = 3 ! isotropic video kernels
   real(kind(0d0)), parameter ::  pi=3.1415926535897932d0 
-  character(120) :: SGTinfo,parentDir,eventName,stationName,phase,compo,paramWRT
-  character(120) :: tmppsvfile
-  character(120) :: synnfile
-  character(120) :: INFO_TSGT,INFO_RSGT,rsampletxt,modelcard
-  character(120) :: Poutputdir,psvmodel,modelname,DSMconfFile
+  character(200) :: SGTinfo,parentDir,eventName,stationName,phase,compo,paramWRT
+  character(200) :: tmppsvfile
+  character(200) :: synnfile
+  character(200) :: INFO_TSGT,INFO_RSGT,rsampletxt,modelcard
+  character(200) :: Poutputdir,psvmodel,modelname,DSMconfFile
   integer :: mtype
   real(kind(0d0)) :: evla, evlo, evdepth,stla,stlo
   real(kind(0d0)) :: mt(1:6),twin(1:4)
@@ -64,7 +64,7 @@ module parametersKernel
   real(kind(0d0)) :: ipdistance,c_red_reci 
   integer :: ibwfilt,npButterworth,ifastFFT,fmin,fmax ! filter, butterworth
   integer :: itranslat ! geodetic <-> geocentric
-  character(120) :: freqid(0:nfilter)
+  character(200) :: freqid(0:nfilter)
   real(kind(0d0)) :: fclp(0:nfilter), fchp(0:nfilter)
   real(kind(0d0)) :: dph,ph1,dth,thw ! horizontal region of partial calculation
   real(kind(0d0)) :: start, end ! time window for SGT vectors

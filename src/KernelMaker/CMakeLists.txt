@@ -5,6 +5,7 @@ add_library(KernelMakerlib SHARED
 add_library(KernelMakerSublib INTERFACE
 		calculateK.f90
 		others.f90
+		localschema.f90
 		)
 target_link_libraries(KernelMakerlib 
 		KernelMakerSublib
