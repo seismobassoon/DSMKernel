@@ -274,3 +274,254 @@ subroutine local_MPI_BCAST_2
   call MPI_BCAST(thetaD,theta_n,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   return
 end subroutine local_MPI_BCAST_2
+
+subroutine local_MPI_BCAST_DSM_params
+  use localParamKernel
+  use parametersKernel
+  use tmpSGTs
+  use angles
+  use kernels
+  use rotate
+  implicit none
+
+  
+  if(my_rank.eq.0) then
+     psvmodel = tmppsvfile
+     open(20, file = psvmodel, status = 'old', action='read', position='rewind')
+     read(20,*) nzone
+     close(20)
+  endif
+  call MPI_BCAST(nzone,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+  allocate(vrminD(1:nzone))
+  allocate(vrmaxD(1:nzone))
+  allocate(rrhoD(1:4,1:nzone))
+  allocate(vpvD(1:4,1:nzone))
+  allocate(vphD(1:4,1:nzone))
+  allocate(vsvD(1:4,1:nzone))
+  allocate(vshD(1:4,1:nzone))
+  allocate(etaD(1:4,1:nzone))
+  allocate(qmuD(1:nzone))
+  allocate(qkappaD(1:nzone))
+  if(my_rank.eq.0) then
+     psvmodel = tmppsvfile
+     open(20, file = psvmodel, status = 'old', action='read', position='rewind')
+     read(20,*) nzone
+     do i = 1, nzone
+        read (20, *) vrminD(i), vrmaxD(i), rrhoD(1,i), rrhoD(2,i), rrhoD(3,i), rrhoD(4,i), vpvD(1,i), vpvD(2,i), vpvD(3,i), vpvD(4,i), vphD(1,i), vphD(2,i), vphD(3,i), vphD(4,i), vsvD(1,i), vsvD(2,i), vsvD(3,i), vsvD(4,i), vshD(1,i), vshD(2,i), vshD(3,i), vshD(4,i), etaD(1,i), etaD(2,i), etaD(3,i), etaD(4,i), qmuD(i), qkappaD(i)
+     enddo
+     close(20,status='delete')
+  endif
+  call MPI_BCAST(vrminD,nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(vrmaxD,nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(rrhoD,4*nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(vpvD,4*nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(vphD,4*nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(vsvD,4*nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(vshD,4*nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(etaD,4*nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(qmuD,nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(qkappaD,nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+  
+
+  rEarth=vrmaxD(nzone)
+
+  return
+  
+end subroutine local_MPI_BCAST_DSM_params
+
+
+subroutine local_allocate_values
+  use localParamKernel
+  use parametersKernel
+  use tmpSGTs
+  use angles
+  use kernels
+  use rotate
+  implicit none
+
+  
+  ! Record the date and time at the beginning of the job
+  if(my_rank.eq.0) then
+     list = trim(parentDir)//"/log/calLog"//"."// &
+          trim(stationName)//"."//trim(eventName)//"."//trim(compo)//"."//trim(paramWRT)//".log"
+     open(1,file =list, status = 'unknown', form = 'formatted')
+     call date_and_time(datex,timex)
+     write(1,'(/a,a4,a,a2,a,a2,a,a2,a,a2,a,a4)') &
+          '    Starting date and time:                     ', &
+          datex(1:4),'-',datex(5:6),'-',datex(7:8),'.  ', &
+          timex(1:2),':',timex(3:4),':',timex(5:8)   
+     close (1)
+  endif
+  !-----------------------------------------------------------------------   
+  ! lsmoothfinder for FFT
+  np0=fmax
+  call lsmoothfinder(tlen,np0,samplingHz,lsmooth)
+  i=1
+  do while (i<lsmooth)
+     i = i*2
+  enddo
+  lsmooth = i
+  i = 0
+  np1 = 1
+  do while (np1<np0)
+     np1 = np1*2
+  enddo  
+  np1 = np1*lsmooth    
+  
+  ! redefinition of samplingHz
+  samplingHz = dble(2*np1)/tlen
+  dtn = 1.d0/samplingHz
+  iWindowStart = int(start*samplingHz)
+  iWindowEnd   = int(end*samplingHz)
+
+  
+
+  ! allocate SGTs, synthetics in frequency
+  allocate(omega(fmin:fmax))
+  do i = fmin, fmax
+     omega(i) = 2.d0*pi*dble(i)/tlen
+  enddo
+
+  allocate(tmph01(fmin:fmax))
+  allocate(tmph02(fmin:fmax))
+  allocate(tmph03(fmin:fmax))
+  allocate(tmph04(fmin:fmax))
+  allocate(tmph05(fmin:fmax))
+  allocate(tmph06(fmin:fmax))
+  allocate(tmph07(fmin:fmax))
+  allocate(tmph08(fmin:fmax))
+  allocate(tmph09(fmin:fmax))
+  allocate(tmph10(fmin:fmax))
+
+  allocate(tmph11(fmin:fmax))
+  allocate(tmph12(fmin:fmax))
+  allocate(tmph13(fmin:fmax))
+  allocate(tmph14(fmin:fmax))
+  allocate(tmph15(fmin:fmax))
+  allocate(tmph16(fmin:fmax))
+  allocate(tmph17(fmin:fmax))
+  allocate(tmph18(fmin:fmax))
+  allocate(tmph19(fmin:fmax))
+  allocate(tmph20(fmin:fmax))
+
+  allocate(tmph21(fmin:fmax))
+  allocate(tmph22(fmin:fmax))
+  allocate(tmph23(fmin:fmax))
+  allocate(tmph24(fmin:fmax))
+  allocate(tmph25(fmin:fmax))
+  allocate(tmph26(fmin:fmax))
+
+
+  ! allocate vectors in time domain
+  allocate(t(iWindowStart:iWindowEnd))
+  allocate(u(iWindowStart:iWindowEnd))
+  allocate(u0(0:nfilter,iWindowStart:iWindowEnd))
+  allocate(v(iWindowStart:iWindowEnd))
+  allocate(v0(0:nfilter,iWindowStart:iWindowEnd))
+  allocate(hu(iWindowStart:iWindowEnd))
+  allocate(hu0(0:nfilter,iWindowStart:iWindowEnd))
+  allocate(fwin(0:nfilter,iWindowStart:iWindowEnd))  
+  allocate(nt1(0:nfilter))
+  allocate(nt2(0:nfilter))
+  allocate(denomv(0:nfilter))
+  allocate(denomu(0:nfilter))
+  
+  do i = iWindowStart,iWindowEnd
+     t(i) = dble(i)*dtn
+  enddo
+
+  
+  ! extract the reference model parameters on the radial grid points
+  allocate(rhom(1:nr))
+  allocate(vpm(1:nr))
+  allocate(vsm(1:nr))
+  allocate(qmm(1:nr))
+  allocate(qkp(1:nr))
+  do ir = 1,nr
+     call calstg_for_card(r(ir),nzone,vrminD,vrmaxD,rrhoD,vpvD,vphD,vsvD,vshD,etaD,qmuD,qkappaD,tmparray)
+     rhom(ir) = tmparray(2)
+     vpm(ir)  = 5.d-1*tmparray(3)+5.d-1*tmparray(7)
+     vsm(ir)  = 5.d-1*tmparray(4)+5.d-1*tmparray(8)
+     qmm(ir)  = tmparray(6)
+     qkp(ir)  = tmparray(5)
+     if(qmm(ir).le.0.d0) qmm(ir)  = 1.d5
+     if(qkp(ir).le.0.d0) qkp(ir)  = 1.d5
+  enddo
+
+
+
+  call find_cmb(rcmb,nzone,vrminD,vrmaxD,vsvD,vshD)
+
+  ! source check
+  
+  icheck=0
+  do ir0 = 1,r0_n
+     if(rEarth-evdepth.eq.r0D(ir0)) then
+        icheck =1
+     endif
+  enddo
+  if(icheck.eq.0) then
+     print *, "depth",evdepth, "is not in the catalogue",Poutputdir,",sorry"
+     stop
+  endif
+  
+  sdep=evdepth
+  rs=rEarth-evdepth
+  rr=rEarth-rdep
+  
+  ! Convert the event latitude (0 to +/- pi/2) to co-latitude (0 to pi)
+  !  and psuedo-longitude (0 to +/- pi) to longitude (0 to 2*pi).
+  
+  slat = evla
+  slon = evlo
+  rlat  = stla
+  rlon  = stlo
+  
+  !thetasgcs0=(90.d0-slat)*pi/180.d0
+  !phisgcs0=slon*pi/180.d0
+  !if(slon.lt.0.d0) phisgcs0=(360.d0+slon)*pi/180.d0
+  
+  thetargcs=(90.d0-rlat)*pi/180.d0
+  phirgcs=rlon*pi/180.d0
+  if(rlon.lt.0.d0) phirgcs=(360.d0+rlon)*pi/180.d0
+  
+  thetasgcs=(90.d0-slat)*pi/180.d0
+  phisgcs=slon*pi/180.d0
+  if(slon.lt.0.d0) phisgcs=(360.d0+slon)*pi/180.d0
+
+
+  slat=90.d0-thetasgcs*180.d0/pi
+  slon=phisgcs*180.d0/pi
+
+  ! Calculate the station epicentral distance and azimuth
+  call azimth(0,slat,slon,rlat,rlon,distan,azim,bazim)
+  call rotmat(thetasgcs,phisgcs,thetargcs,phirgcs,azim)
+
+  
+  
+
+  if(my_rank.eq.0) then
+     list = trim(parentDir)//"/log/calLog"//"."// &
+          trim(stationName)//"."//trim(eventName)//"."//trim(compo)//"."//trim(paramWRT)//".log"
+     open(1,file =list, status = 'old', access='append',form = 'formatted')
+     
+     write(1,'(a,4(1x,f8.4))') '    Source and distance: ', &
+     	  slat,slon,sdep,distan
+     write(1,'(a,4(1x,f8.4))') '    Receiver location:            ', &
+     	  rlat,rlon
+     write(1,'(a,2(1x,f8.4))') '    azimuth and back-azimuth:     ', &
+     	  azim,bazim
+     close(1)
+
+
+  endif
+
+
+  ! Of course MinLengthFor0 can be chosen but nMinLengthFor0=2 works well so I fixed this value
+  MinLengthFor0 = dph*2.d0
+  nMinLengthFor0=int(MinLengthFor0/dph)
+  ! see the explication above
+
+  
+  return
+end subroutine local_allocate_values
