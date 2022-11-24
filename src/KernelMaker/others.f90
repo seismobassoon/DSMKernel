@@ -181,7 +181,7 @@ end subroutine hgridsimple
 
 
 subroutine coeffCalculator
-  use parameters
+  use parametersKernel
   use tmpSGTs
   implicit none
   

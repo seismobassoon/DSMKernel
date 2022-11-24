@@ -63,7 +63,7 @@ end subroutine calculateRSGT
 
 
 subroutine calculateTSGT
-  use parameters
+  use parametersKernel
   use tmpSGTs
   use angles
   use kernels
@@ -129,7 +129,7 @@ end subroutine calculateTSGT
 
 
 subroutine calculateKernel
-  use parameters
+  use parametersKernel
   use tmpSGTs
   use angles
   use kernels
@@ -235,7 +235,7 @@ subroutine calculateKernel
 end subroutine calculateKernel
 
 subroutine isovpfreq
-  use parameters
+  use parametersKernel
   use tmpSGTs
   use kernels
   implicit none
@@ -354,7 +354,7 @@ end subroutine isovpfreq
 
 
 subroutine isovsfreq
-  use parameters
+  use parametersKernel
   use tmpSGTs
   use kernels
   implicit none
