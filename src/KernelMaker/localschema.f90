@@ -53,6 +53,7 @@ end module localParamKernel
 
 subroutine local_MPI_INIT
   use localParamKernel
+  use mpi
   implicit none
   
   call MPI_INIT(ierr)
@@ -67,6 +68,8 @@ subroutine local_MPI_BCAST_1
   use angles
   use kernels
   use rotate
+  use mpi
+  
   implicit none
 
   call MPI_BCAST(iCompute,     1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -163,6 +166,7 @@ subroutine local_MPI_BCAST_2
   use angles
   use kernels
   use rotate
+  use mpi
   implicit none
   
 
@@ -282,6 +286,7 @@ subroutine local_MPI_BCAST_DSM_params
   use angles
   use kernels
   use rotate
+  use mpi
   implicit none
 
   
@@ -337,6 +342,7 @@ subroutine local_allocate_values
   use angles
   use kernels
   use rotate
+  use mpi
   implicit none
 
   
@@ -541,6 +547,7 @@ subroutine local_allocate_catalogue
   use angles
   use kernels
   use rotate
+  use mpi
   implicit none
 
 
@@ -619,6 +626,7 @@ subroutine referenceSyntheticComputation
   use angles
   use kernels
   use rotate
+  use mpi
   implicit none
 
     
@@ -738,6 +746,7 @@ subroutine preparation_kernel_allocation
   use angles
   use kernels
   use rotate
+  use mpi
   implicit none
 
   
@@ -804,6 +813,7 @@ subroutine localMetaComputeKernel
   use angles
   use kernels
   use rotate
+  use mpi
   implicit none
   
   synnomega=cmplx(0.d0)
@@ -1204,6 +1214,7 @@ subroutine compileKernelOutput
   use angles
   use kernels
   use rotate
+  use mpi
   implicit none
 
   if(trim(paramWRT).eq.'vRSGT') then
@@ -1436,6 +1447,7 @@ subroutine finalLogMessage
   use angles
   use kernels
   use rotate
+  use mpi
   implicit none
 
   if(my_rank.eq.0) then

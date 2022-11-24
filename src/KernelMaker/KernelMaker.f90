@@ -16,7 +16,7 @@ program KernelMaker
 
   !! NF did not at all take care of iCompute = 2 (future bridge to regSEM) 2022.11.22
 
-  
+  use localParamKernel
   use parametersKernel
   use tmpSGTs
   use angles
