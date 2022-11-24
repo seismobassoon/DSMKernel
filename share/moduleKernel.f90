@@ -97,7 +97,7 @@ module parametersKernel
   real(kind(0d0)) :: rcmb,rmin,rmax,rdelta
   real(kind(0d0)), allocatable :: r(:)
   real(kind(0d0)), allocatable :: rhom(:),vpm(:),vsm(:),qmm(:),qkp(:)
-  complex(kind(0d0)), allocatable :: jacobianFuji(:,:) 
+  complex(kind(0d0)), allocatable :: jacobianFuji(:,:), jacobianFujiVp(:,:)
   !real(kind(0d0)), allocatable :: vpv(:),vph(:),vsv(:),vsh(:),eta(:) ! for the future extention
   real(kind(0d0)) :: rs,rr
   real(kind(0d0)), parameter :: rdep = 0.d0 ! surface

@@ -239,7 +239,7 @@ subroutine isovpfreq
   use tmpSGTs
   use kernels
   implicit none
-  character(120) :: tmpchar
+  character(200) :: tmpchar
   integer :: jt,ift,jtstep,j
   character(200) :: seriousfrechetfile
   real(kind(0e0)), dimension (:), allocatable :: frechettime
@@ -258,6 +258,7 @@ subroutine isovpfreq
 
   allocate(frechettime(iWindowEnd-iWindowStart+1))
   du=0.d0
+  duq=0.d0
   
   u_freq=dcmplx(0.d0)
   do jt = fmin,fmax
@@ -266,9 +267,25 @@ subroutine isovpfreq
      u_freq(jt) = u_freq(jt)*dcmplx(1.d3)
   enddo
   call vectorFFT_double(fmin,fmax,np1,u_freq(fmin:fmax),du(iWindowStart:iWindowEnd),omegai,tlen,iWindowStart,iWindowEnd)
+
+  
+  u_freq=dcmplx(0.d0)
+  do jt = fmin,fmax
+     ! first calculate K^u_kappa with dkappa0=1Pa
+     u_freq(jt)=-(h3(1,jt)+h3(2,jt)+h3(3,jt))* &
+          (h4(1,jt)+h4(2,jt)+h4(3,jt))
+     u_freq(jt) = u_freq(jt)*dcmplx(1.d3)
+     ! then qkappa jacobian
+     u_freq(jt) = u_freq(jt)*jacobianFuji(ir,jt)*dcmplx(1.d3)     
+  enddo
+  call vectorFFT_double(fmin,fmax,np1,u_freq(fmin:fmax),duq(iWindowStart:iWindowEnd),omegai,tlen,iWindowStart,iWindowEnd)
+
+
+  
   if(ibwfilt.eq.1) then
      do ift = 0,nfilter
         call bwfilt(du(iWindowStart:iWindowEnd),duf(ift,iWindowStart:iWindowEnd),1.d0/samplingHz,(iWindowEnd-iWindowStart+1),0,npButterworth,fclp(ift),fchp(ift))
+        call bwfilt(duq(iWindowStart:iWindowEnd),duqf(ift,iWindowStart:iWindowEnd),1.d0/samplingHz,(iWindowEnd-iWindowStart+1),0,npButterworth,fclp(ift),fchp(ift))
      enddo
   endif
 
@@ -284,6 +301,18 @@ subroutine isovpfreq
      frechettime(:)=coeffV(1,ir)*duf(0,iWindowStart:iWindowEnd)*1.e3
      write(111,rec=1) frechettime
      close(111)
+
+     write(tmpchar,'(I7,".",I7,".",I7)') ir,ip,ith
+     do j=1,23
+        if(tmpchar(j:j).eq.' ') tmpchar(j:j) = '0'
+     enddo
+     seriousfrechetfile=trim(parentDir)//"/seriousfrechet/"//trim(stationName)//"."//trim(eventName)//"."//trim(phase)//"."//trim(compo)//"."//trim(tmpchar)//"."//"frechetQp"
+     open (111,file=seriousfrechetfile,status='unknown',form='unformatted',access='direct',recl=kind(0e0)*(iWindowEnd-iWindowStart+1))
+     frechettime(:)=duqf(0,iWindowStart:iWindowEnd)*1.d3
+     write(111,rec=1) frechettime
+
+     close(111)
+     
   endif
 
   deallocate(frechettime)
@@ -329,11 +358,11 @@ subroutine isovsfreq
   use tmpSGTs
   use kernels
   implicit none
-  character(120) :: tmpchar
+  character(200) :: tmpchar
   real(kind(0.e0)) :: par(0:nfilter,1:nt2(0)-nt1(0)+1)
   real(kind(0.e0)) :: parq(0:nfilter,1:nt2(0)-nt1(0)+1) 
   integer :: jt,ift,jtstep,j
-  character(250) :: kerfile, seriousfrechetfile
+  character(200) :: kerfile, seriousfrechetfile
   real(kind(0e0)), dimension (:), allocatable :: frechettime
   !   This subroutine calculates 4 types of kernels:
   !
@@ -388,7 +417,7 @@ subroutine isovsfreq
   !        +h3(2,jt)*(h4(1,jt)+h4(3,jt))/3.d0 &
   !        +h3(3,jt)*(h4(1,jt)+h4(2,jt))/3.d0)
   !   u_freq(jt) = u_freq(jt)*dcmplx(1.d3)
-  !enddo
+  !enddof
   
 
   ! calculate K^u_q 
@@ -400,9 +429,8 @@ subroutine isovsfreq
      u_freq(jt) = -4.d0*(h3(4,jt)*h4(4,jt)+h3(5,jt)*h4(5,jt)+h3(6,jt)*h4(6,jt)) &
           + 2.d0/3.d0*(h3(1,jt)*(h4(2,jt)+h4(3,jt)) + h3(2,jt)*(h4(1,jt)+h4(3,jt)) + h3(3,jt)*(h4(1,jt)+h4(2,jt))) &
           - 4.d0/3.d0*(h3(1,jt)*h4(1,jt)+h3(2,jt)*h4(2,jt)+h3(3,jt)*h4(3,jt))
-     ! then apply the Jacobian of Fuji et al. 2010
-     u_freq(jt) = u_freq(jt)*jacobianFuji(ir,jt)
-     u_freq(jt) = u_freq(jt)*dcmplx(1.d3) 
+     ! then apply the Jacobian of Fuji et al. 2010 
+     u_freq(jt) = u_freq(jt)*jacobianFuji(ir,jt)*dcmplx(1.d3)
   enddo
 
   call vectorFFT_double(fmin,fmax,np1,u_freq(fmin:fmax),duq(iWindowStart:iWindowEnd),omegai,tlen,iWindowStart,iWindowEnd)
@@ -466,15 +494,17 @@ subroutine isovsfreq
      do j=1,23
         if(tmpchar(j:j).eq.' ') tmpchar(j:j) = '0'
      enddo
-     seriousfrechetfile=trim(parentDir)//"/seriousfrechet/"//trim(stationName)//"."//trim(eventName)//"."//trim(phase)//"."//trim(compo)//"."//trim(tmpchar)//"."//"frechetQ"
+     seriousfrechetfile=trim(parentDir)//"/seriousfrechet/"//trim(stationName)//"."//trim(eventName)//"."//trim(phase)//"."//trim(compo)//"."//trim(tmpchar)//"."//"frechetQs"
      open (111,file=seriousfrechetfile,status='unknown',form='unformatted',access='direct',recl=kind(0e0)*(iWindowEnd-iWindowStart+1))
-     frechettime(:)=coeffV(2,ir)*duqf(0,iWindowStart:iWindowEnd)*1.d3
+     frechettime(:)=duqf(0,iWindowStart:iWindowEnd)*1.d3
      write(111,rec=1) frechettime
 
      close(111)
-     deallocate(frechettime)
+  
 
   endif
+
+  deallocate(frechettime)
 
   
   do ift=0,nfilter

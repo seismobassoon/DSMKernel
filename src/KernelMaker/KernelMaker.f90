@@ -73,11 +73,8 @@ program KernelMaker
   deallocate(ker)
   
   call compileKernelOutput
-
   call finalLogMessage ! just myrank=0
-
   call MPI_FINALIZE(ierr)
   stop
-
 end program KernelMaker
   

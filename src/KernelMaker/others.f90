@@ -190,6 +190,7 @@ subroutine coeffCalculator
   !    I replace coeff(8) with J^lnA
   !      2013.5.6.
   !    I define jacobianFuji(ir,ifreq) 2013.5.28.
+  !    I define jacobianFujiVp(ir,ifreq) 2022.11.24
 
 
   integer :: ift,it,ir,ifreq
@@ -214,6 +215,7 @@ subroutine coeffCalculator
   allocate(coeff(0:nfilter,1:nktype,1:nr,iWindowStart:iWindowEnd))
   allocate(coeffV(1:nkvtype,1:nr))
   allocate(jacobianFuji(1:nr,fmin:fmax))
+  allocate(jacobianFujiVp(1:nr,fmin:fmax))
 
   coeff=0.d0  
   coeffV=0.d0
@@ -252,35 +254,31 @@ subroutine coeffCalculator
            coeff(ift,8,ir,it)=gnorma/qmm(ir)* &
                 u0(ift,it)*dtn/denomu(ift)
 
-           !print *, coeff(ift,7,ir,it),coeff(ift,8,ir,it)
-
-           ! This version is isotropic
-
-           !coeff(ift,9,ir,it)=-2.d0*gnormt*rhom(ir)*vpm(ir)**2* &
-     	   !     v0(ift,it)*dtn/denomv(ift)
-           !coeff(ift,10,ir,it)=2.d0*gnorma*rhom(ir)*vpm(ir)**2* &
-     	   !     u0(ift,it)*dtn/denomu(ift)
-           !coeff(ift,11,ir,it)=-gnormt*rhom(ir)*vpm(ir)**2* &
-     	   !     v0(ift,it)*dtn/denomv(ift)
-           !coeff(ift,12,ir,it)=gnorma*rhom(ir)*vpm(ir)**2* &
-     	   !     u0(ift,it)*dtn/denomu(ift)
-           !coeff(ift,13,ir,it)=-4.d0*gnormt*rhom(ir)*vsm(ir)**2* &
-     	   !     v0(ift,it)*dtn/denomv(ift)
-           !coeff(ift,14,ir,it)=4.d0*gnorma*rhom(ir)*vsm(ir)**2* &
-     	   !     u0(ift,it)*dtn/denomu(ift)
+           coeff(ift,9,ir,it)=-2.d0*gnormt*rhom(ir)*vpm(ir)**2* &
+     	        v0(ift,it)*dtn/denomv(ift)
+           coeff(ift,10,ir,it)=2.d0*gnorma*rhom(ir)*vpm(ir)**2* &
+     	        u0(ift,it)*dtn/denomu(ift)
+           coeff(ift,11,ir,it)=-gnormt*rhom(ir)*vpm(ir)**2* &
+     	        v0(ift,it)*dtn/denomv(ift)
+           coeff(ift,12,ir,it)=gnorma*rhom(ir)*vpm(ir)**2* &
+                u0(ift,it)*dtn/denomu(ift)
+           coeff(ift,13,ir,it)=-4.d0*gnormt*rhom(ir)*vsm(ir)**2* &
+     	        v0(ift,it)*dtn/denomv(ift)
+           coeff(ift,14,ir,it)=4.d0*gnorma*rhom(ir)*vsm(ir)**2* &
+     	        u0(ift,it)*dtn/denomu(ift)
            ! denomu for anisotropy in aniso version I will include this, too
-           !coeff(ift,15,ir,it)=-4.d0*gnormt*rhom(ir)*vsm(ir)**2* &
-           !     v0(ift,2,it)*dtn/denomv(ift,2)
-           !coeff(ift,16,ir,it)=-4.d0*gnormt*rhom(ir)*vpm(ir)**2* &
-     	   !     v0(ift,2,it)*dtn/denomv(ift,2)
-           !coeff(ift,17,ir,it)=-2.d0*gnormt*rhom(ir)*vpm(ir)**2* &
-           !     v0(ift,2,it)*dtn/denomv(ift,2)
-           !coeff(ift,18,ir,it)=-8.d0*gnormt*rhom(ir)*vsm(ir)**2* &               
-	   !     v0(ift,2,it)*dtn/denomv(ift,2)
-           !coeff(ift,19,ir,it)=-2.d0*gnormt*rhom(ir)*vsm(ir)**2* &
-     	   !     v0(ift,2,it)*dtn/denomv(ift,2)
-           !coeff(ift,20,ir,it)=-4.d0*gnormt*rhom(ir)*vsm(ir)**2* &
-           !     v0(ift,2,it)*dtn/denomv(ift,2)
+           coeff(ift,15,ir,it)=-4.d0*gnormt*rhom(ir)*vsm(ir)**2* &
+                v0(ift,2,it)*dtn/denomv(ift,2)
+           coeff(ift,16,ir,it)=-4.d0*gnormt*rhom(ir)*vpm(ir)**2* &
+     	        v0(ift,2,it)*dtn/denomv(ift,2)
+           coeff(ift,17,ir,it)=-2.d0*gnormt*rhom(ir)*vpm(ir)**2* &
+                v0(ift,2,it)*dtn/denomv(ift,2)
+           coeff(ift,18,ir,it)=-8.d0*gnormt*rhom(ir)*vsm(ir)**2* &              
+                v0(ift,2,it)*dtn/denomv(ift,2)
+           coeff(ift,19,ir,it)=-2.d0*gnormt*rhom(ir)*vsm(ir)**2* &
+     	        v0(ift,2,it)*dtn/denomv(ift,2)
+           coeff(ift,20,ir,it)=-4.d0*gnormt*rhom(ir)*vsm(ir)**2* &
+                v0(ift,2,it)*dtn/denomv(ift,2)
         enddo
      enddo
   enddo
@@ -296,14 +294,22 @@ subroutine coeffCalculator
             !    / (1+2.d0*log(omega(ifreq)/pi/qmm(ir)))/cmplx(1.d0,1.d0/qmm(ir))
              jacobianFuji(ir,ifreq)=(rhom(ir)*vsm(ir)**2)*cmplx(2.d0*log(omega(ifreq)/2.d0/pi)/pi,1.d0+4.d0*log(omega(ifreq)/2.d0/pi)/pi/qmm(ir))/ &
                      cmplx(1.d0+2*log(omega(ifreq)/2.d0/pi)/pi/qmm(ir),0.d0)/cmplx(1.d0,1.d0/qmm(ir))
-            else
            endif
        enddo
-     endif
+    endif
+
+
+    if(qkp(ir).ne.0.d0) then
+       do ifreq=fmin,fmax
+          if(ifreq.ne.0) then
+            
+             jacobianFujiVp(ir,ifreq)=(rhom(ir)*vpm(ir)**2-1.3333333333333333d0*rhom(ir)*vsm(ir)**2)*cmplx(2.d0*log(omega(ifreq)/2.d0/pi)/pi,1.d0+4.d0*log(omega(ifreq)/2.d0/pi)/pi/qkp(ir))/ &
+                  cmplx(1.d0+2*log(omega(ifreq)/2.d0/pi)/pi/qkp(ir),0.d0)/cmplx(1.d0,1.d0/qkp(ir))
+          endif
+             
+       enddo
+    endif
   enddo
-                       
-        
-
-
+           
   return
 end subroutine coeffCalculator
