@@ -102,11 +102,12 @@ subroutine calculateSineCosineAbsolute(evla,evlo,stla,stlo,geolat,geolon)
   integer :: ith,ip
   real(kind(0d0)) :: distanx,azimr,bazimr,azims,bazims
   real(kind(0d0)) :: evla,evlo,stla,stlo,geolat(nphi),geolon(ntheta)
+  real(kind(0d0)) :: distan,azim,bazim
   
   pi=4.d0*datan(1.d0) 
   do ith=1,ntheta
      do ip=1,nphi
-        call azimth(0,geolat(ith),geolon(ip),stla,stlon,distanx,azimr,bazimr)
+        call azimth(0,geolat(ith),geolon(ip),stla,stlo,distanx,azimr,bazimr)
         deltar(ip,ith)=distanx
         call azimth(0,evla,evlo,geolat(ith),geolon(ip),distanx,azims,bazims)
         deltas(ip,ith)=distanx
