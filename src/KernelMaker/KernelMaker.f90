@@ -46,108 +46,14 @@ program KernelMaker
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   call local_allocate_catalogue ! with grid file writing
 
-  if((iCompute.eq.0).or.(iCompute.eq.1)) call referenceSyntheticComputation ! if paramWRT=test, it stops here
-
-
+  call referenceSyntheticComputation ! filering, tapering, hilbert transform etc. if paramWRT=test, it stops here
+  ! it's followed by time print
+  ! for MarsMTInversion mode (iCompute = -??) it's better to use another subroutine
   
-
-  
-  
-  call MPI_BCAST(u0,(iWindowEnd-iWindowStart+1)*(nfilter+1),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-  call MPI_BCAST(u,(iWindowEnd-iWindowStart+1),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
-  call MPI_BCAST(v0,(iWindowEnd-iWindowStart+1)*(nfilter+1),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-  call MPI_BCAST(v,(iWindowEnd-iWindowStart+1),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-  
-  call MPI_BCAST(hu0,(iWindowEnd-iWindowStart+1)*(nfilter+1),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-  call MPI_BCAST(hu,(iWindowEnd-iWindowStart+1),MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+
+  call preparation_kernel_allocation
   
-  call fwinDeterminator
-
-  ! extracting "the phase"
-
-  u0(0:nfilter,iWindowStart:iWindowEnd)=u0(0:nfilter,iWindowStart:iWindowEnd)*fwin(0:nfilter,iWindowStart:iWindowEnd)
-  v0(0:nfilter,iWindowStart:iWindowEnd)=v0(0:nfilter,iWindowStart:iWindowEnd)*fwin(0:nfilter,iWindowStart:iWindowEnd)
-  hu0(0:nfilter,iWindowStart:iWindowEnd)=hu0(0:nfilter,iWindowStart:iWindowEnd)*fwin(0:nfilter,iWindowStart:iWindowEnd)
- 
-  ! Calculate the denominator in the kernel expressions
-  !print *, "coucou avant coefCal"
-  call coeffCalculator
-  ! for radial and azimuthal anisotropy
-  if((sym.ge.0.d0).and.(sym.le.360.d0)) then
-     csym=dcos(sym*pi/180.d0)
-     ssym=dsin(sym*pi/180.d0)
-  endif
- 
-  !print *, "coucou coeffCal"
-
-  if(my_rank.eq.0) then   
-     list = trim(parentDir)//"/log/calLog"//"."// &
-           trim(stationName)//"."//trim(eventName)//"."//trim(compo)//"."//trim(paramWRT)//".log"         
-     open(1,file =list, status = 'old',access='append', form = 'formatted')
-     call date_and_time(datex,timex)
-     write(1,'(/a,a4,a,a2,a,a2,a,a2,a,a2,a,a4)') &
-          '    kernel calculation started:                     ', &
-          datex(1:4),'-',datex(5:6),'-',datex(7:8),'.  ', &
-          timex(1:2),':',timex(3:4),':',timex(5:8)   
-     write(1,*) 'start kernel calculations Mtype= ',mtype
-     close (1)
-     
-  endif
-
-  ! for video mode, number of snapshots will be decided here
-  call MPI_BCAST(timeincrementV,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-  number_of_snapshots = 1
-  if((trim(paramWRT).eq.'alphaV').or.(trim(paramWRT).eq.'betaV').or.(trim(paramWRT).eq.'allV').or.&
-       (trim(paramWRT).eq.'vRSGT').or.(trim(paramWRT).eq.'vTSGT')) then
-     jtstep_timeincrementV=1
-     if(timeincrementV.ne.0.d0) jtstep_timeincrementV=int(timeincrementV*samplingHz) 
-     if(timeincrementV.eq.0.d0) jtstep_timeincrementV=1
-     !print *, jtstep_timeincrementV, timeincrementV, samplingHz
-     number_of_snapshots = (iWindowEnd-iWindowStart+1)/jtstep_timeincrementV+1
-  endif
-
-  ! for the real partials we do it differently
-  
-
-  
-  
-  ! Now loop over all grid ponts to compute the kernels
-  ! for the parallelisation, I devide nr into nproc
-
-  allocate(tmpker(0:nktype,0:nfilter))
-
-  if((trim(paramWRT).eq.'alphaV').or.(trim(paramWRT).eq.'betaV').or.(trim(paramWRT).eq.'allV')) then
-     allocate(tmpvideoker(0:nkvtype,0:nfilter,1:number_of_snapshots))
-     allocate(videoker(1:nphi,0:nkvtype,0:nfilter,1:number_of_snapshots)) ! be careful of the difference between ker and videoker (along theta)
-     tmpvideoker=0.d0
-     videoker=0.e0
-  endif
-     
-  if(trim(paramWRT).eq.'vTSGT') then
-     allocate(tmpvideoker(1:num_h4,0:nfilter,1:number_of_snapshots))
-     allocate(videoker(1:nphi,1:num_h4,0:nfilter,1:number_of_snapshots))
-     tmpvideoker=0.d0
-     videoker=0.e0
-  endif
-
-  if(trim(paramWRT).eq.'vRSGT') then
-     allocate(tmpvideoker(1:num_h3,0:nfilter,1:number_of_snapshots))
-     allocate(videoker(1:nphi,1:num_h3,0:nfilter,1:number_of_snapshots))
-     tmpvideoker=0.d0
-     videoker=0.e0
-  endif
-  
-  allocate(ker(1:nphi,1:ntheta,0:nktype,0:nfilter))
-
-  tmpker = 0.d0
-  ker = 0.e0
-  allocate(du(iWindowStart:iWindowEnd))
-  allocate(duf(0:nfilter,iWindowStart:iWindowEnd)) 
-  allocate(duq(iWindowStart:iWindowEnd))
-  allocate(duqf(0:nfilter,iWindowStart:iWindowEnd))
   ntot=nphi*ntheta*nr
   k=0  
 
