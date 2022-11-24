@@ -31,6 +31,18 @@ subroutine gridMakingGeographic
   ! lat -> phi; lon -> theta
   nphi = nlat
   ntheta = nlon
+
+  allocate(phitheta(nphi,ntheta))
+  allocate(thetaphi(nphi,ntheta))
+
+  do i=1,nlat
+     phitheta(i,1:ntheta) = geolat(i)
+  enddo
+
+  do i=1,nlon
+     thetaphi(1:nphi,i) = geolon(i)
+  enddo
+  
   
   ! rapid computation
   

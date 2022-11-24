@@ -192,7 +192,7 @@ subroutine local_MPI_BCAST_2
      
   endif
 
-  !! NF here iCompute=2 option should be treated: r_(:) should be constructed from the whole list of points
+  !! NF here iCompute=2 option should be treated: r(:) should be constructed from the whole list of points
 
   
   call MPI_BCAST(rmin,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -525,3 +525,80 @@ subroutine local_allocate_values
   
   return
 end subroutine local_allocate_values
+
+
+subroutine local_allocate_catalogue
+  ! Nobuaki Fuji 2022.11.24
+  ! This subroutine allocates sgt catalogues and writes grid files (iCompute=0,1 for time being)
+  use localParamKernel
+  use parametersKernel
+  use tmpSGTs
+  use angles
+  use kernels
+  use rotate
+  implicit none
+
+
+  if((iCompute.eq.0).or.(iCompute.eq.1)) then
+     if(my_rank.eq.0) then
+        
+        if(trim(paramWRT).eq.'vRSGT') then
+           nktype_real=num_h3-1
+        elseif(trim(paramWRT).eq.'vTSGT') then
+           nktype_real=num_h4-1
+        elseif((trim(paramWRT).eq.'alphaV').or.(trim(paramWRT).eq.'betaV').or.(trim(paramWRT).eq.'allV').or.(trim(paramWRT).eq.'serious')) then
+           nktype_real=nkvtype
+        else
+           nktype_real=nktype
+        endif
+        
+        
+        ift=nfilter
+        
+        
+        gridfile = trim(parentDir)//trim(stationName)//"."//trim(eventName)//"."//&
+             trim(phase)//"."//trim(compo)//"."//trim(paramWRT)//trim(".grid")
+        open(1,file=gridfile,status='unknown',form='unformatted',access='sequential')
+        write(1) nr, nphi, ntheta, nktype_real
+        write(1) real(r)
+        write(1) real(phitheta) 
+        write(1) real(thetaphi)
+        
+        ! in iCompute = 1 mode, phitheta denotes the real latitude and thetaphi denotes the real longitude
+        close(1)
+        
+        
+     endif
+  endif
+
+  ! allocation for catalogues
+  allocate(tsgtomega(1:num_tsgtPSV,fmin:fmax,1:theta_n))
+  allocate(rsgtomega(1:num_rsgtPSV,fmin:fmax,1:theta_n))
+  allocate(synnomega(1:num_synnPSV,fmin:fmax,1:theta_n))
+  
+  ! allocation for sgtF (interpolated functions)
+  allocate(tsgtF(1:num_tsgtPSV,fmin:fmax))
+  allocate(rsgtF(1:num_rsgtPSV,fmin:fmax))
+  allocate(synnF(1:num_synnPSV,fmin:fmax))
+  allocate(h3(1:num_h3,fmin:fmax))
+  allocate(h4(1:num_h4,fmin:fmax))
+  allocate(u_freq(fmin:fmax))
+
+  ! Now computing reference synthetic (in my_rank = 0)
+  tsgtF=cmplx(0.d0)
+  rsgtF=cmplx(0.d0)
+  synnF=cmplx(0.d0)
+  
+  synnomega=cmplx(0.d0)
+
+  tsgtomega=cmplx(0.d0)
+  !print *, "coucou  avant rsgt=0"
+  rsgtomega=cmplx(0.d0)
+  !print *, "coucou avant u0=0"
+  h3=cmplx(0.d0)
+  h4=cmplx(0.d0)
+  u=0.d0
+  u0=0.d0
+
+  return
+end subroutine local_allocate_catalogue
