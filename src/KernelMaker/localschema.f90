@@ -602,3 +602,80 @@ subroutine local_allocate_catalogue
 
   return
 end subroutine local_allocate_catalogue
+
+subroutine referenceSyntheticComputation
+  
+  ! Nobuaki Fuji 2022.11.24
+  ! reference synthetics to compute and hilbert transform for traveltime/amplitude kernels
+
+  use localParamKernel
+  use parametersKernel
+  use tmpSGTs
+  use angles
+  use kernels
+  use rotate
+  implicit none
+
+    
+  if(my_rank.eq.0) then
+     !print *, "coucou avant synn2h3freq"
+     if(iPSVSH.ne.1) call rdsgtomega(rs,0.d0,num_synnPSV,num_synnPSV,2)
+     if(iPSVSH.ne.2) call rdsgtomega(rs,0.d0,num_synnSH,num_synnPSV,1)
+
+     !print *, distan
+     !print *, synnF(1:num_synnPSV,100:101)
+     call clsgt(distan,num_synnPSV,synnF(1:num_synnPSV,fmin:fmax),synnomega(1:num_synnPSV,fmin:fmax,1:theta_n))
+     !print *, synnomega(1:10,0:50,180)
+
+     
+     call synn2h3freq(0,0)
+
+     !print *, "coucou after synn2h3freq"
+
+     u_freq(fmin:fmax)=h3(1,fmin:fmax)*cmplx(mt(1))+ h3(2,fmin:fmax)*cmplx(mt(2)) &
+          +h3(3,fmin:fmax)*cmplx(mt(3))+ 2.d0*(h3(4,fmin:fmax)*cmplx(mt(4)) &
+          +h3(5,fmin:fmax)*cmplx(mt(5))+ h3(6,fmin:fmax)*cmplx(mt(6)))
+     call vectorFFT_double(fmin,fmax,np1,u_freq(fmin:fmax),u(iWindowStart:iWindowEnd),omegai,tlen,iWindowStart,iWindowEnd)
+     !print *, fmin,fmax,np1,u_freq(fmin:fmax),u(iWindowStart:iWindowEnd),omegai,tlen,iWindowStart,iWindowEnd
+     !  Numerically differentiate displacement to obtain velocity response.
+
+     v=0.d0
+     do it=iWindowStart+1,iWindowEnd
+        v(it)=(u(it)-u(it-1))/dtn
+     enddo
+     
+     ! Calculate the Hilbert transform of displacement
+
+     hu=0.d0
+     call hilbert(iWindowEnd-iWindowStart,dtn,t,u(iWindowStart:iWindowEnd),hu(iWindowStart:iWindowEnd))     
+
+     if(ibwfilt.eq.1) then
+        do ift = 0,nfilter
+           call bwfilt(u(iWindowStart:iWindowEnd),u0(ift,iWindowStart:iWindowEnd),1.d0/samplingHz,(iWindowEnd-iWindowStart+1),0,npButterworth,fclp(ift),fchp(ift))
+           call bwfilt(v(iWindowStart:iWindowEnd),v0(ift,iWindowStart:iWindowEnd),1.d0/samplingHz,(iWindowEnd-iWindowStart+1),0,npButterworth,fclp(ift),fchp(ift))
+           call bwfilt(hu(iWindowStart:iWindowEnd),hu0(ift,iWindowStart:iWindowEnd),1.d0/samplingHz,(iWindowEnd-iWindowStart+1),0,npButterworth,fclp(ift),fchp(ift))
+        enddo
+     endif
+
+     do ift = 0,nfilter
+        open(1,file=trim(synnfile)//"."//trim(freqid(ift)),status='unknown',form='formatted')
+        do jt=iWindowStart,iWindowEnd
+           write(1,*) t(jt), u(jt), u0(ift,jt)
+        enddo
+        close(1)
+     enddo
+     
+  endif
+
+  if(trim(paramWRT).eq.'test') then
+     if(my_rank.eq.0) then
+        do jt=iWindowStart,iWindowEnd
+           write(13,*) t(jt), u(jt), u0(0,jt)
+        enddo
+     endif
+     call MPI_FINALIZE(ierr)
+     stop
+  endif
+
+  return
+end subroutine referenceSyntheticComputation
