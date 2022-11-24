@@ -107,7 +107,7 @@ subroutine hgridsimple(distan,edge,dph0,width,dth0)
   use angles
   implicit none
   real(kind(0d0)) :: dph0,dth0,dph,dth,distan,edge,width 
-  real(kind(0d0)) :: midi
+  integer :: midi
   real(kind(0d0)), parameter :: dismin = 0.d0
   integer :: i,j,ip,ith
 
@@ -254,6 +254,8 @@ subroutine coeffCalculator
            coeff(ift,8,ir,it)=gnorma/qmm(ir)* &
                 u0(ift,it)*dtn/denomu(ift)
 
+
+           !!!
            coeff(ift,9,ir,it)=-2.d0*gnormt*rhom(ir)*vpm(ir)**2* &
      	        v0(ift,it)*dtn/denomv(ift)
            coeff(ift,10,ir,it)=2.d0*gnorma*rhom(ir)*vpm(ir)**2* &
@@ -279,6 +281,7 @@ subroutine coeffCalculator
      	        v0(ift,2,it)*dtn/denomv(ift,2)
            coeff(ift,20,ir,it)=-4.d0*gnormt*rhom(ir)*vsm(ir)**2* &
                 v0(ift,2,it)*dtn/denomv(ift,2)
+           !!!!
         enddo
      enddo
   enddo
