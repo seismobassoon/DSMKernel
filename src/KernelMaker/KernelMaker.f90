@@ -41,7 +41,7 @@ program KernelMaker
 
   ! Creating horizontal grid and computing sines and cosines
   if(iCompute.eq.0) call greatCircleBasedGridding
-  if(iCompute.eq.1) call gridMakingGeograhic
+  if(iCompute.eq.1) call gridMakingGeographic
 
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   call local_allocate_catalogue ! with grid file writing

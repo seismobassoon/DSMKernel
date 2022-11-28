@@ -1,11 +1,12 @@
 subroutine gridMakingGeographic
   use parametersKernel
+  use localParamKernel
   use angles
   implicit none
 
   real(kind(0d0)), allocatable :: geolat(:), geolon(:)
   integer :: nlat, nlon
-  integer ::, i
+  integer :: ilocal
 
   ! NF in this iCompute = 1 mode, nphi and ntheta are just symbolic
   ! but at least it is in order of lat and lon
@@ -14,18 +15,18 @@ subroutine gridMakingGeographic
   
   nlat = int((qlat_max-qlat_min)/qlat_delta)+1
   allocate(geolat(1:nlat))
-  do i = 1, nlat
-     geolat(i) = qlat_min+dble(i-1)*qlat_delta
+  do ilocal = 1, nlat
+     geolat(ilocal) = qlat_min+dble(ilocal-1)*qlat_delta
      ! geodetic -> geocentric
-     if(itranslat.eq.1) call translat(geolat(i),geolat(i))
+     if(itranslat.eq.1) call translat(geolat(ilocal),geolat(ilocal))
   enddo
 
   ! longitude grid
 
   nlon = int((qlon_max-qlon_min)/qlon_delta)+1
   allocate(geolon(1:nlon))
-  do i = 1, nlon
-     geolon(i) = qlon_min+dble(i-1)*qlon_delta
+  do ilocal = 1, nlon
+     geolon(ilocal) = qlon_min+dble(ilocal-1)*qlon_delta
   enddo
 
   ! lat -> phi; lon -> theta
@@ -35,12 +36,12 @@ subroutine gridMakingGeographic
   allocate(phitheta(nphi,ntheta))
   allocate(thetaphi(nphi,ntheta))
 
-  do i=1,nlat
-     phitheta(i,1:ntheta) = geolat(i)
+  do ilocal=1,nlat
+     phitheta(ilocal,1:ntheta) = geolat(ilocal)
   enddo
 
-  do i=1,nlon
-     thetaphi(1:nphi,i) = geolon(i)
+  do ilocal=1,nlon
+     thetaphi(1:nphi,ilocal) = geolon(ilocal)
   enddo
   
   
@@ -74,6 +75,7 @@ end subroutine gridMakingGeographic
 subroutine GreatCircleBasedGridding
   use angles
   use parametersKernel
+  use localParamKernel
   implicit none
   
   call hgridsimple(distan,ph1,dph,thw,dth)
@@ -270,17 +272,17 @@ subroutine coeffCalculator
      	        u0(ift,it)*dtn/denomu(ift)
            ! denomu for anisotropy in aniso version I will include this, too
            coeff(ift,15,ir,it)=-4.d0*gnormt*rhom(ir)*vsm(ir)**2* &
-                v0(ift,2,it)*dtn/denomv(ift,2)
+                v0(ift,it)*dtn/denomv(ift)
            coeff(ift,16,ir,it)=-4.d0*gnormt*rhom(ir)*vpm(ir)**2* &
-     	        v0(ift,2,it)*dtn/denomv(ift,2)
+     	        v0(ift,it)*dtn/denomv(ift)
            coeff(ift,17,ir,it)=-2.d0*gnormt*rhom(ir)*vpm(ir)**2* &
-                v0(ift,2,it)*dtn/denomv(ift,2)
+                v0(ift,it)*dtn/denomv(ift)
            coeff(ift,18,ir,it)=-8.d0*gnormt*rhom(ir)*vsm(ir)**2* &              
-                v0(ift,2,it)*dtn/denomv(ift,2)
+                v0(ift,it)*dtn/denomv(ift)
            coeff(ift,19,ir,it)=-2.d0*gnormt*rhom(ir)*vsm(ir)**2* &
-     	        v0(ift,2,it)*dtn/denomv(ift,2)
+     	        v0(ift,it)*dtn/denomv(ift)
            coeff(ift,20,ir,it)=-4.d0*gnormt*rhom(ir)*vsm(ir)**2* &
-                v0(ift,2,it)*dtn/denomv(ift,2)
+                v0(ift,it)*dtn/denomv(ift)
            !!!!
         enddo
      enddo
