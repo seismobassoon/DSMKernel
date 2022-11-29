@@ -149,25 +149,25 @@ class Path:
         global t1x
         global t1y
         t1x, t1y = Pointage()
-        print type(t1x)
-        print t1y
+        print (type(t1x))
+        print (t1y)
 
     def time2(self):
         global t2x
         global t2y
         t2x, t2y = Pointage()
-        print t2x
-        print t2y
+        print (t2x)
+        print (t2y)
             
     def time3(self):
         t3x, t3y = Pointage()
-        print t3x
-        print t3y
+        print (t3x)
+        print (t3y)
             
     def time4(self):
             t4x, t4y = Pointage()
-            print t4x
-            print t4y
+            print (t4x)
+            print (t4y)
             
             
     def quitter(self):
@@ -344,7 +344,7 @@ class LineBuilder :
         line.figure.canvas.mpl_connect('button_press_event', self)
         
     def __call__(self, event):
-        print 'click', event
+        print ('click', event)
         if event.inaxes!=self.line.axes: return
                 
         self.xs = [event.xdata, event.xdata]
@@ -383,8 +383,8 @@ def Pointage():
     line, = ax.plot([0], [0])
     linebuilder = LineBuilder(line)
     plt.show()
-    print enregx    # Abscisse des points selectionnes 
-    print enregy    # Ordonnees lues sur le sismo
+    print (enregx)    # Abscisse des points selectionnes 
+    print (enregy)    # Ordonnees lues sur le sismo
     
     return enregx[0], enregy[0]
        
@@ -401,7 +401,7 @@ def main():
     root.geometry("800x600")
     root.mainloop() 
     
-    print filterVar.get()
+    print (filterVar.get())
     if filterVar.get() == 1 :
         global racine
     
@@ -416,7 +416,7 @@ def main():
     splited_path = textPath.get().split('.')
     
     seismicParaVar = [alphaVar.get(),betaVar.get(),allVar.get()] 
-    print seismicParaVar   
+    print (seismicParaVar)
     
     conversionPara = "0"
     if text8_1 == 1: conversionPara = "1"
@@ -498,8 +498,8 @@ def main():
         
     try:
         subprocess.call('cp donnees.inf %s' % newPath, shell = True)
-    except (Error, OSError), e:
-        print "Attempt to copy failed: %s" % e
+    except ((Error, OSError), e):
+        print ("Attempt to copy failed: %s" % e)
         
     subprocess.call('rm donnees.inf', shell = True)
     '''
