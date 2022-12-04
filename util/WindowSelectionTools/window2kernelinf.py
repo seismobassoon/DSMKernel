@@ -8,7 +8,9 @@ import matplotlib.pyplot as plt
 from pylab  import vlines
 from obspy.core import read
 import subprocess
-from Tkinter import Tk, Canvas, Frame, Scrollbar, Label, Entry, Button, Menu, Menubutton, Listbox, StringVar, IntVar, RAISED, Checkbutton
+#from Tkinter import Tk, Canvas, Frame, Scrollbar, Label, Entry, Button, Menu, Menubutton, Listbox, StringVar, IntVar, RAISED, Checkbutton
+from tkinter import *
+from tkinter import ttk
 from shutil import Error
              
 class Path:

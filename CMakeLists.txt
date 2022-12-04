@@ -1,6 +1,8 @@
 # CMake4DSMKernelSuite is distributed under GNU General Public Licence (v3). See accompanying file LICENSE.txt
 
-
+# NF tries gtk-fortran
+#set (gtk-fortran /Users/nobuaki/Github/gtk-fortran/build/modules)
+#add_subdirectory(src/guiDSM)
 
 cmake_minimum_required(VERSION 3.9...3.23)
 project(DSMKernelSuite LANGUAGES Fortran)
