@@ -11,32 +11,29 @@ inspired by Stephanie Durand (2017)
 #from babel.support import Translations
 # Of course this software should be multilingual soon!!
 
+import numpy as np
+import matplotlib.pyplot as plt
+from pylab  import vlines
+from obspy.core import read
+import subprocess
 import tkinter as Tk
 from PIL import ImageTk, Image
 from tkinter import filedialog
 import os
+import sys
 
-def openfn():
-    filename = filedialog.askopenfilename(title='open')
-    return filename
-def open_img():
-    x = openfn()
-    img = Image.open(x)
-    img = img.resize((193.5, 40), Image.ANTIALIAS)
-    img = ImageTk.PhotoImage(img)
-    panel = Label(root, image=img)
-    panel.image = img
-    panel.pack()
+sys.path.append("./modules")
+import DSMTk
+
+global root
+
 
 root = Tk.Tk()
+fenetrePath = DSMTk.Welcome(root)
 root.geometry("1024x1400")
-root.resizable(width=True,height=True)
-root.title('DSM Kernel')
-img = ImageTk.PhotoImage(Image.open("./MuseSeLFiE.png"))
-panel=Tk.Label(root,image=img)
-panel.pack(side="top",fill="both",expand="yes")
-menuButton = Tk.Button(root, text='Menu').pack()
-btn = Tk.Button(root, text='open a sac file', command=open_img).pack()
+root.mainloop()
+
+
 
 root.mainloop()
 
