@@ -22,21 +22,21 @@ def openfn():
 def open_img():
     x = openfn()
     img = Image.open(x)
-    img = img.resize((100, 250), Image.ANTIALIAS)
+    img = img.resize((193.5, 40), Image.ANTIALIAS)
     img = ImageTk.PhotoImage(img)
     panel = Label(root, image=img)
     panel.image = img
     panel.pack()
 
 root = Tk.Tk()
-root.geometry("550x300+300+150")
+root.geometry("1024x1400")
 root.resizable(width=True,height=True)
 root.title('DSM Kernel')
 img = ImageTk.PhotoImage(Image.open("./MuseSeLFiE.png"))
 panel=Tk.Label(root,image=img)
-panel.pack(side="bottom",fill="both",expand="yes")
-menuButton = Tk.Button(root, text='Menu')
-btn = Tk.Button(root, text='open image', command=open_img).pack()
+panel.pack(side="top",fill="both",expand="yes")
+menuButton = Tk.Button(root, text='Menu').pack()
+btn = Tk.Button(root, text='open a sac file', command=open_img).pack()
 
 root.mainloop()
 
