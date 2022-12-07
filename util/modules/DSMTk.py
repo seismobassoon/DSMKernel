@@ -1,6 +1,26 @@
 import tkinter as Tk
 from PIL import ImageTk, Image
 from tkinter import filedialog
+import os
+
+global parentDir
+
+parentDir = os.getcwd()
+
+class SampleApp(Tk.Tk):
+    def __init__(self):
+        Tk.Tk.__init__(self)
+        self._frame = None
+        self.switch_frame(Welcome)
+
+    def switch_frame(self, frame_class):
+        """Destroys current frame and replaces it with a new one."""
+        new_frame = frame_class(self)
+        if self._frame is not None:
+            self._frame.destroy()
+            self._frame = None
+        self._frame = new_frame
+        self._frame.pack()
 
 def openfn():
     filename = filedialog.askopenfilename(title='open')
@@ -10,29 +30,48 @@ def open_img():
     img = Image.open(x)
     img = img.resize((193.5, 40), Image.ANTIALIAS)
     img = ImageTk.PhotoImage(img)
-    panel = Label(root, image=img)
+    panel = Label(master, image=img)
     panel.image = img
     panel.pack()
 
-class Welcome:
-    def __init__(self, root):
-        root.resizable(width=True,height=True)
-        root.title('DSM Kernel')
-        img = ImageTk.PhotoImage(Image.open("../images/MuseSeLFiE.png").resize((750,384)))
-        panel=Tk.Label(root,image=img)
-        #img = ImageTk.PhotoImage(Image.open("./dsm_logo.png").resize((192,108)))
-        #panel=Tk.Label(root,image=img)
-        panel.pack(side="top",fill="both",expand="yes")
-        menuButton = Tk.Button(root, text='Menu').pack()
-        btn = Tk.Button(root, text='open a sac file', command=open_img).pack()
+
+class Welcome(Tk.Frame):
+    def __init__(self, master):
+        Tk.Frame.__init__(self, master)
+        file=parentDir+'/images/MuseSeLFiE.png'
+        #print(file)
+        #master.resizable(width=True,height=True)
+        #Tk.title('DSM Kernel')
+        self.img = ImageTk.PhotoImage(Image.open(file).resize((750,384)),Image.ANTIALIAS)
+        self.panel=Tk.Label(master,image=self.img)
+        self.panel.img=self.img
+        #panel.pack(side="top",fill="both",expand="yes")
+        # create a dummy button
+        self.button = Tk.Button(master,image=self.img,borderwidth=0,
+                           command=lambda: master.switch_frame(Path))
+        self.button.pack()
+        self.canvas=Tk.Canvas(master,width=800,height=300)
+        self.canvas.create_text(412,30,text="Welcome to DSM Kernel Suite 2022!", fill="black", font=('Helvetica 15 bold'))
+        self.canvas.pack()
+        self.canvas.create_text(312,70,text="This software is the fruit long-lasting works! Please cite: Fuji et al. 2012; XXX", fill="black", font=('Helvetica 12'))
+        self.canvas.pack()
+        #text = Tk.Label(root0,text="")
+        #text.pack()
+
+class PageOne(Tk.Frame):
+    def __init__(self, master):
+        Tk.Frame.__init__(self, master)
+        Tk.Label(self, text="This is page one").pack(side="top", fill="x", pady=10)
+        Tk.Button(self, text="Return to start page",
+                  command=lambda: master.switch_frame(Welcome)).pack()
 
 
-class Path:
+class Path(Tk.Frame):
     def __init__(self, root):
-        
-        self.canvas = Canvas(root, borderwidth=1, background="#ffffff")
-        self.frame = Frame(self.canvas, background="#ffffff")
-        self.vsb = Scrollbar(root, orient="vertical", command=self.canvas.yview)
+        Tk.Frame.__init__(self, root)        
+        self.canvas = Tk.Canvas(root, borderwidth=1, background="#ffffff")
+        self.frame = Tk.Frame(self.canvas, background="#ffffff")
+        self.vsb = Tk.Scrollbar(root, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.vsb.set)
         self.vsb.pack(side="right", fill="y")
         self.canvas.pack(side="left", fill="both", expand=True)
@@ -42,6 +81,9 @@ class Path:
         self.frame.bind("<Configure>", self.OnFrameConfigure)
 
         self.data()
+
+        Tk.Button(self, text="Return to start page",
+                  command=lambda: master.switch_frame(Welcome)).pack()
         
     def data(self): 
         

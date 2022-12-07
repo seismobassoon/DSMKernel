@@ -3,7 +3,7 @@ Pre-/post- processing GUI facilities for DSM kernel
 
 2022 Nobuaki Fuji
 
-with contributions from Hugo Jaegler (2013)
+with contribution from Hugo Jaegler (2013)
 inspired by Stephanie Durand (2017)
 
 '''
@@ -23,29 +23,17 @@ import os
 import sys
 
 sys.path.append("./modules")
+sys.path.append("./images")
 import DSMTk
 
-global root
 
+if __name__ == "__main__":
+    
+    root0 = DSMTk.SampleApp()
+    root0.geometry("1024x1400")
+    #fenetrePath = DSMTk.Welcome(root0)
 
-root = Tk.Tk()
-fenetrePath = DSMTk.Welcome(root)
-root.geometry("1024x1400")
-root.mainloop()
+    root0.mainloop()
 
-
-
-root.mainloop()
-
-
-
-
-#img = ImageTk.PhotoImage(Image.open("MuseSeLFiE.png"))
-#panel = Tk.Label(root, image = img)
-#
-#panel.pack(side="bottom", fill="both", expand="yes")
-
-#menuButton.grid(row=0, column=0)
-root.mainloop()
 
 
