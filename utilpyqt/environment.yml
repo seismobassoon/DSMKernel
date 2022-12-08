@@ -1,0 +1,12 @@
+name: dsm2022pyqt
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10
+  - numpy
+#  - tk 
+  - matplotlib
+  - pip
+  - pip:
+    - PyQt6
+    - obspy
