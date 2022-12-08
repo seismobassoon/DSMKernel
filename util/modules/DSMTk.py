@@ -23,7 +23,7 @@ class SampleApp(Tk.Tk):
         self._frame.pack()
 
 def openfn():
-    filename = filedialog.askopenfilename(title='open')
+    filename = filedialog.askopenfilename(initialdir=parentDir,title='open')
     return filename
 def open_sac():
     x = openfn()
@@ -51,27 +51,33 @@ class Welcome(Tk.Frame):
         #panel.pack(side="top",fill="both",expand="yes")
         # create a dummy button
         self.button = Tk.Button(self,image=self.img,borderwidth=0,
-                           command=lambda: master.switch_frame(PageOne))
-        self.button.pack()
+                                command=lambda: master.switch_frame(PageOne)).pack()
+        #self.button.pack()
         self.canvas=Tk.Canvas(self,width=800,height=300)
         self.canvas.create_text(412,30,text="Welcome to DSM Kernel Suite 2022!", fill="black", font=('Helvetica 15 bold'))
         self.canvas.pack()
-        self.canvas.create_text(312,70,text="This software is the fruit long-lasting works! Please cite: Fuji et al. 2012; XXX", fill="black", font=('Helvetica 12'))
-        self.button = Tk.Button(self, text="close DSM Kernel",command=lambda: self.quit()).pack()
+        self.canvas.create_text(312,70,text="This software is the fruit of long-lasting works! Please cite: Fuji et al. 2012; XXXX", fill="black", font=('Helvetica 12'))
         self.canvas.pack()
+        self.button2 = Tk.Button(self, text="close DSM Kernel",command=lambda: self.quit()).pack()
+        
 
 
 class PageOne(Tk.Frame):
     def __init__(self, master):
         Tk.Frame.__init__(self, master)
-        Tk.Label(self, text="Welcome to DSM Kernel Suite!", fill="black", font =('Helvetica 15 bold')).pack(side="top", fill="x", pady=10)
+        self.canvas=Tk.Canvas(self,width=800,height=300)
+        self.canvas.create_text(412,30,text="Welcome to DSM Kernel Suite 2022!", fill="black", font=('Helvetica 15 bold'))
+        self.canvas.pack()
+        #Tk.Label(self, text="Welcome to DSM Kernel Suite!", fill="black", font =('Helvetica 15 bold')).pack(side="top", fill="", pady=10)
         Tk.Button(self, text="Read sac file(s)", command=lambda: master.switch_frame(ReadSac)).pack()
         Tk.Button(self, text="Return to start page",
                   command=lambda: master.switch_frame(Welcome)).pack()
 class ReadSac(Tk.Frame):
     def __init__(self,master):
         Tk.Frame.__init__(self, master)
-        Tk.Label(self, text="Read sac file(s)!", fill="black", font =('Helvetica 15 bold')).pack(side="top", fill="x", pady=10)
+        self.canvas=Tk.Canvas(self,width=800,height=300)
+        self.canvas.create_text(412,30,text="Read sac file(s)!", fill="black", font=('Helvetica 15 bold'))
+        self.canvas.pack()
         Tk.Button(self, text='open sac file', command=open_sac).pack()
         Tk.Button(self, text="Return to start page",
                   command=lambda: master.switch_frame(Welcome)).pack()
