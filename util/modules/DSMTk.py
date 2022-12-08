@@ -2,6 +2,7 @@ import tkinter as Tk
 from PIL import ImageTk, Image
 from tkinter import filedialog
 import os
+import obspy
 
 global parentDir
 
@@ -18,13 +19,17 @@ class SampleApp(Tk.Tk):
         new_frame = frame_class(self)
         if self._frame is not None:
             self._frame.destroy()
-            self._frame = None
         self._frame = new_frame
         self._frame.pack()
 
 def openfn():
     filename = filedialog.askopenfilename(title='open')
     return filename
+def open_sac():
+    x = openfn()
+    st=obspy.read(x,debug_headers=True)
+    print(st[0].stats)
+    
 def open_img():
     x = openfn()
     img = Image.open(x)
@@ -39,32 +44,38 @@ class Welcome(Tk.Frame):
     def __init__(self, master):
         Tk.Frame.__init__(self, master)
         file=parentDir+'/images/MuseSeLFiE.png'
-        #print(file)
-        #master.resizable(width=True,height=True)
-        #Tk.title('DSM Kernel')
+        master.title('DSM Kernel')
         self.img = ImageTk.PhotoImage(Image.open(file).resize((750,384)),Image.ANTIALIAS)
         self.panel=Tk.Label(master,image=self.img)
         self.panel.img=self.img
         #panel.pack(side="top",fill="both",expand="yes")
         # create a dummy button
-        self.button = Tk.Button(master,image=self.img,borderwidth=0,
-                           command=lambda: master.switch_frame(Path))
+        self.button = Tk.Button(self,image=self.img,borderwidth=0,
+                           command=lambda: master.switch_frame(PageOne))
         self.button.pack()
-        self.canvas=Tk.Canvas(master,width=800,height=300)
+        self.canvas=Tk.Canvas(self,width=800,height=300)
         self.canvas.create_text(412,30,text="Welcome to DSM Kernel Suite 2022!", fill="black", font=('Helvetica 15 bold'))
         self.canvas.pack()
         self.canvas.create_text(312,70,text="This software is the fruit long-lasting works! Please cite: Fuji et al. 2012; XXX", fill="black", font=('Helvetica 12'))
+        self.button = Tk.Button(self, text="close DSM Kernel",command=lambda: self.quit()).pack()
         self.canvas.pack()
-        #text = Tk.Label(root0,text="")
-        #text.pack()
+
 
 class PageOne(Tk.Frame):
     def __init__(self, master):
         Tk.Frame.__init__(self, master)
-        Tk.Label(self, text="This is page one").pack(side="top", fill="x", pady=10)
+        Tk.Label(self, text="Welcome to DSM Kernel Suite!", fill="black", font =('Helvetica 15 bold')).pack(side="top", fill="x", pady=10)
+        Tk.Button(self, text="Read sac file(s)", command=lambda: master.switch_frame(ReadSac)).pack()
         Tk.Button(self, text="Return to start page",
                   command=lambda: master.switch_frame(Welcome)).pack()
-
+class ReadSac(Tk.Frame):
+    def __init__(self,master):
+        Tk.Frame.__init__(self, master)
+        Tk.Label(self, text="Read sac file(s)!", fill="black", font =('Helvetica 15 bold')).pack(side="top", fill="x", pady=10)
+        Tk.Button(self, text='open sac file', command=open_sac).pack()
+        Tk.Button(self, text="Return to start page",
+                  command=lambda: master.switch_frame(Welcome)).pack()
+        
 
 class Path(Tk.Frame):
     def __init__(self, root):
