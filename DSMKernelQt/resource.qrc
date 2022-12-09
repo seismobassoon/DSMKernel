@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>images/MuseSeLFiE.png</file>
+        <file>images/dsm_logo.png</file>
+    </qresource>
+    <qresource prefix="/music">
+        <file>music/quatuor.m4a</file>
+    </qresource>
+</RCC>
