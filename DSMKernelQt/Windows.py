@@ -1,10 +1,9 @@
 # This Python file uses the following encoding: utf-8
 
 from PyQt6 import QtWidgets,uic
-#from mainwindow import Ui_MainWindow
 from PyQt6 import QtCore
-from PyQt6.QtMultimedia import QSoundEffect
-from PyQt6.QtCore import QUrl
+from PyQt6.QtMultimedia import QMediaPlayer
+from PyQt6.QtCore import QUrl,QFile
 
 QtCore.QDir.addSearchPath('images','images')
 '''
@@ -19,8 +18,10 @@ class WelcomeWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi("mainwindow.ui",self)
-        file=":/music/quatuor.m4a"
-        effect = QSoundEffect()
-        effect.setSource(QUrl.fromLocalFile(file))
-        effect.setLoopCount(-2)
-        effect.play()
+
+        self.effect = QMediaPlayer()
+        self.effect.setSource(QUrl("qrc:/music/music/quatuor.mp3"))
+        #self.effect.setLoopCount(1)
+        #self.effect.setVolume(1)
+
+        self.effect.play()

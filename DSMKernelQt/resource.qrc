@@ -4,6 +4,6 @@
         <file>images/dsm_logo.png</file>
     </qresource>
     <qresource prefix="/music">
-        <file>music/quatuor.m4a</file>
+        <file>music/quatuor.mp3</file>
     </qresource>
 </RCC>
