@@ -62,12 +62,12 @@ program  SGTpsv
 
 
   call cpu_time(start_time)
-  allocate(dvec0(1:3,0:2,1:theta_n,0:maxlmax))
+  allocate(dvec0(1:3,-2:2,1:theta_n,0:maxlmax))
   
-  allocate(dvecdt0(1:3,0:2,1:theta_n,0:maxlmax))
+  allocate(dvecdt0(1:3,-2:2,1:theta_n,0:maxlmax))
 
   
-  allocate(dvecdp0(1:3,0:2,1:theta_n,0:maxlmax))
+  allocate(dvecdp0(1:3,-2:2,1:theta_n,0:maxlmax))
 
   
   do l=0,maxlmax    ! l-loop start
