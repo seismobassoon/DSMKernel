@@ -1,0 +1,4 @@
+this project is to accelerate the SGT computation at the maximal speed, 
+erasing some trivial if clauses, 
+computing for the highest l demanded (which takes more time but necessary for near-field wavefield),
+and preparing spherical harmonics for all the points in advance (~42 Gb for 0.1 degree spacing)

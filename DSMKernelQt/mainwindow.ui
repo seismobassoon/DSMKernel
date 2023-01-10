@@ -10,6 +10,11 @@
     <height>945</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <family>.AppleSystemUIFont</family>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>DSM Kernel Suite</string>
   </property>
