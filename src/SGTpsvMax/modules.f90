@@ -14,7 +14,7 @@ module parameters
   real(kind(0d0)) :: rmin_, rmax_, rdelta_ 
   real(kind(0d0)) :: r0min, r0max, r0delta  !!! JUST FOR ONE DEPTH FOR THIS MOMENT !!
   real(kind(0d0)) :: thetamin, thetamax, thetadelta
-  real(kind(0d0)), allocatable :: r_(:),r0(:),theta(:)
+  real(kind(0d0)), allocatable :: r_(:),r0(:),theta(:),theta_radian(:)
   real(kind(0d0)), allocatable :: rrsta(:,:)
   real(kind(0d0)), allocatable :: lambda(:),qkp(:) !! only for stack points and only used for fluid regions
 
@@ -235,6 +235,7 @@ subroutine bcast_allocate_1
   theta_n = int((thetamax-thetamin)/thetadelta)+1
 
   allocate(theta(1:theta_n))
+  allocate(theta_radian(1:theta_n))
   allocate(dvec0(1:3,-2:2,1:theta_n))
   allocate(dvecdt0(1:3,-2:2,1:theta_n))
   allocate(dvecdp0(1:3,-2:2,1:theta_n))
@@ -242,6 +243,7 @@ subroutine bcast_allocate_1
   
   do i = 1,theta_n
      theta(i) = (thetamin + dble(i-1)*thetadelta)
+     theta_radian(i) = theta(i)/180.d0*pi
   enddo
   
   ! source depths

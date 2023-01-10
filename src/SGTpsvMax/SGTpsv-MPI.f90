@@ -78,6 +78,7 @@ program  SGTpsv
      !if((i.ne.0).and.((mod(imax-my_rank-i,2*nproc).eq.0).or.(mod(imax+my_rank+1-i,2*nproc).eq.0))) then
      
      if((i.ne.0).and.(mod(my_rank,nproc).eq.0)) then ! forget about the l-max problem, since we work for max l every omega
+        
         call calcoef( nzone,omega,qmu,qkappa,coef1,coef2,coef )
         plm = 0.d0
         mtmp = isp(spn) + int(spo)
@@ -117,18 +118,13 @@ program  SGTpsv
         maxamp = -1.d0
         llog = maxlmax
         do l=0,maxlmax    ! l-loop start
-           call caldvecphi0_withplm(l,(theta(1)/180.d0*pi),plm(1:3,0:3,1),dvec0(1:3,-2:2,1),dvecdt0(1:3,-2:2,1),dvecdp0(1:3,-2:2,1)) ! itheta = 1 can have theta = 0 
-           call caldvecphi0_withplm(l,(theta(theta_n)/180.d0*pi),plm(1:3,0:3,theta_n),dvec0(1:3,-2:2,theta_n),dvecdt0(1:3,-2:2,theta_n),dvecdp0(1:3,-2:2itheta_n)) ! itheta = theta_n can have theta = pi
+           call caldvecphi0_withplm(l,theta_radian(1),plm(1:3,0:3,1),dvec0(1:3,-2:2,1),dvecdt0(1:3,-2:2,1),dvecdp0(1:3,-2:2,1)) ! itheta = 1 can have theta = 0 
+           call caldvecphi0_withplm(l,theta_radian(theta_n),plm(1:3,0:3,theta_n),dvec0(1:3,-2:2,theta_n),dvecdt0(1:3,-2:2,theta_n),dvecdp0(1:3,-2:2itheta_n)) ! itheta = theta_n can have theta = pi
            ! NF: theta_n should be bigger than 3, which should be the case for MAX use
            do itheta = 2,theta_n-1      
-              call caldvecphi0_withplm_without_if_clause(l,(theta(itheta)/180.d0*pi),plm(1:3,0:3,itheta),dvec0(1:3,-2:2,itheta),dvecdt0(1:3,-2:2,itheta),dvecdp0(1:3,-2:2,itheta))
+              call caldvecphi0_withplm_without_if_clause(l,theta_radian(itheta),plm(1:3,0:3,itheta),dvec0(1:3,-2:2,itheta),dvecdt0(1:3,-2:2,itheta),dvecdp0(1:3,-2:2,itheta))
            enddo
 
-
-           if( ismall.gt.20 ) then
-              if(llog.gt.l) llog = l
-              exit
-           endif
            l2 = dble(l)*dble(l+1)
            lsq = dsqrt( l2 )
 

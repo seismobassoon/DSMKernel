@@ -222,10 +222,42 @@ subroutine caldvecphi0_withplm( l,theta,plm,bvec,bvecdt,bvecdp)
   return
 end subroutine caldvecphi0_withplm
 
+subroutine calplm( l,m,x,plm )
+  implicit none
+  integer :: l,m,i
+  real(kind(0d0)) :: x,plm(1:3),pmm,somx2,fact
+
+  if ((m.lt.0).or.(m.gt.l).or.(dabs(x).gt.1.d0)) pause 'bad arguments'
+  if ( l.eq.m ) then
+     pmm = 1.d0
+     if ( m.gt.0 ) then
+        somx2 = dsqrt( (1.d0-x)*(1.d0+x) )
+        fact = 1.d0
+        do i=1,m
+           pmm = -pmm * fact * somx2
+           fact = fact + 2.d0
+        enddo
+     endif
+     plm(3) = 0.d0
+     plm(2) = 0.d0
+     plm(1) = pmm
+  else
+     plm(3) = plm(2)
+     plm(2) = plm(1)
+     if ( l.eq.m+1 ) then
+        plm(1) = x * dble(2*m+1) * plm(2)
+     else
+        plm(1) = (x*dble(2*l-1) * plm(2)-dble(l+m-1) * plm(3) )/dble(l-m)
+     endif
+  endif
+
+end subroutine calplm
+
 
 
 subroutine caldvecphi0_withplm_without_if_clause(l,theta,plm,bvec,bvecdt,bvecdp)
-  ! variant of caldvecphi0_withplm 
+  ! variant of caldvecphi0_withplm but does not take into account of theta = 0, pi (it will bug)
+  ! this subroutine is exclusively written to accelerate the computation, adapted to be vectorised
   
   implicit none
   real(kind(0d0)), parameter ::  pi=3.1415926535897932d0 
@@ -236,68 +268,10 @@ subroutine caldvecphi0_withplm_without_if_clause(l,theta,plm,bvec,bvecdt,bvecdp)
   real(kind(0d0)) :: plmdt,xl2
   real(kind(0d0)) :: rtxl2,coeff,rtxl22,sign1,sign2
   
-  if((theta.eq.0.d0).or.(theta.eq.pi)) then
-     sign1 = 1.d0
-     sign2 = 1.d0
-     if(theta.eq.pi) then
-        sign1 = dble((-1)**l)
-        sign2 = dble((-1)**(l+1)) 
-     endif
-     
-     
-     bvec = cmplx(0.d0)
-     bvecdt = cmplx(0.d0)
-     bvecdp = cmplx(0.d0)
-     
-     xl2 = dble(l) * dble(l+1)
-     rtxl2 = sqrt(xl2)
-     
-     coeff = sqrt(dble(2*l+1)/(4.d0*pi))
-     bvec(1,0) = cmplx(coeff,0.d0) * sign1
-     !bvecdt(2,0) = -cmplx(coeff*xl2*5.d-1) *sign1
-     
-     
-     !if(l.ge.1) then
-     !   
-     !   
-     !   
-     !   bvec(2,1) = cmplx(-5.d-1*coeff,0.d0) *rtxl2 * sign1
-     !   bvec(2,-1) = -conjg(bvec(2,1))
-     !   bvec(3,1) = cmplx(0.d0,-5.d-1*coeff) *rtxl2 * sign2
-     !   bvec(3,-1) = -conjg(bvec(3,1))
-     !   
-     !   bvecdt(1,1) = cmplx(-5.d-1*rtxl2*coeff,0.d0) *sign1
-     !   bvecdt(1,-1) = - conjg(bvecdt(1,1))
-     !   
-     !   bvecdp(2,1) = cmplx(0.d0,-5.d-1*coeff) *rtxl2 
-     !   bvecdp(2,-1) = -conjg(bvecdp(2,1))
-     !   bvecdp(3,1) = cmplx(5.d-1*coeff) *rtxl2 
-     !   bvecdp(3,-1) = -conjg(bvecdp(3,1))
-     !   
-     !   
-     !endif
-    ! 
-    ! if(l.ge.2) then
-    !    rtxl22 = sqrt(dble(l+2)*dble(l-1)) 
-    !    
-    !    bvecdt(2,2) = cmplx(2.5d-1*coeff*rtxl22,0.d0) *rtxl2 *sign1
-    !    bvecdt(2,-2)= conjg(bvecdt(2,2))
-    !    bvecdt(3,2) = cmplx(0.d0,2.5d-1*coeff*rtxl22) *rtxl2 *sign2
-    !    bvecdt(3,-2)= conjg(bvecdt(3,2))
-    !    
-    !    
-    ! endif
-     
-     
-     return
-  endif
-  
-
   x = dcos( theta )
   xl2 = dble(l) * dble(l+1)
-  do m=0,min0(l,3)
-     call calplm( l,m,x,plm(1:3,m))
-  enddo 
+  call calplm_without_if_clause(l,x,plm(1:3,0:3))
+ 
 
   do m=0,min0(l,2)
      fact = 1.d0
@@ -345,9 +319,233 @@ subroutine caldvecphi0_withplm_without_if_clause(l,theta,plm,bvec,bvecdt,bvecdp)
      
   enddo
   return
-end subroutine caldvecphi0_withplm
+end subroutine caldvecphi0_withplm_without_if_clause
+
+subroutine calplm_without_if_clause_l_0( l,x,plm )
+  ! this subroutine exclusively works without if clauses to accelerate the computation.
+  ! calplm is more generalised (this subroutine will bug if something goes wrong
+  !
+  ! this is the special case for l = 0
+  
+  implicit none
+  integer :: l,m,i
+  real(kind(0d0)) :: x,plm(1:3,0:3),pmm,somx2,fact
+ 
+  plm(3,0:3) = 0.d0
+  plm(2,0:3) = 0.d0
+  plm(1,0) = 1.d0
+  plm(1,1:3) = 0.d0
+  return
+   
+end subroutine calplm_without_if_clause_l_0
+
+subroutine calplm_without_if_clause_l_1( l,x,plm )
+  ! this subroutine exclusively works without if clauses to accelerate the computation.
+  ! calplm is more generalised (this subroutine will bug if something goes wrong
+  implicit none
+  integer :: l,m,i
+  real(kind(0d0)) :: x,plm(1:3,0:3),pmm,somx2,fact
 
 
+  ! l = 1, m = 0
+  
+  plm(3,0) = 0.d0
+  plm(2,0) = 1.d0
+  plm(1,0) = x  
+  
+  ! l = 1, m = 1 (l=m)
+  
+  pmm = 1.d0
+  somx2 = dsqrt( (1.d0-x)*(1.d0+x) )
+  fact = 1.d0
+  
+  pmm = -pmm * fact * somx2
+  fact = fact + 2.d0
+  
+  plm(3,1) = 0.d0
+  plm(2,1) = 0.d0
+  plm(1,1) = pmm
+  return
+  
+end subroutine calplm_without_if_clause_l_1
+
+subroutine calplm_without_if_clause_l_2( l,x,plm )
+  ! this subroutine exclusively works without if clauses to accelerate the computation.
+  ! calplm is more generalised (this subroutine will bug if something goes wrong
+  implicit none
+  integer :: l,m,i
+  real(kind(0d0)) :: x,plm(1:3,0:3),pmm,somx2,fact
+
+
+  ! l = 2, m = 0
+
+  l=2
+  m=0
+  
+  plm(3,0) = plm(2,0)
+  plm(2,0) = plm(1,0)
+  plm(1,0) = (x*dble(2*l-1) * plm(2,0)-dble(l+m-1) * plm(3,0) )/dble(l-m)
+     
+  
+  ! l = 2, m = 1
+  m=1
+  plm(3,1) = plm(2,1)
+  plm(2,1) = plm(1,1)
+  plm(1) = x * dble(2*m+1) * plm(2)
+
+  ! l = 2, m = 2
+  m=2
+  pmm = 1.d0
+
+  somx2 = dsqrt( (1.d0-x)*(1.d0+x) )
+  fact = 1.d0
+  do i=1,2
+     pmm = -pmm * fact * somx2
+     fact = fact + 2.d0
+  enddo
+  
+  plm(3,2) = 0.d0
+  plm(2,2) = 0.d0
+  plm(1,2) = pmm
+  return
+  
+end subroutine calplm_without_if_clause_l_2
+
+
+subroutine calplm_without_if_clause_l_3( l,x,plm )
+  ! this subroutine exclusively works without if clauses to accelerate the computation.
+  ! calplm is more generalised (this subroutine will bug if something goes wrong
+  implicit none
+  integer :: l,m,i
+  real(kind(0d0)) :: x,plm(1:3,0:3),pmm,somx2,fact
+
+  ! l = 3
+
+  ! l = 3, m = 0,1
+
+  do m=0,1
+     plm(3,m) = plm(2,m)
+     plm(2,m) = plm(1,m)
+     plm(1,m) = (x*dble(2*l-1) * plm(2)-dble(l+m-1) * plm(3,m) )/dble(l-m)
+  enddo
+
+  ! l = 3, m = 2
+ 
+  m=2
+  
+  plm(3,m) = plm(2,m)
+  plm(2,m) = plm(1,m)
+  plm(1,m) = x * dble(2*m+1) * plm(2,m)
+
+  ! l = 3, m = 3
+
+  m=3
+
+  pmm = 1.d0
+
+  somx2 = dsqrt( (1.d0-x)*(1.d0+x) )
+  fact = 1.d0
+  do i=1,m
+     pmm = -pmm * fact * somx2
+     fact = fact + 2.d0
+  enddo
+    
+  plm(3,m) = 0.d0
+  plm(2,m) = 0.d0
+  
+  return
+  
+end subroutine calplm_without_if_clause_l_3
+
+
+subroutine calplm_without_if_clause_l_4( l,x,plm )
+  ! this subroutine exclusively works without if clauses to accelerate the computation.
+  ! calplm is more generalised (this subroutine will bug if something goes wrong
+  implicit none
+  integer :: l,m,i
+  real(kind(0d0)) :: x,plm(1:3,0:3),pmm,somx2,fact
+
+
+  ! l = 4, m = 0,2
+
+  do m=0,2
+     plm(3,m) = plm(2,m)
+     plm(2,m) = plm(1,m)
+     plm(1,m) = (x*dble(2*l-1) * plm(2,m)-dble(l+m-1) * plm(3,m) )/dble(l-m)      
+  endif
+     
+  ! l = 4, m = 3
+
+  m=3
+  
+  plm(3,m) = plm(2,m)
+  plm(2,m) = plm(1,m)
+  plm(1,m) = x * dble(2*m+1) * plm(2,m)
+    
+  return
+  
+end subroutine calplm_without_if_clause_l_4
+
+
+subroutine calplm_without_if_clause_l_big( l,x,plm )
+  ! this subroutine exclusively works without if clauses to accelerate the computation.
+  ! calplm is more generalised (this subroutine will bug if something goes wrong
+  implicit none
+  integer :: l,m,i
+  real(kind(0d0)) :: x,plm(1:3,0:3),pmm,somx2,fact
+
+
+  ! l > 4
+  do m=0,3
+     plm(3,m) = plm(2,m)
+     plm(2,m) = plm(1,m)
+     plm(1,m) = (x*dble(2*l-1) * plm(2,m)-dble(l+m-1) * plm(3,m) )/dble(l-m)
+  enddo
+  return
+end subroutine calplm_without_if_clause_l_big
+
+
+
+subroutine calplm_without_if_clause( l,x,plm )
+  ! this subroutine exclusively works without if clauses to accelerate the computation.
+  ! calplm is more generalised (this subroutine will bug if something goes wrong
+  implicit none
+  integer :: l,m,i
+  real(kind(0d0)) :: x,plm(1:3,0:3),pmm,somx2,fact
+
+  do m=0,min0(l,3) ! NF needs to look if this min execution needs to be kept
+     
+     
+     if ( l.eq.m ) then
+        pmm = 1.d0
+        if ( m.gt.0 ) then
+           somx2 = dsqrt( (1.d0-x)*(1.d0+x) )
+           fact = 1.d0
+           do i=1,m
+              pmm = -pmm * fact * somx2
+              fact = fact + 2.d0
+           enddo
+        endif
+        plm(3) = 0.d0
+        plm(2) = 0.d0
+        plm(1) = pmm
+     else
+        plm(3) = plm(2)
+        plm(2) = plm(1)
+        if ( l.eq.m+1 ) then
+           plm(1) = x * dble(2*m+1) * plm(2)
+        else
+           plm(1) = (x*dble(2*l-1) * plm(2)-dble(l+m-1) * plm(3) )/dble(l-m)
+        endif
+     endif
+     
+  enddo
+  
+end subroutine calplm_without_if_clause
+
+
+
+ 
 subroutine caldvecphi0_good( l,theta,plm,bvec,bvecdt,bvecdp)
   
   implicit none
@@ -414,38 +612,6 @@ end subroutine caldvecphi0_good
 
 
 
-
-
-subroutine calplm( l,m,x,plm )
-  implicit none
-  integer :: l,m,i
-  real(kind(0d0)) :: x,plm(1:3),pmm,somx2,fact
-
-  if ((m.lt.0).or.(m.gt.l).or.(dabs(x).gt.1.d0)) pause 'bad arguments'
-  if ( l.eq.m ) then
-     pmm = 1.d0
-     if ( m.gt.0 ) then
-        somx2 = dsqrt( (1.d0-x)*(1.d0+x) )
-        fact = 1.d0
-        do i=1,m
-           pmm = -pmm * fact * somx2
-           fact = fact + 2.d0
-        enddo
-     endif
-     plm(3) = 0.d0
-     plm(2) = 0.d0
-     plm(1) = pmm
-  else
-     plm(3) = plm(2)
-     plm(2) = plm(1)
-     if ( l.eq.m+1 ) then
-        plm(1) = x * dble(2*m+1) * plm(2)
-     else
-        plm(1) = (x*dble(2*l-1) * plm(2)-dble(l+m-1) * plm(3) )/dble(l-m)
-     endif
-  endif
-
-end subroutine calplm
 
 
 subroutine caldveczero( l,bvec )
