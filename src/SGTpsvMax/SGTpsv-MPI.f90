@@ -120,7 +120,7 @@ program  SGTpsv
 
 
         !l=0
-        
+        call dsm_l_0
 
 
         
@@ -140,7 +140,7 @@ program  SGTpsv
 
 
         
-        do l=0,maxlmax    ! l-loop start
+        do l=5,maxlmax    ! l-loop start
 
            
         

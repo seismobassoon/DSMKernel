@@ -3,6 +3,7 @@ subroutine dsm_l_0
   use paramters
   implicit none
 
+  ! l = 0
   call caldvecphi0_withplm(l,theta_radian(1),plm(1:3,0:3,1),dvec0(1:3,-2:2,1),dvecdt0(1:3,-2:2,1),dvecdp0(1:3,-2:2,1)) ! itheta = 1 can have theta = 0 
   call caldvecphi0_withplm(l,theta_radian(theta_n),plm(1:3,0:3,theta_n),dvec0(1:3,-2:2,theta_n),dvecdt0(1:3,-2:2,theta_n),dvecdp0(1:3,-2:2itheta_n)) ! itheta = theta_n can have theta = pi
   ! NF: theta_n should be bigger than 3, which should be the case for MAX use
