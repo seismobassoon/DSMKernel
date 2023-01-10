@@ -93,7 +93,7 @@ module parameters
   complex(kind(0d0)), allocatable ::z(:), w(:),cwork(:)
   
   !-----------------------------------------------------------------------
-  complex(kind(0d0)), allocatable :: dvec(:,:,:,:,),dvecdt(:,:,:,:),dvecdp(:,:,:,:)
+  complex(kind(0d0)), allocatable :: dvec(:,:,:,:),dvecdt(:,:,:,:),dvecdp(:,:,:,:)
   !complex(kind(0d0)), allocatable :: dvec0(:,:,:),dvecdt0(:,:,:),dvecdp0(:,:,:)
   complex(kind(0d0)), allocatable :: tsgt(:,:,:,:),rsgt(:,:,:),synn(:,:) ,psgt(:,:,:,:)
   complex(kind(0e0)), allocatable :: tsgtsngl(:,:), rsgtsngl(:,:),synnsngl(:,:),psgtsngl(:,:)
