@@ -75,7 +75,7 @@ program  SGTpsv
 
      do itheta = 1,theta_n
         
-        call caldvecphi0_withplm(l,(theta(itheta)/180.d0*pi),plm(1:3,-2:2,itheta,l),dvec0(1:3,-2:2,itheta,l),dvecdt0(1:3,-2:2,itheta,l),dvecdp0(1:3,-2:2,itheta,l))
+        call caldvecphi0_withplm(l,(theta(itheta)/180.d0*pi),plm(1:3,-2:2,itheta),dvec0(1:3,-2:2,itheta,l),dvecdt0(1:3,-2:2,itheta,l),dvecdp0(1:3,-2:2,itheta,l))
         
      enddo
   enddo
