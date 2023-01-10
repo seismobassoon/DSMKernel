@@ -6,6 +6,7 @@ add_library(sgtPSVMaxlib
 		modules.f90
 		others.f90
 		rk3.f90
+                dsm_every_l.f90
 		trial.f90
 	)
 
