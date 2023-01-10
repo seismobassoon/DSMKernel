@@ -235,9 +235,9 @@ subroutine bcast_allocate_1
   theta_n = int((thetamax-thetamin)/thetadelta)+1
 
   allocate(theta(1:theta_n))
-  allocate(dvec0(1:3,-2:2,1:theta_n))
-  allocate(dvecdt0(1:3,-2:2,1:theta_n))
-  allocate(dvecdp0(1:3,-2:2,1:theta_n))
+  !allocate(dvec0(1:3,-2:2,1:theta_n))
+  !allocate(dvecdt0(1:3,-2:2,1:theta_n))
+  !allocate(dvecdp0(1:3,-2:2,1:theta_n))
   allocate(plm(1:3,0:3,1:theta_n))
   
   do i = 1,theta_n
