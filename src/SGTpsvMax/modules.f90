@@ -93,8 +93,8 @@ module parameters
   complex(kind(0d0)), allocatable ::z(:), w(:),cwork(:)
   
   !-----------------------------------------------------------------------
-  complex(kind(0d0)), allocatable :: dvec0(:,:,:,:),dvecdt0(:,:,:,:),dvecdp0(:,:,:,:)
-  !complex(kind(0d0)), allocatable :: dvec0(:,:,:),dvecdt0(:,:,:),dvecdp0(:,:,:)
+  !complex(kind(0d0)), allocatable :: dvec(:,:,:,:),dvecdt(:,:,:,:),dvecdp(:,:,:,:)
+  complex(kind(0d0)), allocatable :: dvec0(:,:,:),dvecdt0(:,:,:),dvecdp0(:,:,:)
   complex(kind(0d0)), allocatable :: tsgt(:,:,:,:),rsgt(:,:,:),synn(:,:) ,psgt(:,:,:,:)
   complex(kind(0e0)), allocatable :: tsgtsngl(:,:), rsgtsngl(:,:),synnsngl(:,:),psgtsngl(:,:)
   real(kind(0d0)), allocatable :: plm(:,:,:)
@@ -235,9 +235,9 @@ subroutine bcast_allocate_1
   theta_n = int((thetamax-thetamin)/thetadelta)+1
 
   allocate(theta(1:theta_n))
-  !allocate(dvec0(1:3,-2:2,1:theta_n))
-  !allocate(dvecdt0(1:3,-2:2,1:theta_n))
-  !allocate(dvecdp0(1:3,-2:2,1:theta_n))
+  allocate(dvec0(1:3,-2:2,1:theta_n))
+  allocate(dvecdt0(1:3,-2:2,1:theta_n))
+  allocate(dvecdp0(1:3,-2:2,1:theta_n))
   allocate(plm(1:3,0:3,1:theta_n))
   
   do i = 1,theta_n
