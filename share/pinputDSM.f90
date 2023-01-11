@@ -23,7 +23,7 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   integer :: noDirMaking
 
   noDirMaking=0
-  if(SGTinfo.eq."argvModeUsed") then
+  if(trim(SGTinfo).eq."argvModeUsed") then
      call getarg(1,argv)
      DSMinffile=argv
      

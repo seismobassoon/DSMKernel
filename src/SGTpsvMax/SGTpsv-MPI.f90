@@ -83,7 +83,7 @@ program  SGTpsv
      !if((i.ne.0).and.((mod(imax-my_rank-i,2*nproc).eq.0).or.(mod(imax+my_rank+1-i,2*nproc).eq.0))) then
      
      if((i.ne.0).and.(mod(my_rank,nproc).eq.0)) then ! forget about the l-max problem, since we work for max l every omega
-        
+        call cpu_time(start_time)
         call calcoef( nzone,omega,qmu,qkappa,coef1,coef2,coef )
         plm = 0.d0
         mtmp = isp(spn) + int(spo)
@@ -117,6 +117,9 @@ program  SGTpsv
               call overlapb( nlayer(j), cwork(jtmp),a2(1,mtmp))
            endif
         enddo
+
+        call cpu_time(end_time)
+        print *, "i, l-independent matrix construction time", i, end_time - start_time
 
         kc = 1
         ismall = 0
