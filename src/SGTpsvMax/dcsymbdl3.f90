@@ -1,3 +1,5 @@
+
+
 subroutine dcsymbdl(a,m,n,nn,eps,z,w,l,li,lj,ier)
   !**********************************************************************
   !  gauss method for a symmetric band matrix with a short width.       *
@@ -25,7 +27,7 @@ subroutine dcsymbdl(a,m,n,nn,eps,z,w,l,li,lj,ier)
   complex(kind(0d0)):: a((m+1)*n),z(m+1),w(m+1)
   integer:: i,j,k,ij,kk,nk,nkk,nki
   complex(kind(0d0)):: piv
-
+  ! NF ignores if clauses
   ier = 0
   ij = 0
   do i=1,m
@@ -43,11 +45,11 @@ subroutine dcsymbdl(a,m,n,nn,eps,z,w,l,li,lj,ier)
   mm = (m+1) * m / 2
   do k=1,n-m
      nk = (m+1) * (k-1) + 1
-     if (zabs(a(nk+m)) .lt. eps) then
-        print *, '(subr. symbdl) singular at step = ', k
-        ier = 1
-        return
-     endif
+     !if (zabs(a(nk+m)) .lt. eps) then
+     !   print *, '(subr. symbdl) singular at step = ', k
+     !   ier = 1
+     !   return
+     !endif
      piv = dcmplx(1.0d0) / a(nk+m)
      do j=2,m+1
 	z(j) = - a(nk+m*j)
@@ -64,11 +66,11 @@ subroutine dcsymbdl(a,m,n,nn,eps,z,w,l,li,lj,ier)
   do k=n-m+1,n-1
      nk = (m+1) * (k-1) + 1
      nkk = (m+1) * k - 1
-     if (zabs(a(nk+m)) .lt. eps) then
-        print *, '(subr. symbdl) singular at step = ', k
-        ier = 1
-        return
-     endif
+     !if (zabs(a(nk+m)) .lt. eps) then
+     !   print *, '(subr. symbdl) singular at step = ', k
+     !   ier = 1
+     !   return
+     !endif
      piv = dcmplx(1.0d0) / a(nk+m)
      do j=2,n-k+1
 	z(j) = - a(nk+m*j)

@@ -1,3 +1,7 @@
+! NF prepared several specific subroutines without if clauses
+! dcsymbdl0 : as it was called
+! dcsbdlv0_bandwidth_1 : for bandwidth = 1
+! dcsbldv0_bandwidth_3 : for bandwidth = 3
 
 subroutine dcsymbdl0(a,m,n,nn,eps,z,w,l,li,lj,ier)
   !**********************************************************************
@@ -19,6 +23,8 @@ subroutine dcsymbdl0(a,m,n,nn,eps,z,w,l,li,lj,ier)
   !                                                                     *
   !  copyright:       fumiko nagahori    1 sep. 1991      ver. 1        *
   !**********************************************************************
+
+  ! NF comments all the useless input check (which can be harmful)
   implicit none
   integer:: n,m,mm,nn
   integer:: l(nn),li(nn),lj(nn),ier
@@ -27,7 +33,7 @@ subroutine dcsymbdl0(a,m,n,nn,eps,z,w,l,li,lj,ier)
   integer:: i,j,k,ij,kk,nk,nkk,nki
   complex(kind(0d0)):: piv
 
-  ier = 0
+  !ier = 0
   ij = 0
   do i=1,m
      ij = ij + 1
@@ -44,11 +50,12 @@ subroutine dcsymbdl0(a,m,n,nn,eps,z,w,l,li,lj,ier)
   mm = (m+1) * m / 2
   do k=1,n-m
      nk = (m+1) * (k-1) + 1
-     if (zabs(a(nk+m)) .lt. eps) then
-        print *, '(subr. symbdl) singular at step = ', k
-        ier = 1
-        return
-     endif
+     ! NF does not check below
+     !if (zabs(a(nk+m)) .lt. eps) then
+     !   print *, '(subr. symbdl) singular at step = ', k
+     !   ier = 1
+     !   return
+     !endif
      piv = dcmplx(1.0d0) / a(nk+m)
      do j=2,m+1
 	z(j) = - a(nk+m*j)
@@ -65,11 +72,12 @@ subroutine dcsymbdl0(a,m,n,nn,eps,z,w,l,li,lj,ier)
   do k=n-m+1,n-1
      nk = (m+1) * (k-1) + 1
      nkk = (m+1) * k - 1
-     if (zabs(a(nk+m)) .lt. eps) then
-        print *, '(subr. symbdl) singular at step = ', k
-        ier = 1
-        return
-     endif
+     ! NF does not check below
+     !if (zabs(a(nk+m)) .lt. eps) then
+     !   print *, '(subr. symbdl) singular at step = ', k
+     !   ier = 1
+     !   return
+     !endif
      piv = dcmplx(1.0d0) / a(nk+m)
      do j=2,n-k+1
 	z(j) = - a(nk+m*j)
@@ -90,6 +98,134 @@ end subroutine dcsymbdl0
 
 !
 
+
+subroutine dcsbdlv0_bandwidth_1(a,b,m,n,eps,z,ier)
+  !**********************************************************************
+  !  gauss method for a symmetric band matrix with a short width.       *
+  !  this routine is for a vector computer.                             *
+  !                                                                     *
+  !  parameters:                                                        *
+  !   on entry:                                                         *
+  !     a      the array with dimension (m+1),n which contains          *
+  !            the left hand side lower band matrix.                    *
+  !     m      the half band width of the matrix a, excluding diadonals.*
+  !     n      the order of the matrix a.                               *
+  !     eps    the tolerance for pivotal elements.                      *
+  !     b      right hand side vector                                   *
+  !   on return:                                                        *
+  !     b      solution.                                                *
+  !     ier    error code. if ier=0, normal return.                     *
+  !   others: working parameters.                                       *
+  !  copyright:       fumiko nagahori    1 sep. 1991      ver. 1        *
+  !**********************************************************************
+
+  ! NF comments all the useless input check (which can be harmful)
+  ! this is the special case for bandwidth = 1
+  implicit none
+  integer:: m,n,np,ier
+  real(kind(0d0)):: eps
+  complex(kind(0d0)):: a(m+1,n),b(n),z(n)
+  integer:: mm,j,k,i1,j1
+  complex(kind(0d0)):: sum
+  
+  !  forward substitution
+  mm = m + 1 ! mm = 2
+
+  z(1) = b(1)
+  do j=2,n
+     z(j) = b(j) - a(1,j) * z(j-1)
+  enddo
+  do j=1,n
+     z(j) = z(j) / a(m+1,j)
+  enddo
+  b(n) = z(n)
+  do j=1,n-1
+     b(n-j) = z(n-j) - a(1,n-j+1) * b(n-j+1)
+  enddo
+ 
+  return
+end subroutine dcsbdlv0_bandwidth_1
+
+
+subroutine dcsbdlv0_bandwidth_3(a,b,m,n,eps,z,ier)
+  !**********************************************************************
+  !  gauss method for a symmetric band matrix with a short width.       *
+  !  this routine is for a vector computer.                             *
+  !                                                                     *
+  !  parameters:                                                        *
+  !   on entry:                                                         *
+  !     a      the array with dimension (m+1),n which contains          *
+  !            the left hand side lower band matrix.                    *
+  !     m      the half band width of the matrix a, excluding diadonals.*
+  !     n      the order of the matrix a.                               *
+  !     eps    the tolerance for pivotal elements.                      *
+  !     b      right hand side vector                                   *
+  !   on return:                                                        *
+  !     b      solution.                                                *
+  !     ier    error code. if ier=0, normal return.                     *
+  !   others: working parameters.                                       *
+  !  copyright:       fumiko nagahori    1 sep. 1991      ver. 1        *
+  !**********************************************************************
+
+  ! NF comments all the useless input check (which can be harmful)
+  ! this is for bandwidth = 3
+  implicit none
+  integer:: m,n,np,ier
+  real(kind(0d0)):: eps
+  complex(kind(0d0)):: a(m+1,n),b(n),z(n)
+  integer:: mm,j,k,i1,j1
+  complex(kind(0d0)):: sum
+  
+  !  forward substitution
+  mm = m + 1 ! mm = 4
+  
+  z(1) = b(1)
+  z(2) = b(2) - a(m-1,2) * z(1)
+  do j=3,4
+     !if (j .gt. mm) then
+     !   i1 = 1
+     !else
+     i1 = mm - j + 1
+     !endif
+     sum = dcmplx(0.0d0)
+     do k=i1,mm-1
+        sum = sum + a(k,j) * z(j-mm+k)
+     enddo
+     z(j) = b(j) - sum
+  enddo
+  
+  do j=5,n
+     !if (j .gt. mm) then
+     i1 = 1
+     !else
+     !   i1 = mm - j + 1
+     !endif
+     sum = dcmplx(0.0d0)
+     do k=i1,mm-1
+        sum = sum + a(k,j) * z(j-mm+k)
+     enddo
+     z(j) = b(j) - sum
+  enddo
+  do j=1,n
+     z(j) = z(j) / a(m+1,j)
+  enddo
+  b(n) = z(n)
+  b(n-1) = z(n-1) - a(mm-1,n) * z(n)
+  do j=3,n
+     j1 = n - j + 1
+     i1 = 1
+     if (j .lt. mm) i1 = mm - j + 1
+     sum = dcmplx(0.0d0)
+     do k=i1,mm-1
+        sum = sum + a(k,mm-k+j1) * b(mm-k+j1)
+     enddo
+     b(j1) = z(j1) - sum
+  enddo
+
+  return
+end subroutine dcsbdlv0_bandwidth_3
+
+
 subroutine dcsbdlv0(a,b,m,n,eps,z,ier)
   !**********************************************************************
   !  gauss method for a symmetric band matrix with a short width.       *
@@ -109,6 +245,8 @@ subroutine dcsbdlv0(a,b,m,n,eps,z,ier)
   !   others: working parameters.                                       *
   !  copyright:       fumiko nagahori    1 sep. 1991      ver. 1        *
   !**********************************************************************
+
+  ! NF comments all the useless input check (which can be harmful)
   implicit none
   integer:: m,n,np,ier
   real(kind(0d0)):: eps
