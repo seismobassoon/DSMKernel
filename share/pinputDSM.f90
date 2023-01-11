@@ -501,7 +501,7 @@ subroutine readpsvmodel(psvmodel,tmpfile)
   integer :: numberLines,io,iLine
 
 
-  open(5,file=psvmodel,status='unknown',action='read')
+  open(5,file=trim(psvmodel),status='unknown',action='read')
   numberLines = 0 
   do
      read(5,*,iostat=io)
@@ -510,8 +510,8 @@ subroutine readpsvmodel(psvmodel,tmpfile)
   enddo
   close(5)  
   
-  open(unit=2, file=psvmodel, status='old',action='read',position='rewind')
-  open(unit=1, file=tmpfile,status='unknown')
+  open(unit=2, file=trim(psvmodel), status='old',action='read',position='rewind')
+  open(unit=1, file=trim(tmpfile),status='unknown')
 
   do iLine=1,numberLines
      read(2,110) dummy
