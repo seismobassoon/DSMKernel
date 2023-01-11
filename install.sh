@@ -1,6 +1,7 @@
 rm CMakeCache.txt 
 rm -rf bin
 rm CMakeFiles
+rm -rf SGTdictionary
 rm -rf build
 #cmake -S . -B build -DCMAKE_FORTRAN_COMPILER=/opt/homebrew/bin/mpifort
 cmake -S . -B build 

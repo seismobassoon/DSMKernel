@@ -3,17 +3,17 @@
 ! for further maintenance
 
 
-subroutine pinputDatabaseFileMAX
+subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,SGTinfo)
   implicit none
-  !character(200) :: dummy,outputDir,psvmodel,modelname,DSMconfFile,SGTinfo
-  !real(kind(0d0)) :: tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta
-  !real(kind(0d0)) :: thetamin,thetamax,thetadelta
-  character(200) :: SGTinfo,tmpfile0
+  character(200) :: dummy,outputDir,psvmodel,modelname,DSMconfFile,SGTinfo
+  real(kind(0d0)) :: tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta
+  real(kind(0d0)) :: thetamin,thetamax,thetadelta
+
   real(kind(0d0)) :: shortestPeriod
   
-  !integer :: imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch
+  integer :: imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch
   character(200) :: commandline
-  !character(200) :: tmpfile,tmpfile0
+  character(200) :: tmpfile,tmpfile0
   integer(4) :: istat
   
   character(200) :: argv
@@ -22,9 +22,11 @@ subroutine pinputDatabaseFileMAX
   character(200) :: paramName
 
   integer :: noDirMaking
+  real(kind(0d0)) :: re,ratc,ratl,omegai
+  integer :: maxlmax,deltalwindow
 
-  SGTinfo = tmpfile
   
+
   noDirMaking=0
  
   if(trim(SGTinfo) == trim("argvModeUsed")) then
@@ -68,7 +70,7 @@ subroutine pinputDatabaseFileMAX
   do iLine=1,numberLines
   
      read(5,'(a200)') dummy
-     if((dummy(1:1).ne.'#').and.(dummy(1:1).ne.'!')) write(1,'(a200)') dummy
+     if( (dummy(1:1).ne.'#').and.(dummy(1:1).ne.'!') ) write(1,'(a200)') dummy
      
   enddo
   
@@ -77,13 +79,14 @@ subroutine pinputDatabaseFileMAX
 
   paramName="DSMconfFile"
   call searchForParams(tmpfile,paramName,DSMconfFile,0)
-  print *, DSMconfFile
+  !print *, DSMconfFile
   paramName="outputDir"
   call searchForParams(tmpfile,paramName,outputDir,0)
   paramName="psvmodel"
   call searchForParams(tmpfile,paramName,psvmodel,0)
   paramName="modelname"
   call searchForParams(tmpfile,paramName,modelname,0)
+  print *, modelname
   outputDir=trim(outputDir)
   psvmodel=trim(psvmodel)
   modelname=trim(modelname)
@@ -92,7 +95,7 @@ subroutine pinputDatabaseFileMAX
      dummy = 'mkdir -p '//trim(outputDir)
      call system(dummy)
   
-     outputDir=outputDir//modelname
+     outputDir=trim(outputDir)//trim(modelname)
      dummy = 'mkdir -p '//trim(outputDir)
      call system(dummy)
   endif
@@ -222,53 +225,10 @@ subroutine pinputDatabaseFileMAX
   endif
   return
 
-end subroutine pinputDatabaseFile
+end subroutine pinputDatabaseFileMAX
 
 
-subroutine readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
-  implicit none
-  character(200) :: dummy,DSMconfFile
-  real(kind(0d0)) :: re,ratc,ratl,omegai
-  integer  :: maxlmax
-  integer :: numberLines,io,iLine
-  character(120) :: tmpfile
-  
-  tmpfile='tmpworkingfile_for_DSMconf'
-  call tmpfileNameGenerator(tmpfile,tmpfile)
 
-  
-  open(5,file=DSMconfFile,status='unknown',action='read')
-  numberLines = 0 
-  do
-     read(5,*,iostat=io)
-     if (io/=0) exit
-     numberLines = numberLines + 1
-  enddo
-  close(5)
-  
-
-  open(unit=2, file=DSMconfFile, status='old',action='read',position='rewind')
-  open(unit=1, file=tmpfile,status='unknown')
-
-  do iLine=1,numberLines
-  
-     read(2,110) dummy
-110  format(a200)
-     if((dummy(1:1).ne.'#').and.(dummy(1:1).ne.'!')) write(1,110) dummy
-  enddo
-  close(1)
-  close(2)
-  
- 
-  open(unit=1,file=tmpfile,status='unknown')
-  read(1,*) re
-  read(1,*) ratc
-  read(1,*) ratl
-  read(1,*) omegai
-  read(1,*) maxlmax
-  close(1,status='delete')
-
-end subroutine readDSMconfFile
 
 subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,SGTinfo)
   implicit none
@@ -461,7 +421,7 @@ subroutine readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
   call tmpfileNameGenerator(tmpfile,tmpfile)
 
   
-  open(5,file=DSMconfFile,status='unknown',action='read')
+  open(5,file=trim(DSMconfFile),status='unknown',action='read')
   numberLines = 0 
   do
      read(5,*,iostat=io)
@@ -471,8 +431,8 @@ subroutine readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
   close(5)
   
 
-  open(unit=2, file=DSMconfFile, status='old',action='read',position='rewind')
-  open(unit=1, file=tmpfile,status='unknown')
+  open(unit=2, file=trim(DSMconfFile), status='old',action='read',position='rewind')
+  open(unit=1, file=trim(tmpfile),status='unknown')
 
   do iLine=1,numberLines
   

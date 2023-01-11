@@ -34,7 +34,7 @@ program  SGTpsv
 
   if(my_rank.eq.0) then
      tmpfile='argvModeUsed'     
-     call pinputDatabaseFileMAX
+     call pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,tmpfile)
      !call readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
      tmpfile='tmpworkingfile_for_psvmodel'
      call tmpfileNameGenerator(tmpfile,tmpfile)
