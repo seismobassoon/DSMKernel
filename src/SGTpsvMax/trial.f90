@@ -267,26 +267,32 @@ subroutine caldvecphi0_withplm_without_if_clause_l_0(l,theta,plm,bvec,bvecdt,bve
   complex(kind(0d0)) :: bvecdt(1:3,-2:2),bvecdp(1:3,-2:2)
   real(kind(0d0)) :: plmdt,xl2
   real(kind(0d0)) :: rtxl2,coeff,rtxl22,sign1,sign2
-
-
+  
   l = 0
   x = dcos( theta )
-  xl2 = dble(l) * dble(l+1)
-  call calplm_without_if_clause_l_0(l,x,plm(1:3,0:3))
- 
+  !xl2 = dble(l) * dble(l+1)
+  xl2 = 0.d0
+
+  !call calplm_without_if_clause_l_0(l,x,plm(1:3,0:3))
+
+  plm(3,0) = 0.d0
+  plm(2,0) = 0.d0
+  plm(1,0) = 1.d0
+
   m=0
 
   fact = 1.d0
     
-  coef = dsqrt( dble(2*l+1)/(4.d0*pi) / fact )
+  !coef = dsqrt( dble(2*l+1)/(4.d0*pi) / fact )
+  coef = dsqrt( 1.d0 /(4.d0*pi) )
   plmdt = dble(m) * x / sin( theta ) * plm(1,m) + plm(1,m+1)
      
   bvec(1,m)  = coef * plm(1,m) 
-  bvec(1,-m) = dconjg( bvec(1,m) )
+  !bvec(1,-m) = dconjg( bvec(1,m) )
   bvec(2,m) = coef * plmdt 
-  bvec(2,-m) = dconjg( bvec(2,m) )
+  !bvec(2,-m) = dconjg( bvec(2,m) )
   bvec(3,m)  = dcmplx( 0.d0, dble(m) ) / dsin( theta ) * coef * plm(1,m) 
-  bvec(3,-m) = dconjg( bvec(3,m) )
+  !bvec(3,-m) = dconjg( bvec(3,m) )
   
      
   ! calculate derivatives
@@ -294,18 +300,36 @@ subroutine caldvecphi0_withplm_without_if_clause_l_0(l,theta,plm,bvec,bvecdt,bve
   bvecdt(1,m) = plmdt * coef 
   bvecdt(1,m) = dconjg( bvecdt(1,m) )
   bvecdt(2,m) = ( - x / dsin(theta) * plmdt + dble(m) * dble(m) /(1-x*x)*plm(1,m) - xl2 * plm(1,m) ) * coef
-  bvecdt(2,-m) = dconjg( bvecdt(2,m) )
+  !bvecdt(2,-m) = dconjg( bvecdt(2,m) )
   bvecdt(3,m) = dcmplx( 0.d0, dble(m) ) * ( - x / ( 1- x * x ) * plm(1,m)+ 1.d0 / dsin(theta) * plmdt ) * coef 
-  bvecdt(3,-m) = dconjg( bvecdt(3,m) )
+  !bvecdt(3,-m) = dconjg( bvecdt(3,m) )
   bvecdp(1,m) = dcmplx( 0.d0, dble(m) ) * plm(1,m) * coef 
-  bvecdp(1,-m) = dconjg( bvecdp(1,m) )
+  !bvecdp(1,-m) = dconjg( bvecdp(1,m) )
   bvecdp(2,m) = dcmplx( 0.d0,dble(m) ) * plmdt * coef 
-  bvecdp(2,-m) = dconjg( bvecdp(2,m) )
+  !bvecdp(2,-m) = dconjg( bvecdp(2,m) )
   bvecdp(3,m) = - dble(m) * dble(m) / dsin(theta)*plm(1,m)*coef
-  bvecdp(3,-m) = dconjg( bvecdp(3,m) )
+  !bvecdp(3,-m) = dconjg( bvecdp(3,m) )
   return
 end subroutine caldvecphi0_withplm_without_if_clause_l_0
 
+
+subroutine calplm_without_if_clause_l_0( l,x,plm )
+  ! this subroutine exclusively works without if clauses to accelerate the computation.
+  ! calplm is more generalised (this subroutine will bug if something goes wrong
+  !
+  ! this is the special case for l = 0
+  
+  implicit none
+  integer :: l,m,i
+  real(kind(0d0)) :: x,plm(1:3,0:3),pmm,somx2,fact
+ 
+  plm(3,0) = 0.d0
+  plm(2,0) = 0.d0
+  plm(1,0) = 1.d0
+ 
+  return
+   
+end subroutine calplm_without_if_clause_l_0
 
 subroutine caldvecphi0_withplm_without_if_clause_l_1(l,theta,plm,bvec,bvecdt,bvecdp)
   ! variant of caldvecphi0_withplm but does not take into account of theta = 0, pi (it will bug)
@@ -324,7 +348,7 @@ subroutine caldvecphi0_withplm_without_if_clause_l_1(l,theta,plm,bvec,bvecdt,bve
   l = 1
   x = dcos( theta )
   xl2 = dble(l) * dble(l+1)
-  call calplm_without_if_clause_1(l,x,plm(1:3,0:3))
+  call calplm_without_if_clause_l_1(l,x,plm(1:3,0:3))
  
 
 
@@ -1007,23 +1031,7 @@ subroutine caldvecphi0_withplm_without_if_clause(l,theta,plm,bvec,bvecdt,bvecdp)
   return
 end subroutine caldvecphi0_withplm_without_if_clause
 
-subroutine calplm_without_if_clause_l_0( l,x,plm )
-  ! this subroutine exclusively works without if clauses to accelerate the computation.
-  ! calplm is more generalised (this subroutine will bug if something goes wrong
-  !
-  ! this is the special case for l = 0
-  
-  implicit none
-  integer :: l,m,i
-  real(kind(0d0)) :: x,plm(1:3,0:3),pmm,somx2,fact
- 
-  plm(3,0) = 0.d0
-  plm(2,0) = 0.d0
-  plm(1,0) = 1.d0
- 
-  return
-   
-end subroutine calplm_without_if_clause_l_0
+
 
 subroutine calplm_without_if_clause_l_1( l,x,plm )
   ! this subroutine exclusively works without if clauses to accelerate the computation.
@@ -1310,14 +1318,14 @@ subroutine caldveczero_l_0( l,bvec )
   l = 0
   m = 0
   bvec = cmplx(0.d0)
-  xl2 = 0.d0
+  !xl2 = 0.d0
 
 
-  fact = 1.d0
+  !fact = 1.d0
      
-  coef = dsqrt( dble(2*l+1)/(4.d0*pi) / fact )
+  ! coef = dsqrt( dble(2*l+1)/(4.d0*pi) / fact )
 
-  
+  coef = dsqrt( dble(2*l+1)/(4.d0*pi) )  
   bvec(1,m) = cmplx(coef) 
 end subroutine caldveczero_l_0
 
@@ -1345,12 +1353,12 @@ subroutine caldveczero_l_nonzero( l,bvec )
   
 
   m=1
-  fact = 1.d0
-  do i=l-m+1,l+m
-     fact = fact * dble(i)
-  enddo
-  coef = dsqrt( dble(2*l+1)/(4.d0*pi) / fact )
-  
+  !fact = 1.d0
+  !do i=l,l+1
+  !   fact = fact * dble(i)
+  !enddo
+  !coef = dsqrt( dble(2*l+1)/(4.d0*pi) / fact )
+  coef = dsqrt( dble(2*l+1)/(4.d0*pi) / xl2 )
   bvec(2,m) = dcmplx(-1.d0,0.d0) * xl2 * coef / 2.d0
   bvec(2,-m) = -conjg(bvec(2,m))
   bvec(3,m) = dcmplx( 0.d0, dble(m)) *  xl2 *coef / 2.d0

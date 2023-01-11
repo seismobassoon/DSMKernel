@@ -167,6 +167,7 @@ subroutine setmt(imt,mt)
   real(kind(0d0)) :: mt(3,3)
   integer :: imt
   mt = 0.d0
+  
   if(imt.eq.1) mt(1,1) = 1.d0
   if(imt.eq.2) mt(2,2) = 1.d0
   if(imt.eq.3) mt(3,3) = 1.d0
