@@ -8,7 +8,7 @@ module parameters
   character(40) :: datex,timex
   real(kind(0d0)), parameter :: pi=3.1415926535897932d0
   real(kind(0d0)) :: re,ratc,ratl
-  integer :: maxlmax
+  integer :: maxlmax,deltalwindow
 
   real(kind(0d0)) :: tlen 
   real(kind(0d0)) :: rmin_, rmax_, rdelta_ 

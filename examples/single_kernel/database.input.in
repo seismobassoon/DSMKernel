@@ -55,3 +55,21 @@ shortestPeriod = 3.2d0
 	synnswitch = 1
 	psgtswitch = 1
 
+
+
+!!!! Below are the configuration parameters that you do not want to touch normally
+	re = 1.d-2 
+	this is the relative error (see GT95 eq. 6.2)
+
+	ratc = 1.d-10
+	amplitude ratio used in grid cut-off
+
+	ratl = 1.d-5
+	amplitude ratio used in l-cutoff that I will not use 
+
+	omegai = 1.d-2
+	wrap-around attenuation for omegai (usually 1.d-2 is used)
+
+	maxlmax = 80000
+
+	deltalwindow = 500
