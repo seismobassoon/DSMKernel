@@ -54,12 +54,17 @@ program  SGTpsv
      close(20,status='delete')     
   endif
 
-  call bcast_allocate_preparation_1
+  call bcast_allocate_1
   call preparation_2
   call allocation_preparation_3
 
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
+
+  
+
+
+  
 
   do i=imin,imax            ! omega-loop start
 

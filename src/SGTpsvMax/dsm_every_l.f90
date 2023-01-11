@@ -123,7 +123,7 @@ subroutine dsm_l_1
   
   
   rdvec = dcmplx(0.d0)
-  call caldveczero_l_non_zero(l,rdvec(1:3,-2:2))
+  call caldveczero_l_nonzero(l,rdvec(1:3,-2:2))
   !rdvec=dconjg(rdvec) 
   
      
