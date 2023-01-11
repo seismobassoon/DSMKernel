@@ -64,19 +64,22 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
 
   do iLine=1,numberLines
   
-     read(5,110) dummy
-110 format(a200)
-     if((dummy(1:1).ne.'#').and.(dummy(1:1).eq.'!')) write(1,110) dummy
+     read(5,'(a200)') dummy
+     if((dummy(1:1).ne.'#').and.(dummy(1:1).ne.'!')) write(1,'(a200)') dummy
+     
   enddo
   
   close(1)
   close(5)
 
-  
-  call searchForParams(tmpfile,"DSMconfFile",DSMconfFile,0)
-  call searchForParams(tmpfile,"outputDir",outputDir,0)
-  call searchForParams(tmpfile,"psvmodel",psvmodel,0)
-  call searchForParams(tmpfile,"modelname",modelname,0)
+  paramName="DSMconfFile"
+  call searchForParams(tmpfile,paramName,DSMconfFile,0)
+  paramName="outputDir"
+  call searchForParams(tmpfile,paramName,outputDir,0)
+  paramName="psvmodel"
+  call searchForParams(tmpfile,paramName,psvmodel,0)
+  paramName="modelname"
+  call searchForParams(tmpfile,paramName,modelname,0)
   outputDir=trim(outputDir)
   psvmodel=trim(psvmodel)
   modelname=trim(modelname)
@@ -94,32 +97,38 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   call searchForParams(tmpfile,paramName,dummy,1)
   read(dummy,*) tlen
 
-  call searchForParams(tmpfile,"radiiQ",dummy,1)
+  paramName='radiiQ'
+  call searchForParams(tmpfile,paramName,dummy,1)
   read(dummy,*)  rmin_,rmax_,rdelta_
 
-  call searchForParams(tmpfile,"radiusSource",dummy,1)
+  paramName='radiusSource'
+  call searchForParams(tmpfile,paramName,dummy,1)
   read(dummy,*) r0min  
   r0max=r0min
   r0delta=20.d0
-
-  call searchForParams(tmpfile,"epicentralDistancesQ",dummy,1)
+  
+  paramName='epicentralDistancesQ'
+  call searchForParams(tmpfile,paramName,dummy,1)
   read(dummy,*) thetamin,thetamax,thetadelta
 
   imax=0
   
   iFind=0
-  call searchForParamsOption(tmpfile,"shortestPeriod",dummy,1,iFind)
+  paramName='shortestPeriod'
+  call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
   if(iFind.eq.1) read(dummy,*) shortestPeriod
   imin=0
   print *, tlen, shortestPeriod
   imax=int(tlen/shortestPeriod)
 
   iFind=0
-  call searchForParamsOption(tmpfile,"imin",dummy,1,iFind)
+  paramName='imin'
+  call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
   if(iFind.eq.1) read(dummy,*) imin
 
   iFind=0
-  call searchForParamsOption(tmpfile,"imax",dummy,1,iFind)
+  paramName='imax'
+  call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
   if(iFind.eq.1) read(dummy,*) imax
 
   if(imax.eq.0) then
@@ -134,19 +143,23 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   psgtswitch = 1
 
   iFind=0
-  call searchForParamsOption(tmpfile,"rsgtswitch",dummy,1,iFind)
+  paramName='rsgtswitch'
+  call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
   if(iFind.eq.1) read(dummy,*) rsgtswitch
 
   iFind=0
-  call searchForParamsOption(tmpfile,"tsgtswitch",dummy,1,iFind)
+  paramName='tsgtswitch'
+  call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
   if(iFind.eq.1) read(dummy,*) tsgtswitch
 
   iFind=0
-  call searchForParamsOption(tmpfile,"synnswitch",dummy,1,iFind)
+  paramName='synnswitch'
+  call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
   if(iFind.eq.1) read(dummy,*) synnswitch
 
   iFind=0
-  call searchForParamsOption(tmpfile,"psgtswitch",dummy,1,iFind)
+  paramName='psgtswitch'
+  call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
   if(iFind.eq.1) read(dummy,*) psgtswitch
   
   ! delete this tmpfile when thi is safely read
