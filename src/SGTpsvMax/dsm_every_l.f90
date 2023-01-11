@@ -251,10 +251,10 @@ subroutine dsm_l_1
   call calya( anum(1,1,1),bnum(1,1,1),l2,ra(mtmp),r0(ir0),ya,yb,yc,yd )
 
 
-  ! m = -1; l = 1 and thus ig2 = 0
+  ! m = -1; l = 1 
 
-  m=-1
-
+  m = -1
+  ig2=0
   do imt = 4,5
      call setmt(imt,mt)
      g0 = dcmplx(0.d0)
@@ -271,84 +271,68 @@ subroutine dsm_l_1
      ig2 = 1
      
      call dcsbdlv0_bandwidth_3( a(1,itmp),g0(itmp),3,nn-itmp+1,eps,z(itmp),ier )
-     !endif
-     !endif
-     !        if((abs(m).eq.0).and.((imt.eq.1).or.(imt.eq.2).or.(imt.eq.3))) then
-     !            call dcsbdlv0( a(1,itmp),g0(itmp),3,nn-itmp+1,eps,z(itmp),ier )
-     !         elseif ((abs(m).eq.1).and.((imt.eq.4).or.(imt.eq.5))) then
-     !           call dcsbdlv0( a(1,itmp),g0(itmp),3,nn-itmp+1,eps,z(itmp),ier )
-     !        elseif((abs(m).eq.2).and.((imt.eq.2).or.(imt.eq.3).or.(imt.eq.6))) then
-     !            call dcsbdlv0( a(1,itmp),g0(itmp),3,nn-itmp+1,eps,z(itmp),ier )
-     !         endif
-
+   
      
-              
-              ! computing ampratio
-              ! print *, cksta,maxamp
-              
-              if((imt.eq.1).and.(ir0.eq.r0_n)) then
-                 call calamp(g0(ksta(r_n)-1),l,lsuf,maxamp,ismall,ratl)
-                 !print *, l,maxamp
-              endif
-                       !print *, l,m,g0(nn-1), g0(nn)
-              
-              
-              if(synnswitch.eq.1) then
-                 do itheta = 1, theta_n
-                    u = dcmplx(0.d0)
-                    call calu(g0(nn-1),lsq,dvec0(1:3,m,itheta),u(1:3))
-                    call utosynn(imt,u(1:3),synn(1:num_synn,itheta))
-                 enddo
-              endif
-              
-              do ir_=1,r_n ! stack point
-                 g0tmp = dcmplx(0.d0)
-                 g0dertmp = dcmplx(0.d0)
-                 call interpolate( 2,0,r_(ir_),rrsta(1,ir_),g0(ksta(ir_)-1),g0tmp(1:2))
-                 call interpolate( 2,1,r_(ir_),rrsta(1,ir_),g0(ksta(ir_)-1),g0dertmp(1:2) )
+     
+     ! computing ampratio
+     ! print *, cksta,maxamp
+     
+     
+     do itheta = 1, theta_n
+        u = dcmplx(0.d0)
+        call calu(g0(nn-1),lsq,dvec0(1:3,m,itheta),u(1:3))
+        call utosynn(imt,u(1:3),synn(1:num_synn,itheta))
+     enddo
+            
+     
+     do ir_=1,r_n ! stack point
+        g0tmp = dcmplx(0.d0)
+        g0dertmp = dcmplx(0.d0)
+        call interpolate( 2,0,r_(ir_),rrsta(1,ir_),g0(ksta(ir_)-1),g0tmp(1:2))
+        call interpolate( 2,1,r_(ir_),rrsta(1,ir_),g0(ksta(ir_)-1),g0dertmp(1:2) )
+        
                  
+        if(iphase(istazone(ir_)).eq.2) then
+           !if(0.eq.1) then
+           ! NF for fluid
+           
+           do itheta = 1, theta_n
+              u = dcmplx(0.d0)
+              udr = dcmplx(0.d0)
+              udt = dcmplx(0.d0)
+              udp = dcmplx(0.d0)
+              uder = dcmplx(0.d0)
+              call calupfluid(g0tmp(1),dcmplx(omega,-omegai),lambda(ir_),qkp(ir_),dvec0(1,m,itheta),uder)
+              !call calup(g0tmp(1),g0tmp(2),lsq,dvec0(1:3,m,itheta),u(1:3))
+              !call calup(g0dertmp(1),g0dertmp(2),lsq,dvec0(1:3,m,itheta),udr(1:3))
+              !call calup(g0tmp(1),g0tmp(2),lsq,dvecdt0(1:3,m,itheta),udt(1:3))
+              !call calup(g0tmp(1),g0tmp(2),lsq,dvecdp0(1:3,m,itheta),udp(1:3))
+              !call locallyCartesianDerivatives(u(1:3),udr(1:3),udt(1:3),udp(1:3),uder(1:3,1:3),r_(ir_),theta(itheta)/180.d0*pi)  
+              call udertotsgt(imt,uder(1:3,1:3),tsgt(1:num_tsgt,ir_,itheta,ir0))                                
+           enddo
+           
+        else
+           
+           do itheta = 1, theta_n
+              u = dcmplx(0.d0)
+              udr = dcmplx(0.d0)
+              udt = dcmplx(0.d0)
+              udp = dcmplx(0.d0)
+              uder = dcmplx(0.d0)
+              call calup(g0tmp(1),g0tmp(2),lsq,dvec0(1:3,m,itheta),u(1:3))
+              call calup(g0dertmp(1),g0dertmp(2),lsq,dvec0(1:3,m,itheta),udr(1:3))
+              call calup(g0tmp(1),g0tmp(2),lsq,dvecdt0(1:3,m,itheta),udt(1:3))
+              call calup(g0tmp(1),g0tmp(2),lsq,dvecdp0(1:3,m,itheta),udp(1:3))
+              call locallyCartesianDerivatives(u(1:3),udr(1:3),udt(1:3),udp(1:3),uder(1:3,1:3),r_(ir_),theta(itheta)/180.d0*pi) 
+              call udertotsgt(imt,uder(1:3,1:3),tsgt(1:num_tsgt,ir_,itheta,ir0))
+              
+           enddo
+        endif
+        
                  
-                 if(iphase(istazone(ir_)).eq.2) then
-                    !if(0.eq.1) then
-                    ! NF for fluid
-                    
-                    do itheta = 1, theta_n
-                       u = dcmplx(0.d0)
-                       udr = dcmplx(0.d0)
-                       udt = dcmplx(0.d0)
-                       udp = dcmplx(0.d0)
-                       uder = dcmplx(0.d0)
-                       call calupfluid(g0tmp(1),dcmplx(omega,-omegai),lambda(ir_),qkp(ir_),dvec0(1,m,itheta),uder)
-                       !call calup(g0tmp(1),g0tmp(2),lsq,dvec0(1:3,m,itheta),u(1:3))
-                       !call calup(g0dertmp(1),g0dertmp(2),lsq,dvec0(1:3,m,itheta),udr(1:3))
-                       !call calup(g0tmp(1),g0tmp(2),lsq,dvecdt0(1:3,m,itheta),udt(1:3))
-                       !call calup(g0tmp(1),g0tmp(2),lsq,dvecdp0(1:3,m,itheta),udp(1:3))
-                       !call locallyCartesianDerivatives(u(1:3),udr(1:3),udt(1:3),udp(1:3),uder(1:3,1:3),r_(ir_),theta(itheta)/180.d0*pi)  
-                       call udertotsgt(imt,uder(1:3,1:3),tsgt(1:num_tsgt,ir_,itheta,ir0))                                
-                    enddo
-                    
-                 else
-                    
-                    do itheta = 1, theta_n
-                       u = dcmplx(0.d0)
-                       udr = dcmplx(0.d0)
-                       udt = dcmplx(0.d0)
-                       udp = dcmplx(0.d0)
-                       uder = dcmplx(0.d0)
-                       call calup(g0tmp(1),g0tmp(2),lsq,dvec0(1:3,m,itheta),u(1:3))
-                       call calup(g0dertmp(1),g0dertmp(2),lsq,dvec0(1:3,m,itheta),udr(1:3))
-                       call calup(g0tmp(1),g0tmp(2),lsq,dvecdt0(1:3,m,itheta),udt(1:3))
-                       call calup(g0tmp(1),g0tmp(2),lsq,dvecdp0(1:3,m,itheta),udp(1:3))
-                       call locallyCartesianDerivatives(u(1:3),udr(1:3),udt(1:3),udp(1:3),uder(1:3,1:3),r_(ir_),theta(itheta)/180.d0*pi) 
-                       call udertotsgt(imt,uder(1:3,1:3),tsgt(1:num_tsgt,ir_,itheta,ir0))
-                       
-                    enddo
-                 endif
-                 
-                 
-                 
-              enddo   ! stack point
-           enddo ! mt-loop
+        
+     enddo   ! stack point
+  enddo ! mt-loop
            
            
            
@@ -706,6 +690,159 @@ subroutine dsm_l_1
   enddo            ! m-loop end
   
 end subroutine dsm_l_1
+
+
+
+
+subroutine convolution_with_Phi_synthetic
+  use mpi
+  use parameters
+  implicit none
+
+  ! this subroutines will take the c^T Phi for synthetics
+  do itheta = 1, theta_n
+     u = dcmplx(0.d0)
+     call calup0(d0(nn0),dvec0(1:3,m,itheta),u(1:3))
+     call utosynn(imt,u(1:3),synn(1:num_synn,itheta))
+  enddo
+
+  return
+end subroutine convolution_with_Phi_synthetic
+
+subroutine convolution_with_Phi_TSGT
+  use mpi
+  use parameters
+  implicit none
+
+  ! this subroutines will take the c^T Phi for TSGT
+   do ir_=1,r_n
+      g0tmp = dcmplx(0.d0)
+      g0dertmp = dcmplx(0.d0)
+      
+      call interpolate( 1,0,r_(ir_), rrsta(1,ir_),d0(jsta(ir_)),g0tmp(1))
+      call interpolate( 1,1,r_(ir_), rrsta(1,ir_),d0(jsta(ir_)),g0dertmp(1))
+      
+      ! NF introduces liquid terms (this should be done more efficiently)                      
+      
+      if(iphase(istazone(ir_)).eq.2) then
+         !if(0.eq.1) then
+         ! NF will write like \omega*g0tmp(1)/\lambda
+         
+         do itheta = 1, theta_n
+            u = dcmplx(0.d0)
+            udr = dcmplx(0.d0)
+            udt = dcmplx(0.d0)
+            udp = dcmplx(0.d0)
+            uder = dcmplx(0.d0)
+            
+            call calupfluid(g0tmp(1),dcmplx(omega,-omegai),lambda(ir_),qkp(ir_),dvec0(1,m,itheta),uder)
+            
+            ! Here in the liquid, u(1) is Q = lambda u_{k,k}/omega
+            ! that said, u_{r,r}=u_{t,t}=u_{p,p}=omega/(3 lambda)*Q
+            ! also, u_i=-1/(\rho \omega) * \partial_i Q
+            !if(my_rank.eq.0) print *, "fluid strain", uder(1,1)
+            
+            
+            
+            !call call calup0(g0tmp(1),dvec0(1:3,m,itheta),u(1:3))
+            !call calup0(g0dertmp(1),dvec0(1:3,m,itheta),udr(1:3))            
+            !call calup0(g0tmp(1),dvecdt0(1:3,m,itheta),udt(1:3))
+            !call calup0(g0tmp(1),dvecdp0(1:3,m,itheta),udp(1:3))
+            !call locallyCartesianDerivatives(u(1:3),udr(1:3),udt(1:3),udp(1:3),uder(1:3,1:3),r_(ir_),theta(itheta)/180.d0*pi)
+            
+            
+            call udertotsgt(imt,uder(1:3,1:3),tsgt(1:num_tsgt,ir_,itheta,ir0))
+         enddo
+         
+         
+         
+         
+      else
+         
+         do itheta = 1, theta_n
+            u = dcmplx(0.d0)
+            udr = dcmplx(0.d0)
+            udt = dcmplx(0.d0)
+            udp = dcmplx(0.d0)
+            uder = dcmplx(0.d0)
+            call calup0(g0tmp(1),dvec0(1:3,m,itheta),u(1:3))
+            call calup0(g0dertmp(1),dvec0(1:3,m,itheta),udr(1:3))            
+            call calup0(g0tmp(1),dvecdt0(1:3,m,itheta),udt(1:3))
+            call calup0(g0tmp(1),dvecdp0(1:3,m,itheta),udp(1:3))
+            call locallyCartesianDerivatives(u(1:3),udr(1:3),udt(1:3),udp(1:3),uder(1:3,1:3),r_(ir_),theta(itheta)/180.d0*pi)
+            call udertotsgt(imt,uder(1:3,1:3),tsgt(1:num_tsgt,ir_,itheta,ir0))
+                       
+            
+            ! if(my_rank.eq.0) print *, "solid strain", uder(1,1)
+         enddo
+         
+         
+      endif
+   enddo
+           
+  
+
+  return
+end subroutine convolution_with_Phi_TSGT
+
+subroutine convolution_with_Phi_RSGT
+  use mpi
+  use parameters
+  implicit none
+
+  ! this subroutines will take the c^T Phi for RSGT
+
+
+
+   do ir_=1,r_n
+      g0tmp = dcmplx(0.d0)
+      g0dertmp = dcmplx(0.d0)
+      call interpolate( 1,0,r_(ir_), rrsta(1,ir_),d0(jsta(ir_)),g0tmp(1))
+      call interpolate( 1,1,r_(ir_), rrsta(1,ir_),d0(jsta(ir_)),g0dertmp(1))
+      
+      if(iphase(istazone(ir_)).eq.2) then
+         !if(0.eq.1) then
+         ! NF for fluid
+         do itheta = 1, theta_n
+            u = dcmplx(0.d0)
+            udr = dcmplx(0.d0)
+            udt = dcmplx(0.d0) 
+            udp = dcmplx(0.d0)
+            uder = dcmplx(0.d0)
+            
+            
+            call calupfluid(g0tmp(1),dcmplx(omega,-omegai),lambda(ir_),qkp(ir_),dvec0(1,m,itheta),uder)                                   
+            !call calup0(g0tmp(1),dvec0(1:3,m,itheta),u(1:3))
+            !call calup0(g0dertmp(1),dvec0(1:3,m,itheta),udr(1:3))            
+            !call calup0(g0tmp(1),dvecdt0(1:3,m,itheta),udt(1:3))
+            !call calup0(g0tmp(1),dvecdp0(1:3,m,itheta),udp(1:3))
+            !call locallyCartesianDerivatives(u(1:3),udr(1:3),udt(1:3),udp(1:3),uder(1:3,1:3),r_(ir_),theta(itheta)/180.d0*pi)
+            
+            
+            call udertorsgt(icomp,uder(1:3,1:3),rsgt(1:num_rsgt,ir_,itheta))
+            
+            
+            
+         enddo
+         
+      else
+         do itheta = 1, theta_n
+            u = dcmplx(0.d0)
+            udr = dcmplx(0.d0)
+            udt = dcmplx(0.d0) 
+            udp = dcmplx(0.d0)
+            uder = dcmplx(0.d0)
+            call calup0(g0tmp(1),dvec0(1:3,m,itheta),u(1:3))
+            call calup0(g0dertmp(1),dvec0(1:3,m,itheta),udr(1:3))            
+            call calup0(g0tmp(1),dvecdt0(1:3,m,itheta),udt(1:3))
+            call calup0(g0tmp(1),dvecdp0(1:3,m,itheta),udp(1:3))
+            call locallyCartesianDerivatives(u(1:3),udr(1:3),udt(1:3),udp(1:3),uder(1:3,1:3),r_(ir_),theta(itheta)/180.d0*pi)
+            call udertorsgt(icomp,uder(1:3,1:3),rsgt(1:num_rsgt,ir_,itheta))
+         enddo
+      endif
+   enddo
+   return
+end subroutine convolution_with_Phi_RSGT
 
 
 
