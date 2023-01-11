@@ -23,7 +23,8 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   integer :: noDirMaking
 
   noDirMaking=0
-  if(trim(SGTinfo).eq."argvModeUsed") then
+ 
+  if(trim(SGTinfo) == trim("argvModeUsed")) then
      call getarg(1,argv)
      DSMinffile=argv
      
@@ -52,11 +53,11 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   close(5)
 
 
-
+  print *, numberLines
   
   open(unit=5,file=DSMinffile,status='unknown')
   
-  tmpfile='tmpworkingfile_for_SGTforPinv'//trim(tmpfile)
+  tmpfile='tmpworkingfile_for_SGTforPinv'
   call tmpfileNameGenerator(tmpfile,tmpfile)
   
   open(unit=1, file=tmpfile,status='unknown')
@@ -89,8 +90,9 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
      call system(dummy)
   endif
 
-  call searchForParams(tmpfile,"tlen",dummy,1)
-  read(dummy,*)tlen
+  paramName='tlen'
+  call searchForParams(tmpfile,paramName,dummy,1)
+  read(dummy,*) tlen
 
   call searchForParams(tmpfile,"radiiQ",dummy,1)
   read(dummy,*)  rmin_,rmax_,rdelta_
@@ -109,6 +111,7 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   call searchForParamsOption(tmpfile,"shortestPeriod",dummy,1,iFind)
   if(iFind.eq.1) read(dummy,*) shortestPeriod
   imin=0
+  print *, tlen, shortestPeriod
   imax=int(tlen/shortestPeriod)
 
   iFind=0
@@ -160,6 +163,7 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
      commandline = 'mkdir -p '//trim(outputDir)//'/log'
      call system(commandline)  
   endif
+  return
 
 end subroutine pinputDatabaseFile
 

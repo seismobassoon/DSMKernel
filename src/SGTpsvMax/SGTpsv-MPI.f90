@@ -26,16 +26,15 @@ program  SGTpsv
   use parameters
   implicit none
   real(kind(0d0)) :: start_time, end_time
-
-  
   character(200) :: tmpfile
   call MPI_INIT(ierr)
   call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
   call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
 
+
   if(my_rank.eq.0) then
-     
-     call pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,"argvModeUsed")
+     tmpfile='argvModeUsed'     
+     call pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,tmpfile)
      call readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
      tmpfile='tmpworkingfile_for_psvmodel'
      call tmpfileNameGenerator(tmpfile,tmpfile)
@@ -53,7 +52,8 @@ program  SGTpsv
      enddo
      close(20,status='delete')     
   endif
-
+  
+  call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   call bcast_allocate_1
   call preparation_2
   call allocation_preparation_3
