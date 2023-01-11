@@ -1085,7 +1085,7 @@ subroutine calplm_without_if_clause_l_2( l,x,plm )
   m=1
   plm(3,1) = plm(2,1)
   plm(2,1) = plm(1,1)
-  plm(1) = x * dble(2*m+1) * plm(2)
+  plm(1,1) = x * dble(2*m+1) * plm(2,1)
 
   ! l = 2, m = 2
   m=2
@@ -1120,7 +1120,7 @@ subroutine calplm_without_if_clause_l_3( l,x,plm )
   do m=0,1
      plm(3,m) = plm(2,m)
      plm(2,m) = plm(1,m)
-     plm(1,m) = (x*dble(2*l-1) * plm(2)-dble(l+m-1) * plm(3,m) )/dble(l-m)
+     plm(1,m) = (x*dble(2*l-1) * plm(2,m)-dble(l+m-1) * plm(3,m) )/dble(l-m)
   enddo
 
   ! l = 3, m = 2
@@ -1166,7 +1166,7 @@ subroutine calplm_without_if_clause_l_4( l,x,plm )
      plm(3,m) = plm(2,m)
      plm(2,m) = plm(1,m)
      plm(1,m) = (x*dble(2*l-1) * plm(2,m)-dble(l+m-1) * plm(3,m) )/dble(l-m)      
-  endif
+  enddo
      
   ! l = 4, m = 3
 
@@ -1220,16 +1220,16 @@ subroutine calplm_without_if_clause( l,x,plm )
               fact = fact + 2.d0
            enddo
         endif
-        plm(3) = 0.d0
-        plm(2) = 0.d0
-        plm(1) = pmm
+        plm(3,m) = 0.d0
+        plm(2,m) = 0.d0
+        plm(1,m) = pmm
      else
-        plm(3) = plm(2)
-        plm(2) = plm(1)
+        plm(3,m) = plm(2,m)
+        plm(2,m) = plm(1,m)
         if ( l.eq.m+1 ) then
-           plm(1) = x * dble(2*m+1) * plm(2)
+           plm(1,m) = x * dble(2*m+1) * plm(2,m)
         else
-           plm(1) = (x*dble(2*l-1) * plm(2)-dble(l+m-1) * plm(3) )/dble(l-m)
+           plm(1,m) = (x*dble(2*l-1) * plm(2,m)-dble(l+m-1) * plm(3,m) )/dble(l-m)
         endif
      endif
      

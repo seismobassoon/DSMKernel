@@ -321,7 +321,7 @@ subroutine dsm_l_2
   
   
   rdvec = dcmplx(0.d0)
-  call caldveczero_nonzero(l,rdvec(1:3,-2:2))
+  call caldveczero_l_nonzero(l,rdvec(1:3,-2:2))
   !rdvec=dconjg(rdvec) 
   
   !     computing the matrix elements
@@ -558,7 +558,7 @@ subroutine dsm_l_3
   
   
   rdvec = dcmplx(0.d0)
-  call caldveczero_nonzero(l,rdvec(1:3,-2:2))
+  call caldveczero_l_nonzero(l,rdvec(1:3,-2:2))
   !rdvec=dconjg(rdvec) 
   
   !     computing the matrix elements
@@ -794,7 +794,7 @@ subroutine dsm_l_4
   
   
   rdvec = dcmplx(0.d0)
-  call caldveczero_nonzero(l,rdvec(1:3,-2:2))
+  call caldveczero_l_nonzero(l,rdvec(1:3,-2:2))
   !rdvec=dconjg(rdvec) 
   
   !     computing the matrix elements
@@ -1030,7 +1030,7 @@ subroutine dsm_l_big
   
   
   rdvec = dcmplx(0.d0)
-  call caldveczero_nonzero(l,rdvec(1:3,-2:2))
+  call caldveczero_l_nonzero(l,rdvec(1:3,-2:2))
   !rdvec=dconjg(rdvec) 
   
   !     computing the matrix elements
