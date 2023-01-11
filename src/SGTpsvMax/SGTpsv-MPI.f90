@@ -123,27 +123,29 @@ program  SGTpsv
         call dsm_l_0 ! done 11/01/2023
 
         !l=1
-        
+        call dsm_l_1
         
         !l=2
 
+        call dsm_l_2
+        
         !l=3
 
+        call dsm_l_3
+        
         !l=4
 
+        call dsm_l_4
+        
         !l>4
-
-
-
-
-
         
         do l=5,maxlmax    ! l-loop start
 
-           
+           call dsm_l_big
         
         enddo               ! l-loop end        
         !print *, list1
+        
         open(24,file =list1, status = 'old',access='append', form = 'formatted')
         write(24,*) i, dble(i)/tlen, llog-1     
         close(24)
@@ -165,39 +167,37 @@ program  SGTpsv
            tsgtsngl(1:num_tsgt,1:theta_n) = tsgt(1:num_tsgt,ir_,1:theta_n,ir0)
            write(1,rec=1)tsgtsngl(1:num_tsgt,1:theta_n)
            close(1)                     
-           !enddo
-           
-           if(rsgtswitch.eq.1) then
-              write(coutfile, '(I7,".",I7,".RSGT_PSV")') int(r_(ir_)*1.d3),i
-              do j = 1,21
-                 if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
-              enddo
-              coutfile = trim(modelname)//"."//coutfile
-              coutfile = trim(outputDir)//"/RSGT/"//coutfile
-              open(1,file=coutfile,status='unknown',form='unformatted', &
-                   access = 'direct', recl=2*num_rsgt*kind(0e0)*theta_n)
-              rsgtsngl(1:num_rsgt,1:theta_n) = rsgt(1:num_rsgt,ir_,1:theta_n)
-              write(1,rec=1)rsgtsngl(1:num_rsgt,1:theta_n)
-              close(1)                    
-           endif
-        enddo
-        
-        !do ir0 = 1, r0_n
-        ir0 =1
-        
-        if(synnswitch.eq.1) then
-           write(coutfile, '(I7,".",I7,".SYNN_PSV") ') intir0,i
+           !end
+           write(coutfile, '(I7,".",I7,".RSGT_PSV")') int(r_(ir_)*1.d3),i
            do j = 1,21
               if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
            enddo
            coutfile = trim(modelname)//"."//coutfile
            coutfile = trim(outputDir)//"/RSGT/"//coutfile
            open(1,file=coutfile,status='unknown',form='unformatted', &
-                access = 'direct', recl=2*num_synn*kind(0e0)*theta_n)
-           synnsngl(1:num_synn,1:theta_n) = synn(1:num_synn,1:theta_n)
-           write(1,rec=1)synnsngl(1:num_synn,1:theta_n)
-           close(1)
-        endif
+                access = 'direct', recl=2*num_rsgt*kind(0e0)*theta_n)
+           rsgtsngl(1:num_rsgt,1:theta_n) = rsgt(1:num_rsgt,ir_,1:theta_n)
+           write(1,rec=1)rsgtsngl(1:num_rsgt,1:theta_n)
+           close(1)                    
+              
+        enddo
+        
+        !do ir0 = 1, r0_n
+        ir0 =1
+        
+        
+        write(coutfile, '(I7,".",I7,".SYNN_PSV") ') intir0,i
+        do j = 1,21
+           if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
+        enddo
+        coutfile = trim(modelname)//"."//coutfile
+        coutfile = trim(outputDir)//"/RSGT/"//coutfile
+        open(1,file=coutfile,status='unknown',form='unformatted', &
+             access = 'direct', recl=2*num_synn*kind(0e0)*theta_n)
+        synnsngl(1:num_synn,1:theta_n) = synn(1:num_synn,1:theta_n)
+        write(1,rec=1)synnsngl(1:num_synn,1:theta_n)
+        close(1)
+   
         !enddo        
      endif    
   enddo
