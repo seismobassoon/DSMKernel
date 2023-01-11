@@ -3,7 +3,7 @@
 
 subroutine dsm_l_0
   use mpi
-  use paramters
+  use parameters
   implicit none
 
   ! l = 0
@@ -105,7 +105,7 @@ end subroutine dsm_l_0
 
 subroutine dsm_l_1
   use mpi
-  use paramters
+  use parameters
   implicit none
 
   l = 1
@@ -443,7 +443,7 @@ subroutine dsm_l_2
   enddo ! mt-loop
      
  
-  icomp = 1,1
+  icomp = 1
   g0 = dcmplx(0.d0)
   g0(nn-1) = -conjg(rdvec(icomp,m))
   itmp=1
@@ -680,7 +680,7 @@ subroutine dsm_l_3
   enddo ! mt-loop
      
  
-  icomp = 1,1
+  icomp = 1
   g0 = dcmplx(0.d0)
   g0(nn-1) = -conjg(rdvec(icomp,m))
   itmp=1
@@ -916,7 +916,7 @@ subroutine dsm_l_4
   enddo ! mt-loop
      
  
-  icomp = 1,1
+  icomp = 1
   g0 = dcmplx(0.d0)
   g0(nn-1) = -conjg(rdvec(icomp,m))
   itmp=1
@@ -1152,7 +1152,7 @@ subroutine dsm_l_big
   enddo ! mt-loop
      
  
-  icomp = 1,1
+  icomp = 1
   g0 = dcmplx(0.d0)
   g0(nn-1) = -conjg(rdvec(icomp,m))
   itmp=1
@@ -1399,7 +1399,7 @@ end subroutine convolution_with_Phi_RSGT
 !!!! DON'T TOUCH BELOW!!!
 subroutine dsm_l_all
   use mpi
-  use paramters
+  use parameters
   implicit none
 
   call caldvecphi0_withplm(l,theta_radian(1),plm(1:3,0:3,1),dvec0(1:3,-2:2,1),dvecdt0(1:3,-2:2,1),dvecdp0(1:3,-2:2,1)) ! itheta = 1 can have theta = 0 
