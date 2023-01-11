@@ -1,13 +1,16 @@
 subroutine tmpfileNameGenerator(basename,tmpfile)
   ! NF 04/11/2022 This programme will just find a filename that will not crash the existing files
   implicit none
-  character(200) :: tmpfile,basename
+  character(*) :: tmpfile,basename
   integer :: i,j
   logical :: exists
-  !print *, basename
+
+
   do i=0,999
-     write(tmpfile,'(I0.3)') i
-     tmpfile=trim(basename)//trim(tmpfile)
+     !write(tmpfile,'(I0.3)') i
+     !tmpfile=trim(basename)//trim(tmpfile)
+     write(tmpfile,'(A,I3.3)') trim(basename), i
+     print *, tmpfile
      inquire(file=tmpfile,exist=exists)
      if(exists) then
         j=0
@@ -18,5 +21,5 @@ subroutine tmpfileNameGenerator(basename,tmpfile)
   enddo
   !write(tmpfile,'(I0.3)') j
   !tmpfile=trim(basename)//tmpfile
-  print *, tmpfile
+  !print *, tmpfile
 end subroutine tmpfileNameGenerator
