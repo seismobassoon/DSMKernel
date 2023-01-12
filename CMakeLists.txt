@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.9...3.23)
 project(DSMKernelSuite LANGUAGES Fortran)
 #enable_language(Fortran)
 find_package(MPI REQUIRED)
-set(CMAKE_Fortran_COMPILER mpifort)
+set(CMAKE_Fortran_COMPILER mpif90)
 set(EXECUTABLE_OUTPUT_PATH ../../../bin)
 
 # Strain Green Function dictionary should be stored in a bi space!!

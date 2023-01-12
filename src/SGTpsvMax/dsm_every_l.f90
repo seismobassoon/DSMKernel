@@ -41,7 +41,7 @@ subroutine whoDoesWhatDSM
      lChunk(2,iAngularOrderChunk) = iAngularOrderChunk*reasonableLwidth-1
   enddo
   
-  lChunk(1,nAngularOrderChunk) = (nAngularOrderChunk-1)*reasonableLwdith
+  lChunk(1,nAngularOrderChunk) = (nAngularOrderChunk-1)*reasonableLwidth
   lChunk(2,nAngularOrderChunk) = maxlmax
 
   print *, lChunk
