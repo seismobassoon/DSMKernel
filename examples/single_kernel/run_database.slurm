@@ -1,11 +1,11 @@
 #!/bin/sh
 #SBATCH --job-name DSM-db
-#SBATCH --nodes 4 
-#SBATCH --ntasks-per-node=16
-#SBATCH --partition cpunormal
+#SBATCH --nodes 1 
+#SBATCH --ntasks-per-node=128
+#SBATCH --partition ncpu
 #SBATCH --exclusive
 
 module purge
-module load intel/compiler intel-mpi/64 intel/mkl slurm
-mpirun -tmi -np 64  ../../bin/mpiSGTpsv < ./database.inf 
-mpirun -tmi -np 64  ../../bin/mpiSGTsh < ./database.inf 
+module load intel/21U2/suite
+#module load intel/compiler intel-mpi/64 intel/mkl slurm
+mpirun -tmi -np 128  ../../bin/mpiSGTpsvMAX database.input 
