@@ -5,6 +5,8 @@ subroutine whoDoesWhatDSM
   use mpi
   use parameters
   implicit none
+  real(kind(0d0)) :: reasonableLwidthInReal
+  integer :: reasonableLwidth
 
   nFrequencyChunk = 0
   do i=imin,imax
@@ -15,17 +17,99 @@ subroutine whoDoesWhatDSM
      endif
   enddo
   allocate (iFrequencyArray(1:nFrequencyChunk))
-  nFrequencyChunk = 0 
+  iFrequencyChunk = 0 
   do i=imin,imax
      !if((i.ne.0).and.((mod(imax-my_rank-i,2*nproc).eq.0).or.(mod(imax+my_rank+1-i,2*nproc).eq.0))) then
      
      if((i.ne.0).and.(mod(my_rank,nproc).eq.0)) then ! forget about the l-max problem, since we work for max l every omega
-        nFrequencyChunk = nFrequencyChunk + 1
-        iFrequencyArray(nFrequencyChunk) = i
+        iFrequencyChunk = iFrequencyChunk + 1
+        iFrequencyArray(iFrequencyChunk) = i
      endif
   enddo
+
+  ! the total of Phi can take the 60% of memory (just testing)
+  
+  reasonableLwidthInReal = 6.d-1 * maxMemoryInGigabyte * 1.d9 / 16.d0 / 57.d0 / dble(theta_n)
+  reasonableLwidth = int(reasonableLwidthInReal)
+
+  nAngularOrderChunk = (maxlmax-1)/reasonableLwidth
+  if(mod(maxlmax-1,nAngularOrderChunk).ne.0) nAngularOrderChunk = nAngularOrderChunk + 1
+  allocate(lChunk(1:2,1:nAngularOrderChunk))
+  
+  do iAngularOrderChunk = 1,nAngularOrderChunk-1
+     lChunk(1,iAngularOrderChunk) = (iAngularOrderChunk-1)*reasonableLwidth
+     lChunk(2,iAngularOrderChunk) = iAngularOrderChunk*reasonableLwidth-1
+  enddo
+  
+  lChunk(1,nAngularOrderChunk) = (nAngularOrderChunk-1)*reasonableLwdith
+  lChunk(2,nAngularOrderChunk) = maxlmax
+
+  print *, lChunk
+ 
+  stop
+  return
+
   
 end subroutine whoDoesWhatDSM
+
+
+subroutine dsm_write_files
+
+  use mpi
+  use parameters
+  implicit none
+
+  open(24,file =list1, status = 'old',access='append', form = 'formatted')
+  write(24,*) i, dble(i)/tlen, llog-1     
+  close(24)
+  do ir_ = 1,r_n
+     ! do ir0 = 1,r0_n
+     ir0 = 1
+     write(coutfile, '(I7,".",I7,".",I7,".TSGT_PSV")') intir0,int(r_(ir_)*1.d3),i
+     do j = 1,29
+        if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
+     enddo
+     
+     coutfile = trim(modelname)//"."//coutfile
+     coutfile = trim(outputDir)//"/TSGT/"//coutfile
+     open(1,file=coutfile,status='unknown',form='unformatted', &
+          access = 'direct', recl=2*num_tsgt*kind(0e0)*theta_n)
+     tsgtsngl(1:num_tsgt,1:theta_n) = tsgt(1:num_tsgt,ir_,1:theta_n,ir0)
+     write(1,rec=1)tsgtsngl(1:num_tsgt,1:theta_n)
+     close(1)                     
+        !end
+     write(coutfile, '(I7,".",I7,".RSGT_PSV")') int(r_(ir_)*1.d3),i
+     do j = 1,21
+        if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
+     enddo
+     coutfile = trim(modelname)//"."//coutfile
+     coutfile = trim(outputDir)//"/RSGT/"//coutfile
+     open(1,file=coutfile,status='unknown',form='unformatted', &
+          access = 'direct', recl=2*num_rsgt*kind(0e0)*theta_n)
+     rsgtsngl(1:num_rsgt,1:theta_n) = rsgt(1:num_rsgt,ir_,1:theta_n)
+     write(1,rec=1)rsgtsngl(1:num_rsgt,1:theta_n)
+     close(1)                    
+     
+  enddo
+  
+  !do ir0 = 1, r0_n
+  ir0 =1
+  
+  
+  write(coutfile, '(I7,".",I7,".SYNN_PSV") ') intir0,i
+  do j = 1,21
+     if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
+  enddo
+  coutfile = trim(modelname)//"."//coutfile
+  coutfile = trim(outputDir)//"/RSGT/"//coutfile
+  open(1,file=coutfile,status='unknown',form='unformatted', &
+       access = 'direct', recl=2*num_synn*kind(0e0)*theta_n)
+  synnsngl(1:num_synn,1:theta_n) = synn(1:num_synn,1:theta_n)
+  write(1,rec=1)synnsngl(1:num_synn,1:theta_n)
+  close(1)
+  return
+  !enddo        
+end subroutine dsm_write_files
 
 subroutine dsm_l_0
   use mpi

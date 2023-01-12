@@ -11,8 +11,8 @@ module parameters
   integer :: maxlmax,deltalwindow
   real(kind(0d0)) :: maxMemoryInGigabyte
   integer, allocatable :: iFrequencyArray(:), lChunk(:,:)
-  integer :: nFrequencyChunck
-  integer :: nAngularOrderChunck
+  integer :: iFrequencyChunk,nFrequencyChunk
+  integer :: iAngularOrderChunk,nAngularOrderChunk
 
   real(kind(0d0)) :: tlen 
   real(kind(0d0)) :: rmin_, rmax_, rdelta_ 
