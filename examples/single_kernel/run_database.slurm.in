@@ -8,4 +8,4 @@
 module purge
 module load intel/21U2/suite
 #module load intel/compiler intel-mpi/64 intel/mkl slurm
-mpirun  -np 128  ../../../bin/xSGTpsvMAX database.input 
+mpirun  -np 128  ../../../bin/xSGTpsvMax database.input 
