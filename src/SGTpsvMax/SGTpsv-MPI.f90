@@ -31,10 +31,10 @@ program  SGTpsv
   call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
   call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
 
-
+  
   if(my_rank.eq.0) then
      tmpfile='argvModeUsed'     
-     call pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,tmpfile)
+     call pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,tmpfile)
      !call readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
      tmpfile='tmpworkingfile_for_psvmodel'
      call tmpfileNameGenerator(tmpfile,tmpfile)
@@ -52,7 +52,7 @@ program  SGTpsv
      enddo
      close(20,status='delete')     
   endif
-  
+
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   call bcast_allocate_1
   call preparation_2
@@ -62,7 +62,7 @@ program  SGTpsv
 
 
   
-
+  
 
   
 

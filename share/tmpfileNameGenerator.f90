@@ -10,7 +10,7 @@ subroutine tmpfileNameGenerator(basename,tmpfile)
      !write(tmpfile,'(I0.3)') i
      !tmpfile=trim(basename)//trim(tmpfile)
      write(tmpfile,'(A,I3.3)') trim(basename), i
-     print *, tmpfile
+     !print *, tmpfile
      inquire(file=tmpfile,exist=exists)
      if(exists) then
         j=0

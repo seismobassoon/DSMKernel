@@ -3,7 +3,12 @@
 ! for further maintenance
 
 
-subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,SGTinfo)
+subroutine whoDoesWhatFrequency(my_rank,nproc,imin,imax,iarray)
+  implicit none
+  integer imin,imax 
+
+
+subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,SGTinfo)
   implicit none
   character(200) :: dummy,outputDir,psvmodel,modelname,DSMconfFile,SGTinfo
   real(kind(0d0)) :: tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta
@@ -24,7 +29,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   integer :: noDirMaking
   real(kind(0d0)) :: re,ratc,ratl,omegai
   integer :: maxlmax,deltalwindow
-
+  real(kind(0d0)) :: maxMemoryInGigabyte
   
 
   noDirMaking=0
@@ -58,8 +63,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   close(5)
 
 
-  print *, numberLines
-  
+
   open(unit=5,file=DSMinffile,status='unknown')
   
   tmpfile='tmpworkingfile_for_SGTforPinv'
@@ -77,16 +81,16 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   close(1)
   close(5)
 
+  ! soon DSMconfFile will disappear
   paramName="DSMconfFile"
   call searchForParams(tmpfile,paramName,DSMconfFile,0)
-  !print *, DSMconfFile
   paramName="outputDir"
   call searchForParams(tmpfile,paramName,outputDir,0)
   paramName="psvmodel"
   call searchForParams(tmpfile,paramName,psvmodel,0)
   paramName="modelname"
   call searchForParams(tmpfile,paramName,modelname,0)
-  print *, modelname
+ 
   outputDir=trim(outputDir)
   psvmodel=trim(psvmodel)
   modelname=trim(modelname)
@@ -94,8 +98,8 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   if(noDirMaking.eq.0) then
      dummy = 'mkdir -p '//trim(outputDir)
      call system(dummy)
-  
-     outputDir=trim(outputDir)//trim(modelname)
+     dummy =''
+     outputDir=trim(outputDir)//'/'//trim(modelname)     
      dummy = 'mkdir -p '//trim(outputDir)
      call system(dummy)
   endif
@@ -175,6 +179,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   omegai = 1.d-2
   maxlmax = 80000
   deltalwindow = 500
+  maxMemoryInGigabyte = 2.d0
 
   iFind=0
   paramName='re'
@@ -207,7 +212,10 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
   if(iFind.eq.1) read(dummy,*) deltalwindow
 
-  
+  iFind=0
+  paramName='maxMemoryInGigabyte'
+  call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
+  if(iFind.eq.1) read(dummy,*) maxMemoryInGigabyte
   
   ! delete this tmpfile when thi is safely read
   open(1,file=tmpfile,status='unknown')
@@ -218,6 +226,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   if(noDirMaking.eq.0) then
      commandline = 'mkdir -p '//trim(outputDir)//'/RSGT'
      call system(commandline)
+     print *, commandline
      commandline = 'mkdir -p '//trim(outputDir)//'/TSGT'
      call system(commandline)
      commandline = 'mkdir -p '//trim(outputDir)//'/log'
@@ -482,3 +491,4 @@ subroutine readpsvmodel(psvmodel,tmpfile)
   close(2)
   
 end subroutine readpsvmodel
+
