@@ -40,6 +40,7 @@ program  SGTpsv
      call tmpfileNameGenerator(tmpfile,tmpfile)
      call readpsvmodel(psvmodel,tmpfile)
      psvmodel=tmpfile
+     print *, "psvmodel=tmpfile"
      open(20, file = psvmodel, status = 'old', action='read', position='rewind')
      read(20,*) nzone
      close(20)

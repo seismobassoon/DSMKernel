@@ -223,7 +223,6 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   if(noDirMaking.eq.0) then
      commandline = 'mkdir -p '//trim(outputDir)//'/RSGT'
      call system(commandline)
-     print *, commandline
      commandline = 'mkdir -p '//trim(outputDir)//'/TSGT'
      call system(commandline)
      commandline = 'mkdir -p '//trim(outputDir)//'/log'
