@@ -3,9 +3,6 @@
 ! for further maintenance
 
 
-subroutine whoDoesWhatFrequency(my_rank,nproc,imin,imax,iarray)
-  implicit none
-  integer imin,imax 
 
 
 subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,SGTinfo)

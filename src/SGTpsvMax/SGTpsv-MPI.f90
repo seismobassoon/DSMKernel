@@ -60,10 +60,7 @@ program  SGTpsv
 
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
-
-  
-  
-
+  call whoDoesWhatDSM
   
 
   do i=imin,imax            ! omega-loop start
