@@ -138,7 +138,7 @@ subroutine bcast_allocate_1
   use parameters
   implicit none
   character(200) :: tmpfile
-  
+  if(allocated(qkappa)) "wow, qkappa is allocated before pinput in ", my_rank
   if(my_rank.eq.0) then
      tmpfile='argvModeUsed'     
      call pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,tmpfile)
@@ -154,6 +154,7 @@ subroutine bcast_allocate_1
  
   endif
 
+  if(allocated(qkappa)) "wow, qkappa is allocated after pinput in ", my_rank
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   
    ! exporting DSM parameters
@@ -185,8 +186,7 @@ subroutine bcast_allocate_1
   call MPI_BCAST(r0max,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(r0delta,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   
-  if(allocated(qkappa)) print *, my_rank, size(qkappa)
-  if(allocated(vsv)) print *, my_rank, size(vsv)
+
   allocate(nlayer(1:nzone))
   allocate(iphase(1:nzone))
   allocate(vrmin(1:nzone))
