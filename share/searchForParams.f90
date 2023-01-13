@@ -15,7 +15,7 @@ subroutine searchForParams(filenameIn,ParamNameIn,textParam,paramisText)
   character(200), intent(in) :: filenameIn
   character(200), intent(out) :: textParam
   character(200) :: text_line
-  character, allocatable :: filename, ParamName
+  character(:), allocatable :: filename, ParamName
   integer :: paramLength,textLength,io
   integer, intent(in) :: paramisText
   character(200), intent(in) :: ParamNameIn
@@ -57,7 +57,7 @@ subroutine searchForParams(filenameIn,ParamNameIn,textParam,paramisText)
   enddo
   close(20)
   if(iFind.eq.0) then
-     print *, trim(ParamName), "is not found."
+     print *, trim(ParamName), " is not found."
      stop
   endif
 end subroutine searchForParams
@@ -71,7 +71,7 @@ subroutine searchForParamsOption(filenameIn,ParamNameIn,textParam,paramisText,iF
   character(200), intent(in) :: filenameIn
   character(200), intent(out) :: textParam
   character(200) :: text_line
-  character, allocatable :: filename, ParamName
+  character(:), allocatable :: filename, ParamName
   integer :: paramLength,textLength,io
   integer, intent(in) :: paramisText
   character(200), intent(in) :: ParamNameIn
