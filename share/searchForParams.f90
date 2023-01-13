@@ -69,12 +69,12 @@ subroutine searchForParamsOption(filenameIn,ParamNameIn,textParam,paramisText,iF
   
   implicit none
   character(200), intent(in) :: filenameIn
-  character(200), intent(out0 :: textParam
+  character(200), intent(out) :: textParam
   character(200) :: text_line
   character, allocatable :: filename, ParamName
   integer :: paramLength,textLength,io
   integer, intent(in) :: paramisText
-  character(200), intent(in) :: ParamName
+  character(200), intent(in) :: ParamNameIn
   integer, intent(inout) :: iFind
   integer :: jtemp, iCut
 
