@@ -26,11 +26,32 @@ program  SGTpsv
   use parameters
   implicit none
   real(kind(0d0)) :: start_time, end_time
-  
+  character(200) :: tmpfile
   call MPI_INIT(ierr)
   call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
   call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
 
+
+  if(allocated(qkappa)) print *, "wow, qkappa is allocated before pinput in ", my_rank
+  if(my_rank.eq.0) then
+     tmpfile='argvModeUsed'     
+     call pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,tmpfile)
+     if(allocated(qkappa))print *, "wow, qkappa is allocated  before timefilenamegenerator  in ", my_rank
+     !call readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
+     tmpfile='tmpworkingfile_for_psvmodel'
+     call tmpfileNameGenerator(tmpfile,tmpfile)
+     call readpsvmodel(psvmodel,tmpfile)
+     psvmodel=tmpfile
+ 
+     open(20, file = psvmodel, status = 'old', action='read', position='rewind')
+     read(20,*) nzone
+     close(20)
+ 
+  endif
+
+  if(allocated(qkappa))print *, "wow, qkappa is allocated after pinput in ", my_rank
+
+  
   call bcast_allocate_1
   call preparation_2
   call allocation_preparation_3
