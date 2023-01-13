@@ -142,6 +142,7 @@ subroutine bcast_allocate_1
   if(my_rank.eq.0) then
      tmpfile='argvModeUsed'     
      call pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,tmpfile)
+     if(allocated(qkappa))print *, "wow, qkappa is allocated  before timfilenamegenerator pinput in ", my_rank
      !call readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
      tmpfile='tmpworkingfile_for_psvmodel'
      call tmpfileNameGenerator(tmpfile,tmpfile)
@@ -154,7 +155,7 @@ subroutine bcast_allocate_1
  
   endif
 
-  if(allocated(qkappa))print *,  "wow, qkappa is allocated after pinput in ", my_rank
+  if(allocated(qkappa))print *, "wow, qkappa is allocated after pinput in ", my_rank
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   
    ! exporting DSM parameters
