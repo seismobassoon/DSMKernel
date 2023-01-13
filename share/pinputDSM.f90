@@ -124,10 +124,12 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   iFind=0
   paramName='shortestPeriod'
   call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
-  if(iFind.eq.1) read(dummy,*) shortestPeriod
-  imin=0
-  imax=int(tlen/shortestPeriod)
-
+  if(iFind.eq.1) then
+     read(dummy,*) shortestPeriod
+     imin=0
+     imax=int(tlen/shortestPeriod)
+  endif
+  
   iFind=0
   paramName='imin'
   call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
