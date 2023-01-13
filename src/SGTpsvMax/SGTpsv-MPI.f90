@@ -19,7 +19,7 @@ program  SGTpsv
   !                                               2020.10. FUJI Nobuaki (RSGT for depth: PSGT)
   !                                               
   !
-  !      0.2.0 plm calculating with one frequency by one frequency
+  !     
   !                 
   !-----------------------------------------------------------------------
   use mpi
@@ -34,7 +34,11 @@ program  SGTpsv
   call allocation_preparation_3
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
-  call whoDoesWhatDSM
+  call whoDoesWhatDSM ! i-chunk and l-chunk 
+
+
+  
+
   
   do iFrequencyChunk = 1,nFrequencyChunk           ! omega-loop start
 

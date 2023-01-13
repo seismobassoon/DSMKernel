@@ -154,7 +154,7 @@ subroutine bcast_allocate_1
  
   endif
 
-
+  call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   
    ! exporting DSM parameters
   call MPI_BCAST(re,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -185,7 +185,7 @@ subroutine bcast_allocate_1
   call MPI_BCAST(r0max,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(r0delta,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   
-  
+  call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   allocate(nlayer(1:nzone))
   allocate(iphase(1:nzone))
   allocate(vrmin(1:nzone))
