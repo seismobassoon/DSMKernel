@@ -8,8 +8,9 @@
 subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,SGTinfo)
 
   implicit none
-  character(200), intent(out) :: dummy,outputDir,psvmodel,modelname,DSMconfFile
+  character(200), intent(out) :: outputDir,psvmodel,modelname,DSMconfFile
   character(200), intent(in) :: SGTinfo
+  character(200) :: dummy
   real(kind(0d0)), intent(out) :: tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta
   real(kind(0d0)), intent(out) :: thetamin,thetamax,thetadelta
   real(kind(0d0)) :: shortestPeriod
