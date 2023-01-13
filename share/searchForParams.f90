@@ -12,10 +12,12 @@ subroutine searchForParams(filename,ParamName,textParam,paramisText)
   ! character(200) :: dummy and call searchForParams(filename,'XXX',dummy,1)
   ! then read(dummy,*) YYY (of the type you need to obtain)
   implicit none
-  character(200) :: filename,textParam,text_line
+  character(200), intent(in) :: filename,textParam
+  character(200) :: text_line
   integer :: paramLength,textLength,paramisText,io
-  character(200) :: ParamName
-  integer :: iFind, jtemp, iCut
+  character(200), intent(in) :: ParamName
+  integer, intent(inout) :: iFind
+  integer :: jtemp, iCut
   
   filename=trim(filename)
   ParamName=trim(ParamName)

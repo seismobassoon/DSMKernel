@@ -8,14 +8,14 @@
 subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,SGTinfo)
 
   implicit none
-  character(200) :: dummy,outputDir,psvmodel,modelname,DSMconfFile,SGTinfo
-  real(kind(0d0)) :: tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta
-  real(kind(0d0)) :: thetamin,thetamax,thetadelta
-
+  character(200), intent(out) :: dummy,outputDir,psvmodel,modelname,DSMconfFile
+  character(200), intent(in) :: SGTinfo
+  real(kind(0d0)), intent(out) :: tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta
+  real(kind(0d0)), intent(out) :: thetamin,thetamax,thetadelta
   real(kind(0d0)) :: shortestPeriod
   
-  integer :: imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch
-  character(*) :: commandline
+  integer, intent(out) :: imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch
+  character(200) :: commandline
   character(200) :: tmpfile,tmpfile0
   integer(4) :: istat
   
@@ -25,9 +25,9 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   character(200) :: paramName
 
   integer :: noDirMaking
-  real(kind(0d0)) :: re,ratc,ratl,omegai
-  integer :: maxlmax,deltalwindow
-  real(kind(0d0)) :: maxMemoryInGigabyte
+  real(kind(0d0)), intent(out)  :: re,ratc,ratl,omegai
+  integer, intent(out) :: maxlmax,deltalwindow
+  real(kind(0d0)), intent(out) :: maxMemoryInGigabyte
   
 
   noDirMaking=0
@@ -102,9 +102,6 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
      call system(dummy)
   endif
 
-  paramName='tlen'
-  call searchForParams(tmpfile,paramName,dummy,1)
-  read(dummy,*) tlen
 
   paramName='radiiQ'
   call searchForParams(tmpfile,paramName,dummy,1)
@@ -120,6 +117,13 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   call searchForParams(tmpfile,paramName,dummy,1)
   read(dummy,*) thetamin,thetamax,thetadelta
 
+
+  tlen=3276.8d0
+  iFind=0
+  paramName='tlen'
+  call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
+  if(iFind.eq.1) read(dummy,*) tlen
+  
   imax=0
   
   iFind=0
