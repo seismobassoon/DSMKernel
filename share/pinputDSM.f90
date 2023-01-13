@@ -213,7 +213,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   paramName='maxMemoryInGigabyte'
   call searchForParamsOption(tmpfile,paramName,dummy,1,iFind)
   if(iFind.eq.1) read(dummy,*) maxMemoryInGigabyte
-  print *, maxMemoryInGigabyte
+
   ! delete this tmpfile when this is safely read
   open(1,file=tmpfile,status='unknown')
   close(1,status='delete')
