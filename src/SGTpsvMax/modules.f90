@@ -185,7 +185,8 @@ subroutine bcast_allocate_1
   call MPI_BCAST(r0max,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(r0delta,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   
-  call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+  if(allocated(qkappa)) print *, my_rank, size(qkappa)
+  if(allocated(vsv)) print *, my_rank, size(vsv)
   allocate(nlayer(1:nzone))
   allocate(iphase(1:nzone))
   allocate(vrmin(1:nzone))
@@ -198,6 +199,7 @@ subroutine bcast_allocate_1
   allocate(eta(1:4,1:nzone))
   allocate(qmu(1:nzone))
   allocate(qkappa(1:nzone))
+  
   allocate(coef1(1:nzone))
   allocate(coef2(1:nzone))
   allocate(coef(1:nzone))
