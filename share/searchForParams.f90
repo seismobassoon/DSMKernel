@@ -14,9 +14,10 @@ subroutine searchForParams(filename,ParamName,textParam,paramisText)
   implicit none
   character(200), intent(in) :: filename,textParam
   character(200) :: text_line
-  integer :: paramLength,textLength,paramisText,io
+  integer :: paramLength,textLength,io
+  integer, intent(in) :: paramisText
   character(200), intent(in) :: ParamName
-  integer, intent(inout) :: iFind
+  integer :: iFind
   integer :: jtemp, iCut
   
   filename=trim(filename)
@@ -65,10 +66,15 @@ subroutine searchForParamsOption(filename,ParamName,textParam,paramisText,iFind)
   ! the programme will distribute the pre-defined values
   
   implicit none
-  character(200) :: filename,textParam,text_line
-  integer :: paramLength,textLength,paramisText,io
-  character(200) :: ParamName
-  integer :: iFind, jtemp, iCut
+  character(200), intent(in) :: filename,textParam
+  character(200) :: text_line
+  integer :: paramLength,textLength,io
+  integer, intent(in) :: paramisText
+  character(200), intent(in) :: ParamName
+  integer, intent(inout) :: iFind
+  integer :: jtemp, iCut
+
+  
   filename=trim(filename)
   ParamName=trim(ParamName)
   paramLength=len_trim(ParamName)
