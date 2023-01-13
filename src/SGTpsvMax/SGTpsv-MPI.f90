@@ -48,9 +48,11 @@ program  SGTpsv
      
      open(20, file = psvmodel, status = 'old', action='read', position='rewind')
      read(20,*) nzone
+     print *, nzone
      do i = 1, nzone
         read (20, *) vrmin(i), vrmax(i), rrho(1,i), rrho(2,i), rrho(3,i), rrho(4,i), vpv(1,i), vpv(2,i), vpv(3,i), vpv(4,i), vph(1,i), vph(2,i), vph(3,i), vph(4,i), vsv(1,i), vsv(2,i), vsv(3,i), vsv(4,i), vsh(1,i), vsh(2,i), vsh(3,i), vsh(4,i), eta(1,i), eta(2,i), eta(3,i), eta(4,i), qmu(i), qkappa(i)
      enddo
+     print *, "done"
      close(20,status='delete')
      print *, "open 20 and delete 20 done"
   endif
