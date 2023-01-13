@@ -27,10 +27,10 @@ program  SGTpsv
   implicit none
   real(kind(0d0)) :: start_time, end_time
   call MPI_INIT(ierr)
-  if(allocated(qkappa)) "wow, qkappa is allocated"
+  if(allocated(qkappa)) print *, "wow, qkappa is allocated"
   call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
   call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
-   if(allocated(qkappa)) "wow, qkappa is allocated in ", my_rank
+   if(allocated(qkappa)) print *, "wow, qkappa is allocated in ", my_rank
   call bcast_allocate_1
   call preparation_2
   call allocation_preparation_3
