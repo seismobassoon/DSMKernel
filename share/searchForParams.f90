@@ -52,7 +52,7 @@ subroutine searchForParams(filename,ParamName,textParam,paramisText)
   enddo
   close(20)
   if(iFind.eq.0) then
-     print *, ParamName, "is not found."
+     print *, trim(ParamName), "is not found."
      stop
   endif
 end subroutine searchForParams

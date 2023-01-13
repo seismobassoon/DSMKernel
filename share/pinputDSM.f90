@@ -6,6 +6,7 @@
 
 
 subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,SGTinfo)
+
   implicit none
   character(200) :: dummy,outputDir,psvmodel,modelname,DSMconfFile,SGTinfo
   real(kind(0d0)) :: tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta
@@ -14,7 +15,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   real(kind(0d0)) :: shortestPeriod
   
   integer :: imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch
-  character(200) :: commandline
+  character(*) :: commandline
   character(200) :: tmpfile,tmpfile0
   integer(4) :: istat
   
