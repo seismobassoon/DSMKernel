@@ -137,9 +137,7 @@ subroutine bcast_allocate_1
   use mpi
   use parameters
   implicit none
-
-
-  
+  character(200) :: tmpfile
   
   if(my_rank.eq.0) then
      tmpfile='argvModeUsed'     
