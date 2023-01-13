@@ -3,7 +3,7 @@
 !
 ! this consists of searchForParams and searchForParamsOptions
 
-subroutine searchForParams(filename,ParamName,textParam,paramisText)
+subroutine searchForParams(filenameIn,ParamNameIn,textParam,paramisText)
   ! This subroutine reads filename and searches for ParamName to get textParam
   ! if you need to read textParam as a string vector, you just need to prepare THE string
   ! character(<200) :: string_that_you_need_to_get and
@@ -12,16 +12,18 @@ subroutine searchForParams(filename,ParamName,textParam,paramisText)
   ! character(200) :: dummy and call searchForParams(filename,'XXX',dummy,1)
   ! then read(dummy,*) YYY (of the type you need to obtain)
   implicit none
-  character(200), intent(in) :: filename,textParam
+  character(200), intent(in) :: filenameIn
+  character(200), intent(out) :: textParam
   character(200) :: text_line
+  character, allocatable :: filename, ParamName
   integer :: paramLength,textLength,io
   integer, intent(in) :: paramisText
-  character(200), intent(in) :: ParamName
+  character(200), intent(in) :: ParamNameIn
   integer :: iFind
   integer :: jtemp, iCut
   
-  filename=trim(filename)
-  ParamName=trim(ParamName)
+  filename=trim(filenameIn)
+  ParamName=trim(ParamNameIn)
   paramLength=len_trim(ParamName)
   iFind=0
   iCut=0
@@ -61,26 +63,28 @@ subroutine searchForParams(filename,ParamName,textParam,paramisText)
 end subroutine searchForParams
 
 
-subroutine searchForParamsOption(filename,ParamName,textParam,paramisText,iFind)
+subroutine searchForParamsOption(filenameIn,ParamNameIn,textParam,paramisText,iFind)
   ! This is only a variant for optional parameters (even if this is not defined,
   ! the programme will distribute the pre-defined values
   
   implicit none
-  character(200), intent(in) :: filename,textParam
+  character(200), intent(in) :: filenameIn
+  character(200), intent(out0 :: textParam
   character(200) :: text_line
+  character, allocatable :: filename, ParamName
   integer :: paramLength,textLength,io
   integer, intent(in) :: paramisText
   character(200), intent(in) :: ParamName
   integer, intent(inout) :: iFind
   integer :: jtemp, iCut
 
-  
-  filename=trim(filename)
-  ParamName=trim(ParamName)
+   
+  filename=trim(filenameIn)
+  ParamName=trim(ParamNameIn)
   paramLength=len_trim(ParamName)
-    !print *, paramLength, ParamName
   iFind=0
   iCut=0
+ 
   open(20,file=filename,status='unknown')
   do while(iFind.eq.0)
      read(20,'(a)',IOSTAT=io) text_line
