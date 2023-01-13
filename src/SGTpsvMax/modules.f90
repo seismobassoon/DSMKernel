@@ -46,7 +46,7 @@ module parameters
   integer,allocatable:: iphase(:)
   integer::ndc,vnp
   real(kind(0d0)):: rmin,rmax
-  real(kind(0d0)),allocatable:: vrmin(:),vrmax(:),rrho(:,:),vpv(:,:),vph(:,:),vsv(:,:),vsh(:,:),eta(:,:),qmu(:),qkappa(:)
+  real(kind(0d0)),allocatable:: vrmin(:),vrmax(:),rrho(:,:),vpv(:,:),vph(:,:),vsv(:,:),vsh(:,:),eta(:,:),qmu(:)
   real(kind(0d0)),allocatable::vra(:),rho(:),kappa(:) 
   real(kind(0d0)),allocatable::ecKx(:) !3*Kx=3A-4N
   real(kind(0d0)),allocatable::ecKy(:) !3*Ky=3F+2N
