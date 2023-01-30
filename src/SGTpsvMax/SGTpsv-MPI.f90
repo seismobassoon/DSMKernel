@@ -26,11 +26,12 @@ program  SGTpsv
   use parameters
   implicit none
   real(kind(0d0)) :: start_time, end_time
+  print *, "INSIGHT"
   
   call MPI_INIT(ierr)
   call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
   call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
-
+  
   call bcast_allocate_1
   call preparation_2
   call allocation_preparation_3
