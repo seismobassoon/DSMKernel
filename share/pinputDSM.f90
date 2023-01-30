@@ -68,7 +68,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   open(unit=5,file=DSMinffile,status='unknown')
 
   
-  open(unit=1, file=tmpfile,status='unknown')
+  open(unit=1, file=tmpfile,status='new')
 
   do iLine=1,numberLines
   
