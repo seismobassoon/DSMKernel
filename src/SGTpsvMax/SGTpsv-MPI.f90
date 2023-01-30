@@ -26,7 +26,7 @@ program  SGTpsv
   use parameters
   implicit none
   real(kind(0d0)) :: start_time, end_time
-  print *, "INSIGHT"
+  
   
   call MPI_INIT(ierr)
   call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
