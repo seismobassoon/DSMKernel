@@ -141,7 +141,6 @@ subroutine bcast_allocate_1
   character(200) :: tmpfile
   
   if(allocated(qkappa)) print *, "wow, qkappa is allocated before pinput in ", my_rank
-  print *, 'apolo'
   if(my_rank.eq.0) then
      tmpfile='argvModeUsed'
      print *, my_rank,'apo'
