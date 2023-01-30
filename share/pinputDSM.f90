@@ -2,9 +2,6 @@
 ! This is an effort to unify some redundant DSM legacy subroutines
 ! for further maintenance
 
-
-
-
 subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,SGTinfo)
 
   implicit none
@@ -63,12 +60,10 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
     
   tmpfile='tmpworkingfile_for_SGTforPinv'
   call tmpfileNameGenerator(tmpfile,tmpfile)
-  print *, tmpfile
-
-  open(unit=5,file=DSMinffile,status='unknown')
-
   
-  open(unit=1, file=tmpfile,status='unknown')
+
+  open(unit=5,file=trim(DSMinffile),status='unknown')  
+  open(unit=1, file=trim(tmpfile),status='unknown')
 
   do iLine=1,numberLines
   
