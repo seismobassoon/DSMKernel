@@ -143,7 +143,8 @@ subroutine bcast_allocate_1
   if(allocated(qkappa)) print *, "wow, qkappa is allocated before pinput in ", my_rank
   print *, 'apolo'
   if(my_rank.eq.0) then
-     tmpfile='argvModeUsed'     
+     tmpfile='argvModeUsed'
+     print *, my_rank,'apo'
      call pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,tmpfile)
      if(allocated(qkappa))print *, "wow, qkappa is allocated  before timefilenamegenerator  in ", my_rank, qkappa
      !call readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
@@ -160,8 +161,8 @@ subroutine bcast_allocate_1
 
   if(allocated(qkappa))print *, "wow, qkappa is allocated after pinput in ", my_rank
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-  
-   ! exporting DSM parameters
+  print *, 'apo'
+  ! exporting DSM parameters
   call MPI_BCAST(re,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(ratc,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(ratl,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
