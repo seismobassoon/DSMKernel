@@ -29,7 +29,6 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   real(kind(0d0)), intent(out)  :: re,ratc,ratl,omegai
   integer, intent(out) :: maxlmax,deltalwindow
   real(kind(0d0)), intent(out) :: maxMemoryInGigabyte
-  print *, DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,SGTinfo
 
   noDirMaking=0
  
@@ -60,7 +59,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
      numberLines = numberLines + 1
   enddo
   close(5)
-
+  print *, numberLines, 'numberlines'
 
 
   open(unit=5,file=DSMinffile,status='unknown')
