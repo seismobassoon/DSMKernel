@@ -1,7 +1,8 @@
 subroutine tmpfileNameGenerator(basename,tmpfile)
   ! NF 04/11/2022 This programme will just find a filename that will not crash the existing files
   implicit none
-  character(*) :: tmpfile,basename
+  character(*),intent(in) :: basename
+  character(*),intent(out):: tmpfile
   integer :: i,j
   logical :: exists
 
