@@ -405,7 +405,10 @@ subroutine calspo( maxnlay,maxnzone,ndc,rdc,iphase,inlayer,r0,rmin,rmax,ra,isp,s
   integer:: itmp,idr
 
   ! checking the parameter
-  if ( (r0.lt.rmin).or.(r0.gt.rmax) ) pause 'The source location is improper.(calspo)'
+  if ( (r0.lt.rmin).or.(r0.gt.rmax) ) then
+     print *, 'The source location is improper.(calspo)'
+     stop
+  endif
   spo = 0
   ! computing 'spo'
   if ( r0.eq.rmax ) then
@@ -445,7 +448,10 @@ subroutine calspo( maxnlay,maxnzone,ndc,rdc,iphase,inlayer,r0,rmin,rmax,ra,isp,s
      endif
   else
      spn = spn + 1
-     if ( r0.le.rdc(itmp) ) pause 'The source is in the liquid layer.(calspo)'
+     if ( r0.le.rdc(itmp) ) then
+        print *, 'The source is in the liquid layer.(calspo)'
+        stop
+     endif
      itmp = itmp + 1
      goto 130
   endif
@@ -1092,7 +1098,10 @@ subroutine fillinpb( nderiv,b )
   integer:: nderiv
   complex(kind(0d0)):: b(3)
   
-  if( (nderiv.ne.0).and.(nderiv.ne.1).and.(nderiv.ne.2) ) pause 'invalid argument (fillinpb)'
+  if( (nderiv.ne.0).and.(nderiv.ne.1).and.(nderiv.ne.2) ) then
+     print *, 'invalid argument (fillinpb)'
+     stop
+  endif
   if(nderiv.eq.0) then
      b(1) = dcmplx( 1.d0 )
      b(2) = dcmplx( 0.d0 )

@@ -7,7 +7,10 @@ subroutine calmatc( nlayer,vnp,vra,con,rpow,w1dn,w2dn,ra,m )
   real(kind(0d0)):: a(2,2),b(2,2),c(5),rh
 
 
-  if ( rpow .gt. maxrpow ) pause 'Invalid arguments.(calmatc)'
+  if ( rpow .gt. maxrpow ) then
+     print *, 'Invalid arguments.(calmatc)'
+     stop
+  endif
   ! computing of the matrix elements
   snp = 1
   do i=1,nlayer
@@ -24,7 +27,8 @@ subroutine calmatc( nlayer,vnp,vra,con,rpow,w1dn,w2dn,ra,m )
            a(2,2) = 0.d0
            a(1,2) = 1.d0 / rh
         else
-           pause 'Invalid arguments.(calmatc)'
+           print *, 'Invalid arguments.(calmatc)'
+           stop
         endif
      endif
      if ( w2dn .eq. 0 ) then
@@ -39,7 +43,8 @@ subroutine calmatc( nlayer,vnp,vra,con,rpow,w1dn,w2dn,ra,m )
            b(2,2) = 0.d0
            b(1,2) = 1.d0 / rh
         else
-           pause 'Invalid arguments.(calmatc)'
+           print *,  'Invalid arguments.(calmatc)'
+           stop
         endif
      endif
      do j=1,2
@@ -69,7 +74,10 @@ subroutine pmulti(n,a,m,b,l,c)
   integer:: n,m,l,i,j
   real(kind(0d0)):: a(n),b(m),c(l)
   
-  if (n+m-1.ne.l) print *, 'Invalid arguments.(pmulti)'
+  if (n+m-1.ne.l) then
+     print *, 'Invalid arguments.(pmulti)'
+     stop
+  endif
   do i=1,l
      c(i)=0.d0
   enddo
@@ -94,7 +102,10 @@ subroutine pinteg(snp,n,p,from,to,vnp,vra,con,pint)
   real(kind(0d0)):: from,to,p(n),vra(vnp),con(vnp),pint
   real(kind(0d0)):: x1,x2,q(2),pq(maxn+1),psint
 
-  if ( n.gt.maxn ) pause 'Degrees of a polynomial is too large.(pinteg)'
+  if ( n.gt.maxn ) then
+     print *, 'Degrees of a polynomial is too large.(pinteg)'
+     stop
+  endif
   if ( snp.ge.vnp ) snp = 1
   pint = 0.d0
   x1 = from
@@ -136,7 +147,10 @@ subroutine polint( n,p,x1,x2,pint )
   integer:: i,j
   real(kind(0d0)):: a(maxn),b(maxn),dx,xx
 
-  if ( n.gt.maxn ) pause 'Degrees of a polynomial is too large.(polint)'
+  if ( n.gt.maxn ) then
+     print *, 'Degrees of a polynomial is too large.(polint)'
+     stop
+  endif
   
   a(1) = 1.d0
   b(1) = 1.d0
