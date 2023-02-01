@@ -27,6 +27,7 @@ program  SGTpsv
   implicit none
   real(kind(0d0)) :: start_time, end_time
   
+  
   call MPI_INIT(ierr)
   call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
   call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
