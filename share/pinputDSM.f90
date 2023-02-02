@@ -61,8 +61,9 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   tmpfile='tmpworkingfile_for_SGTforPinv'
   call tmpfileNameGenerator(tmpfile,tmpfile)
   
-
-  open(unit=5,file=trim(DSMinffile),status='unknown')  
+  print *, tmpfile,DSMinffile
+  open(unit=5,file=trim(DSMinffile),status='unknown')
+  
   open(unit=1, file=trim(tmpfile),status='unknown')
 
   do iLine=1,numberLines
