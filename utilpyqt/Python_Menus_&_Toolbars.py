@@ -17,13 +17,15 @@ import sys
 import folium
 from folium.plugins import Draw
 import io
+import pytz
 
 from obspy import UTCDateTime
 from obspy.clients.fdsn import Client
-from tp_obspy_utils import plot_events # Load the function "plot_events" provided in tp_obsp
+
+from tp_obspy_utils import plot_events_stations # Load the function "plot_events" provided in tp_obsp
 
 from PyQt5.QtWidgets import QMenu, QPushButton
-from PyQt5.QtWidgets import QToolBar, QDateEdit
+from PyQt5.QtWidgets import QToolBar, QDateTimeEdit, QFormLayout
 from PyQt5.QtWidgets import QAction, QSpinBox, QLineEdit, QDoubleSpinBox
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox
 
@@ -114,10 +116,16 @@ class Window(QMainWindow):
         
         # DATE ACTION
         mainToolBar.addWidget(self.dateLabel)
-        self.dateStartChoice = QDateEdit()
-        self.dateEndChoice = QDateEdit()
+        layout = QFormLayout()
+        self.setLayout(layout)
+        
+        self.dateStartChoice = QDateTimeEdit(self,calendarPopup=True)
+        self.dateEndChoice = QDateTimeEdit(self,calendarPopup=True)
+        
         mainToolBar.addWidget(self.dateStartChoice)
+        layout.addRow('From:', self.dateStartChoice)
         mainToolBar.addWidget(self.dateEndChoice)
+        layout.addRow('To:', self.dateEndChoice)
                 
         # SEPARATING----------------------------------------------
         separator = QAction(self)
@@ -134,6 +142,10 @@ class Window(QMainWindow):
         mainToolBar.addWidget(self.maxLatChoice)
         mainToolBar.addWidget(self.minLonChoice)
         mainToolBar.addWidget(self.maxLonChoice)
+        self.minLatChoice.setMinimum(0)
+        self.maxLatChoice.setMaximum(90)
+        self.minLonChoice.setMinimum(-180)
+        self.maxLonChoice.setMaximum(180)
                 
         # SEPARATING----------------------------------------------
         separator = QAction(self)
@@ -178,8 +190,8 @@ class Window(QMainWindow):
         
         # SEARCH ACTION ------------------------------------------
         self.searchButton = QPushButton("Search")
-        #self.searchButton.clicked.connect(_obspyProcessing)
         mainToolBar.addWidget(self.searchButton)
+        self.searchButton.clicked.connect(self.get_events_stations)
     
         #mainToolBar.addAction(self.searchAction)
         
@@ -247,25 +259,59 @@ class Window(QMainWindow):
     '''
     def _searchRun(self):
         self.searchAction.activated.connect(self.searchAction)
+    '''
+    
+    
+    
     
     # OBSPY PROCESSING
     #----------------------------------------------------------------------
-    def _obspyProcessing(self):
+    def get_events_stations(self):
         
-        # DATE INITIALIZATION
-        start = UTCDateTime(self.dateStartChoice)
-        end = UTCDateTime(self.dateEndChoice)
+        # DATE INITIALIZATION (convert QDateTime in UTCDateTime)
+
+        localStartTime = self.dateStartChoice.dateTime()
+        pyStartTime = localStartTime.toPyDateTime()
+        UTCStartTime = pyStartTime.astimezone(pytz.UTC)
         
-        # CLIENT INITIALIZATION
-        client_select = str(self.clientChoice)
+        localEndTime = self.dateEndChoice.dateTime()
+        pyEndTime = localEndTime.toPyDateTime()
+        UTCEndTime = pyEndTime.astimezone(pytz.UTC)
+        
+        start = UTCStartTime
+        end = UTCEndTime
+
+        #start = UTCDateTime(self.dateStartChoice)
+        #end = UTCDateTime(self.dateEndChoice)
+        
+        # COORDINATES INITIALIZATION (convert QDoubleSpinBox to int)
+        valueMinLat = self.minLatChoice.value()
+        intMinLat = int(valueMinLat)
+        valueMaxLat = self.maxLatChoice.value()
+        intMaxLat = int(valueMaxLat)
+        valueMinLon = self.minLonChoice.value()
+        intMinLon = int(valueMinLon)
+        valueMaxLon = self.maxLonChoice.value()
+        intMaxLon = int(valueMaxLon)
+        
+        # MAGNITUDE INITIALIZATION (convert QDoubleSpinBox to int)
+        valueMagMin = self.magChoice.value()
+        intMag = int(valueMagMin)
+        
+        # CLIENT INITIALIZATION (convert QComboBox to str)
+        client_select = str(self.clientChoice.currentText())
+        
+        # NETWORK INITIALIZATION (convert QLineEdit to str)
+        networkValue = self.networkChoice.text()
+        strNetwork = str(networkValue)
         
         events_center = Client(client_select).get_events(    
-            minlatitude = int(self.minLatChoice),
-            maxlatitude = int(self.maxLatChoice),
-            minlongitude = int(self.minLonChoice),
-            maxlongitude = int(self.maxLonChoice),
+            minlatitude = intMinLat,
+            maxlatitude = intMaxLat,
+            minlongitude = intMinLon,
+            maxlongitude = intMaxLon,
             
-            minmagnitude = int(self.magChoice),
+            minmagnitude = intMag,
             starttime=start,
             endtime=end,
         )
@@ -273,7 +319,9 @@ class Window(QMainWindow):
         print(events_center)
         
         # NETWORK INITIALIZATION
-        network_select = self.networkChoice
+        network_select = strNetwork
+        client = Client(client_select)
+        inventory = client.get_stations(network=network_select, level="channel")
         
         # DISPLAYING THE STATION 
         stations = []
@@ -285,7 +333,7 @@ class Window(QMainWindow):
         
         events_stations_map=plot_events_stations(events_center, stations, origin=[45.5, 8.0], zoom=3, color="blue",comments="ISC")
         events_stations_map
-    '''
+    #''' 
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
