@@ -6,7 +6,7 @@
 # In[1]:
 
 
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 """
 Created on Fri Feb  3 16:35:46 2023
 
@@ -22,7 +22,7 @@ import pytz
 from obspy import UTCDateTime
 from obspy.clients.fdsn import Client
 
-from tp_obspy_utils import plot_events_stations # Load the function "plot_events" provided in tp_obsp
+from tp_obspy_utils import plot_events_stations,get_depth_color # Load the function "plot_events" provided in tp_obsp
 
 from PyQt5.QtWidgets import QMenu, QPushButton
 from PyQt5.QtWidgets import QToolBar, QDateTimeEdit, QFormLayout
@@ -58,10 +58,12 @@ class Window(QMainWindow):
         self.map = folium.Map(zoom_start=2,location=[0,0])
         #self.map = Draw(draw_options={'rectangle': True},edit_options={'remove': True, 'edit': True, 'save': True, 'cancel': False})
         #self.map.draw.add_to(self.map)
-        
+        self.update_map()
+        '''
         data = io.BytesIO()
         self.map.save(data,close_file=False)
         self.qwebengine.setHtml(data.getvalue().decode())
+        '''
 
         self.setCentralWidget(self.centralWidget)
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -70,7 +72,7 @@ class Window(QMainWindow):
         self._createMenuBar()
         self._createToolBars()
         self._connectActions()
-        #self._obspyProcessing()
+        #self.get_events_stations()
         
         
     # DEF MENU BAR
@@ -142,7 +144,7 @@ class Window(QMainWindow):
         mainToolBar.addWidget(self.maxLatChoice)
         mainToolBar.addWidget(self.minLonChoice)
         mainToolBar.addWidget(self.maxLonChoice)
-        self.minLatChoice.setMinimum(0)
+        self.minLatChoice.setMinimum(-90)
         self.maxLatChoice.setMaximum(90)
         self.minLonChoice.setMinimum(-180)
         self.maxLonChoice.setMaximum(180)
@@ -315,13 +317,24 @@ class Window(QMainWindow):
             starttime=start,
             endtime=end,
         )
-        print("\nFound %s event(s) from %s Data Center:\n" % (len(events_center),self.clientChoice))
+        print("\nFound %s event(s) from %s Data Center:\n" % (len(events_center),client_select))
         print(events_center)
+        '''
+        self.centralWidget = QtWidgets.QWidget(self)
+        self.centralWidget.setObjectName("centralWidget")
+        
+        self.qwebengine = QtWebEngineWidgets.QWebEngineView(self.centralWidget)
+        self.qwebengine.setGeometry(QtCore.QRect(50,50,800,600))
+        self.qwebengine.setObjectName("qwebengine")
+        
+        self.map = folium.Map(zoom_start=2,location=[0,0])
+        '''
         
         # NETWORK INITIALIZATION
         network_select = strNetwork
         client = Client(client_select)
         inventory = client.get_stations(network=network_select, level="channel")
+        
         
         # DISPLAYING THE STATION 
         stations = []
@@ -330,9 +343,67 @@ class Window(QMainWindow):
                 stations.append(
                     [net.code, sta.code, sta.latitude, sta.longitude, sta.elevation]
                 )
+        comments='ISC'
+        origin=[0, 0]
         
-        events_stations_map=plot_events_stations(events_center, stations, origin=[45.5, 8.0], zoom=3, color="blue",comments="ISC")
-        events_stations_map
+        # plot_events_stations(self,events_center, stations, origin=[0, 0], zoom=2, color="blue",comments="ISC")
+        for event in events_center:
+            for origin, magnitude in zip(event.origins, event.magnitudes):
+                lat, lon, depth, mag = (
+                    origin.latitude,
+                    origin.longitude,
+                    origin.depth,
+                    magnitude.mag,
+                )
+                infos = "(%s %s) depth=%s m mag=%s (%s)" % (lat, lon, depth, mag, comments)
+                folium.CircleMarker(
+                    location=[lat, lon],
+                    radius=50 * 2 ** (mag) / 2 ** 10,
+                    tooltip=infos,
+                    color=get_depth_color(depth),
+                    fill=True,
+                    fill_color="#FF8C00",
+                ).add_to(self.map)
+                
+        self.update_map()
+            
+        for net, sta, lat, lon, elev in stations:
+            name = ".".join([net, sta])
+            infos = "%s (%s, %s) %s m" % (name, lat, lon, elev)
+            folium.features.RegularPolygonMarker(
+                location=[lat, lon],
+                tooltip=infos,
+                color="blue",
+                fill_color="#FF8C00",
+                number_of_sides=3,
+                radius=10,
+                fill_opacity=0.3,
+                rotation=30,
+            ).add_to(self.map)
+                
+        self.update_map()    
+        
+        
+    def update_map(self):
+
+        data = io.BytesIO()
+        self.map.save(data,close_file=False)
+        self.qwebengine.setHtml(data.getvalue().decode())   
+
+        '''
+        data = io.BytesIO()
+        self.map.save(data,close_file=False)
+        self.qwebengine.setHtml(data.getvalue().decode())
+
+        self.setCentralWidget(self.centralWidget)
+        QtCore.QMetaObject.connectSlotsByName(self)
+
+        
+        self.map.save(data,close_file=False)
+        self.qwebengine.setHtml(data.getvalue().decode())
+
+        self.setCentralWidget(self.centralWidget)
+        '''
     #''' 
         
 if __name__ == "__main__":
