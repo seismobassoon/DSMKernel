@@ -16,13 +16,17 @@ Created on Fri Feb  3 16:35:46 2023
 import sys
 import folium
 from folium.plugins import Draw
+from folium.map import Popup, Layer
+from folium.plugins import MarkerCluster
+from folium import ClickForMarker, features
 import io
 import pytz
+import IPython
 
-from obspy import UTCDateTime
+from obspy import read
 from obspy.clients.fdsn import Client
 
-from DataProcessor_Fonctions import get_depth_color # Load the function "plot_events" provided in tp_obsp
+from DataProcessor_Fonctions import get_depth_color, get_periodogram # Load the function "plot_events" provided in tp_obsp
 
 from PyQt5.QtWidgets import QMenu, QPushButton
 from PyQt5.QtWidgets import QToolBar, QDateTimeEdit, QFormLayout
@@ -54,10 +58,28 @@ class Window(QMainWindow):
         self.qwebengine.setGeometry(QtCore.QRect(50,50,800,600))
         self.qwebengine.setObjectName("qwebengine")
         
-        # MAP CREATION 
+
+
         self.map = folium.Map(zoom_start=2,location=[0,0])
-        #self.map = Draw(draw_options={'rectangle': True},edit_options={'remove': True, 'edit': True, 'save': True, 'cancel': False})
-        #self.map.draw.add_to(self.map)
+        Draw(export=True).add_to(self.map) 
+        self.update_map()
+        '''
+        self.map.get_root().add_child(
+            folium.Element("""
+                <script>
+                    var rectangle;
+                    self.map.on('draw:created',function (e) {
+                        var type = e.layerType,
+                            layer = e.layer;
+                        if (type ==='rectangle') {
+                            rectangle = layer.getBounds();
+                            console.log(rectangle);
+                        }
+                    });
+                </script>
+            """)
+        )
+        '''
         # En générant une carte folium dans qwebengine, il faut l'actuatiser à chaque modification
         # Besoin de créer un fonction qui va s'en charger
         self.update_map()
@@ -67,11 +89,37 @@ class Window(QMainWindow):
         
         self._createActions()
         self._createMenuBar()
+        
+        #self._selectCoordinates()
+        #self._showCoordinates()
         self._createToolBars()
         self._connectActions()
         #self.get_events_stations()
+    
+    # SELECT COORDINATES MANUALLY
+    #-------------------------------------------------
+    '''
+    def _selectCoordinates(self):
+        folium.plugins.Draw(draw_options={'rectangle': True},
+                            edit_options={'remove': True, 'edit': True, 'save': True, 'cancel': False}
+                            ).add_to(self.map)
+        self.update_map()
+
+
         
-        
+    
+    def _showCoordinates(self,**kwargs):
+        if kwargs.get('type') == 'rectangle':
+            rectangle = kwargs.get('coordinates')
+            IPython.display.clear_output(wait=True)
+            IPython.display.display(IPython.display.Markdown(f'Minimum latitude: {rectangle[0][0][0]}'))
+            IPython.display.display(IPython.display.Markdown(f'Maximum latitude: {rectangle[0][2][0]}'))
+            IPython.display.display(IPython.display.Markdown(f'Minimum longitude: {rectangle[0][0][1]}'))
+            IPython.display.display(IPython.display.Markdown(f'Maximum longitude: {rectangle[0][2][1]}'))
+            
+        self.map.onShapeChange()
+        self.update_map()
+    '''     
     # DEF MENU BAR
     #-----------------------------------------------
     def _createMenuBar(self):
@@ -115,16 +163,17 @@ class Window(QMainWindow):
         
         # DATE ACTION
         mainToolBar.addWidget(self.dateLabel)
-        layout = QFormLayout()
-        self.setLayout(layout)
+        layout1=QLabel("From: ")
+        layout2=QLabel("To: ")
         
         self.dateStartChoice = QDateTimeEdit(self,calendarPopup=True)
         self.dateEndChoice = QDateTimeEdit(self,calendarPopup=True)
         
+        mainToolBar.addWidget(layout1)
         mainToolBar.addWidget(self.dateStartChoice)
-        layout.addRow('From:', self.dateStartChoice)
+        mainToolBar.addWidget(layout2)
         mainToolBar.addWidget(self.dateEndChoice)
-        layout.addRow('To:', self.dateEndChoice)
+
                 
         # SEPARATING----------------------------------------------
         separator = QAction(self)
@@ -133,13 +182,22 @@ class Window(QMainWindow):
         
         # COORDINATES ACTION
         mainToolBar.addWidget(self.coorLabel)
+        layoutCoor1=QLabel("Minimum latitude: ")
+        layoutCoor2=QLabel("Maximum latitude: ")
+        layoutCoor3=QLabel("Minimum longitude: ")
+        layoutCoor4=QLabel("Maximum longitude: ")
+       
         self.minLatChoice = QDoubleSpinBox()
         self.maxLatChoice = QDoubleSpinBox()
         self.minLonChoice = QDoubleSpinBox()
         self.maxLonChoice = QDoubleSpinBox()
+        mainToolBar.addWidget(layoutCoor1)
         mainToolBar.addWidget(self.minLatChoice)
+        mainToolBar.addWidget(layoutCoor2)
         mainToolBar.addWidget(self.maxLatChoice)
+        mainToolBar.addWidget(layoutCoor3)
         mainToolBar.addWidget(self.minLonChoice)
+        mainToolBar.addWidget(layoutCoor4)
         mainToolBar.addWidget(self.maxLonChoice)
         self.minLatChoice.setMinimum(-90)
         self.minLatChoice.setMaximum(90)
@@ -204,28 +262,28 @@ class Window(QMainWindow):
     def _createActions(self):
         # Creating action using the first constructor
         self.clientLabel = QLabel(self)
-        self.clientLabel.setText("Client")
+        self.clientLabel.setText("<b>Client</b>")
         self.clientLabel.setAlignment(Qt.AlignCenter)
         
         # Creating actions using the second constructor
         self.networkLabel = QLabel(self)
-        self.networkLabel.setText("Network")
+        self.networkLabel.setText("<b>Network</b>")
         self.networkLabel.setAlignment(Qt.AlignCenter)
         
         self.magLabel = QLabel(self)
-        self.magLabel.setText("Magnitude min")
+        self.magLabel.setText("<b>Magnitude min</b>")
         self.magLabel.setAlignment(Qt.AlignCenter)
         
         self.dateLabel = QLabel(self)
-        self.dateLabel.setText("Date")
+        self.dateLabel.setText("<b>Date</b>")
         self.dateLabel.setAlignment(Qt.AlignCenter)
         
         self.locLabel = QLabel(self)
-        self.locLabel.setText("Location")
+        self.locLabel.setText("<b>Location</b>")
         self.locLabel.setAlignment(Qt.AlignCenter)
         
         self.coorLabel = QLabel(self)
-        self.coorLabel.setText("Coordinates")
+        self.coorLabel.setText("<b>Coordinates</b>")
         self.coorLabel.setAlignment(Qt.AlignCenter)
         
         #self.searchAction = QAction("&Search...",self)
@@ -320,16 +378,7 @@ class Window(QMainWindow):
         )
         print("\nFound %s event(s) from %s Data Center:\n" % (len(events_center),client_select))
         print(events_center)
-        '''
-        self.centralWidget = QtWidgets.QWidget(self)
-        self.centralWidget.setObjectName("centralWidget")
-        
-        self.qwebengine = QtWebEngineWidgets.QWebEngineView(self.centralWidget)
-        self.qwebengine.setGeometry(QtCore.QRect(50,50,800,600))
-        self.qwebengine.setObjectName("qwebengine")
-        
-        self.map = folium.Map(zoom_start=2,location=[0,0])
-        '''
+
         
         # NETWORK INITIALIZATION
         network_select = strNetwork
@@ -367,7 +416,12 @@ class Window(QMainWindow):
                 ).add_to(self.map)
                 
         self.update_map()
-            
+        '''
+        def get_description_station(event=None,feature=None,id=None,properties=None):
+             new_window = QWindow()
+             new_window.show()
+        '''
+        #markers=[]
         for net, sta, lat, lon, elev in stations:
             name = ".".join([net, sta])
             infos = "%s (%s, %s) %s m" % (name, lat, lon, elev)
@@ -380,10 +434,25 @@ class Window(QMainWindow):
                 radius=10,
                 fill_opacity=0.3,
                 rotation=30,
-            ).add_to(self.map)
+                popup='<i>Mt. Hood Meadows</i>'
+            ).add_child(folium.ClickForMarker(popup='Waypoint')).add_to(self.map)
+            #self.map.add_child(folium.ClickForMarker(callback=get_description_station))
+            #markers.append(marker)
+            #popup.add_child(folium.Popup(popup_html,parse_html=True))
+
+          
+            
                 
         self.update_map()    
+        #marker_info=folium.plugins.FasterMarkerCluster(marker).add_child(folium.Pupup("Seismic station 1 Info")).add_to(self.map)
+        #self.markers.connect(self.get_description_station)
+       
         
+        # AFFICHER UNE NOUVELLE FENÊTRE APRES AVOIR CLIQUE SUR UN MARKER
+        #self.map.add_child(folium.ClickForMarker(popup=folium.Popup(max_width=450).add_child(self.get_description_station)))
+        #self.update_map()
+
+    
         
     def update_map(self):
 
@@ -391,21 +460,6 @@ class Window(QMainWindow):
         self.map.save(data,close_file=False)
         self.qwebengine.setHtml(data.getvalue().decode())   
 
-        '''
-        data = io.BytesIO()
-        self.map.save(data,close_file=False)
-        self.qwebengine.setHtml(data.getvalue().decode())
-
-        self.setCentralWidget(self.centralWidget)
-        QtCore.QMetaObject.connectSlotsByName(self)
-
-        
-        self.map.save(data,close_file=False)
-        self.qwebengine.setHtml(data.getvalue().decode())
-
-        self.setCentralWidget(self.centralWidget)
-        '''
-    #''' 
         
 if __name__ == "__main__":
     app = QApplication(sys.argv)
