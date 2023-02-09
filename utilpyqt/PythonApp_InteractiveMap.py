@@ -28,7 +28,7 @@ from obspy.clients.fdsn import Client
 
 from DataProcessor_Fonctions import get_depth_color, get_periodogram # Load the function "plot_events" provided in tp_obsp
 
-from PyQt5.QtWidgets import QMenu, QPushButton
+from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox
 from PyQt5.QtWidgets import QToolBar, QDateTimeEdit, QFormLayout
 from PyQt5.QtWidgets import QAction, QSpinBox, QLineEdit, QDoubleSpinBox
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox
@@ -252,7 +252,7 @@ class Window(QMainWindow):
         # SEARCH ACTION ------------------------------------------
         self.searchButton = QPushButton("Search")
         mainToolBar.addWidget(self.searchButton)
-        self.searchButton.clicked.connect(self.get_events_stations)
+        self.searchButton.clicked.connect(self.startSearch)
     
         #mainToolBar.addAction(self.searchAction)
         
@@ -317,140 +317,156 @@ class Window(QMainWindow):
         self.helpContentAction.triggered.connect(self.helpContent)
         self.aboutAction.triggered.connect(self.about)
    
+    
+    def startSearch(self):
+        if not self.locChoice.text() or \
+            not self.networkChoice.text():
+                error_message = QMessageBox(QMessageBox.Critical, "Error","All field must be filled!",QMessageBox.Ok)
+                error_message.exec()
+                
+                style = "border: 1px solid red;"
+                if not self.locChoice.text():
+                    self.locChoice.setStyleSheet(style)
+                if not self.networkChoice.text():
+                    self.locChoice.setStyleSheet(style)
+        else:
+            # RESET OF THE INITIAL STYLE PARAMETERS
+            style = "border: 1px solid black;"
+            self.locChoice.setStyleSheet(style)
+            self.locChoice.setStyleSheet(style)
+            # DATE INITIALIZATION (convert QDateTime in UTCDateTime)
+
+            localStartTime = self.dateStartChoice.dateTime()
+            pyStartTime = localStartTime.toPyDateTime()
+            UTCStartTime = pyStartTime.astimezone(pytz.UTC)
+            
+            localEndTime = self.dateEndChoice.dateTime()
+            pyEndTime = localEndTime.toPyDateTime()
+            UTCEndTime = pyEndTime.astimezone(pytz.UTC)
+            
+            start = UTCStartTime
+            end = UTCEndTime
+
+            #start = UTCDateTime(self.dateStartChoice)
+            #end = UTCDateTime(self.dateEndChoice)
+            
+            # COORDINATES INITIALIZATION (convert QDoubleSpinBox to int)
+            valueMinLat = self.minLatChoice.value()
+            intMinLat = int(valueMinLat)
+            valueMaxLat = self.maxLatChoice.value()
+            intMaxLat = int(valueMaxLat)
+            valueMinLon = self.minLonChoice.value()
+            intMinLon = int(valueMinLon)
+            valueMaxLon = self.maxLonChoice.value()
+            intMaxLon = int(valueMaxLon)
+            
+            # MAGNITUDE INITIALIZATION (convert QDoubleSpinBox to int)
+            valueMagMin = self.magChoice.value()
+            intMag = int(valueMagMin)
+            
+            # CLIENT INITIALIZATION (convert QComboBox to str)
+            client_select = str(self.clientChoice.currentText())
+            
+            # NETWORK INITIALIZATION (convert QLineEdit to str)
+            networkValue = self.networkChoice.text()
+            strNetwork = str(networkValue)
+            
+            events_center = Client(client_select).get_events(    
+                minlatitude = intMinLat,
+                maxlatitude = intMaxLat,
+                minlongitude = intMinLon,
+                maxlongitude = intMaxLon,
+                
+                minmagnitude = intMag,
+                starttime=start,
+                endtime=end,
+            )
+            print("\nFound %s event(s) from %s Data Center:\n" % (len(events_center),client_select))
+            print(events_center)
+
+            
+            # NETWORK INITIALIZATION
+            network_select = strNetwork
+            client = Client(client_select)
+            inventory = client.get_stations(network=network_select, level="channel")
+            
+            
+            # DISPLAYING THE STATION 
+            stations = []
+            for net in inventory:  # in fact this loop is only necessary for multiple networks
+                for sta in net:
+                    stations.append(
+                        [net.code, sta.code, sta.latitude, sta.longitude, sta.elevation]
+                    )
+            comments='ISC'
+            origin=[0, 0]
+            
+            # plot_events_stations(self,events_center, stations, origin=[0, 0], zoom=2, color="blue",comments="ISC")
+            for event in events_center:
+                for origin, magnitude in zip(event.origins, event.magnitudes):
+                    lat, lon, depth, mag = (
+                        origin.latitude,
+                        origin.longitude,
+                        origin.depth,
+                        magnitude.mag,
+                    )
+                    infos = "(%s %s) depth=%s m mag=%s (%s)" % (lat, lon, depth, mag, comments)
+                    folium.CircleMarker(
+                        location=[lat, lon],
+                        radius=50 * 2 ** (mag) / 2 ** 10,
+                        tooltip=infos,
+                        color=get_depth_color(depth),
+                        fill=True,
+                        fill_color="#FF8C00",
+                    ).add_to(self.map)
+                    
+            self.update_map()
+            '''
+            def get_description_station(event=None,feature=None,id=None,properties=None):
+                 new_window = QWindow()
+                 new_window.show()
+            '''
+            #markers=[]
+            for net, sta, lat, lon, elev in stations:
+                name = ".".join([net, sta])
+                infos = "%s (%s, %s) %s m" % (name, lat, lon, elev)
+                folium.features.RegularPolygonMarker(
+                    location=[lat, lon],
+                    tooltip=infos,
+                    color="blue",
+                    fill_color="#FF8C00",
+                    number_of_sides=3,
+                    radius=10,
+                    fill_opacity=0.3,
+                    rotation=30,
+                    popup='<i>Mt. Hood Meadows</i>'
+                ).add_child(folium.ClickForMarker(popup='Waypoint')).add_to(self.map)
+                #self.map.add_child(folium.ClickForMarker(callback=get_description_station))
+                #markers.append(marker)
+                #popup.add_child(folium.Popup(popup_html,parse_html=True))
+
+              
+                
+                    
+            self.update_map()    
+            #marker_info=folium.plugins.FasterMarkerCluster(marker).add_child(folium.Pupup("Seismic station 1 Info")).add_to(self.map)
+            #self.markers.connect(self.get_description_station)
+           
+            
+            # AFFICHER UNE NOUVELLE FENÊTRE APRES AVOIR CLIQUE SUR UN MARKER
+            #self.map.add_child(folium.ClickForMarker(popup=folium.Popup(max_width=450).add_child(self.get_description_station)))
+            #self.update_map()
+            
+    
+    
+    
+    
     '''
-    def _searchRun(self):
-        self.searchAction.activated.connect(self.searchAction)
-    '''
-    
-    
-    
-    
     # OBSPY PROCESSING
     #----------------------------------------------------------------------
     def get_events_stations(self):
+    '''    
         
-        # DATE INITIALIZATION (convert QDateTime in UTCDateTime)
-
-        localStartTime = self.dateStartChoice.dateTime()
-        pyStartTime = localStartTime.toPyDateTime()
-        UTCStartTime = pyStartTime.astimezone(pytz.UTC)
-        
-        localEndTime = self.dateEndChoice.dateTime()
-        pyEndTime = localEndTime.toPyDateTime()
-        UTCEndTime = pyEndTime.astimezone(pytz.UTC)
-        
-        start = UTCStartTime
-        end = UTCEndTime
-
-        #start = UTCDateTime(self.dateStartChoice)
-        #end = UTCDateTime(self.dateEndChoice)
-        
-        # COORDINATES INITIALIZATION (convert QDoubleSpinBox to int)
-        valueMinLat = self.minLatChoice.value()
-        intMinLat = int(valueMinLat)
-        valueMaxLat = self.maxLatChoice.value()
-        intMaxLat = int(valueMaxLat)
-        valueMinLon = self.minLonChoice.value()
-        intMinLon = int(valueMinLon)
-        valueMaxLon = self.maxLonChoice.value()
-        intMaxLon = int(valueMaxLon)
-        
-        # MAGNITUDE INITIALIZATION (convert QDoubleSpinBox to int)
-        valueMagMin = self.magChoice.value()
-        intMag = int(valueMagMin)
-        
-        # CLIENT INITIALIZATION (convert QComboBox to str)
-        client_select = str(self.clientChoice.currentText())
-        
-        # NETWORK INITIALIZATION (convert QLineEdit to str)
-        networkValue = self.networkChoice.text()
-        strNetwork = str(networkValue)
-        
-        events_center = Client(client_select).get_events(    
-            minlatitude = intMinLat,
-            maxlatitude = intMaxLat,
-            minlongitude = intMinLon,
-            maxlongitude = intMaxLon,
-            
-            minmagnitude = intMag,
-            starttime=start,
-            endtime=end,
-        )
-        print("\nFound %s event(s) from %s Data Center:\n" % (len(events_center),client_select))
-        print(events_center)
-
-        
-        # NETWORK INITIALIZATION
-        network_select = strNetwork
-        client = Client(client_select)
-        inventory = client.get_stations(network=network_select, level="channel")
-        
-        
-        # DISPLAYING THE STATION 
-        stations = []
-        for net in inventory:  # in fact this loop is only necessary for multiple networks
-            for sta in net:
-                stations.append(
-                    [net.code, sta.code, sta.latitude, sta.longitude, sta.elevation]
-                )
-        comments='ISC'
-        origin=[0, 0]
-        
-        # plot_events_stations(self,events_center, stations, origin=[0, 0], zoom=2, color="blue",comments="ISC")
-        for event in events_center:
-            for origin, magnitude in zip(event.origins, event.magnitudes):
-                lat, lon, depth, mag = (
-                    origin.latitude,
-                    origin.longitude,
-                    origin.depth,
-                    magnitude.mag,
-                )
-                infos = "(%s %s) depth=%s m mag=%s (%s)" % (lat, lon, depth, mag, comments)
-                folium.CircleMarker(
-                    location=[lat, lon],
-                    radius=50 * 2 ** (mag) / 2 ** 10,
-                    tooltip=infos,
-                    color=get_depth_color(depth),
-                    fill=True,
-                    fill_color="#FF8C00",
-                ).add_to(self.map)
-                
-        self.update_map()
-        '''
-        def get_description_station(event=None,feature=None,id=None,properties=None):
-             new_window = QWindow()
-             new_window.show()
-        '''
-        #markers=[]
-        for net, sta, lat, lon, elev in stations:
-            name = ".".join([net, sta])
-            infos = "%s (%s, %s) %s m" % (name, lat, lon, elev)
-            folium.features.RegularPolygonMarker(
-                location=[lat, lon],
-                tooltip=infos,
-                color="blue",
-                fill_color="#FF8C00",
-                number_of_sides=3,
-                radius=10,
-                fill_opacity=0.3,
-                rotation=30,
-                popup='<i>Mt. Hood Meadows</i>'
-            ).add_child(folium.ClickForMarker(popup='Waypoint')).add_to(self.map)
-            #self.map.add_child(folium.ClickForMarker(callback=get_description_station))
-            #markers.append(marker)
-            #popup.add_child(folium.Popup(popup_html,parse_html=True))
-
-          
-            
-                
-        self.update_map()    
-        #marker_info=folium.plugins.FasterMarkerCluster(marker).add_child(folium.Pupup("Seismic station 1 Info")).add_to(self.map)
-        #self.markers.connect(self.get_description_station)
-       
-        
-        # AFFICHER UNE NOUVELLE FENÊTRE APRES AVOIR CLIQUE SUR UN MARKER
-        #self.map.add_child(folium.ClickForMarker(popup=folium.Popup(max_width=450).add_child(self.get_description_station)))
-        #self.update_map()
 
     
         
