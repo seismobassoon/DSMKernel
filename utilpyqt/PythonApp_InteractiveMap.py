@@ -19,6 +19,7 @@ from folium.plugins import Draw
 from folium.map import Popup, Layer
 from folium.plugins import MarkerCluster
 from folium import ClickForMarker, features
+import streamlit as st
 import io
 import pytz
 import IPython
@@ -29,8 +30,8 @@ from obspy.clients.fdsn import Client
 from DataProcessor_Fonctions import get_depth_color, get_periodogram # Load the function "plot_events" provided in tp_obsp
 
 from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox
-from PyQt5.QtWidgets import QToolBar, QDateTimeEdit, QFormLayout
-from PyQt5.QtWidgets import QAction, QSpinBox, QLineEdit, QDoubleSpinBox
+from PyQt5.QtWidgets import QToolBar, QDateTimeEdit
+from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox
 
 #from PyQt5.QtGui import QIcon
@@ -57,33 +58,22 @@ class Window(QMainWindow):
         self.qwebengine = QtWebEngineWidgets.QWebEngineView(self.centralWidget)
         self.qwebengine.setGeometry(QtCore.QRect(50,50,800,600))
         self.qwebengine.setObjectName("qwebengine")
-        
 
 
         self.map = folium.Map(zoom_start=2,location=[0,0])
-        Draw(export=True).add_to(self.map) 
+        draw = Draw(export=True)
+        draw.add_to(self.map) 
+        self.map.add_child(folium.LatLngPopup())
+        
+        def _on_create(self,event):
+            coords=event['geometry']['coordinates'][0]
+            st.write("Coordinates: ",coords)
+            
+        self.map.save('draw.html')
+        
         self.update_map()
-        '''
-        self.map.get_root().add_child(
-            folium.Element("""
-                <script>
-                    var rectangle;
-                    self.map.on('draw:created',function (e) {
-                        var type = e.layerType,
-                            layer = e.layer;
-                        if (type ==='rectangle') {
-                            rectangle = layer.getBounds();
-                            console.log(rectangle);
-                        }
-                    });
-                </script>
-            """)
-        )
-        '''
-        # En générant une carte folium dans qwebengine, il faut l'actuatiser à chaque modification
-        # Besoin de créer un fonction qui va s'en charger
-        self.update_map()
-
+        
+        
         self.setCentralWidget(self.centralWidget)
         QtCore.QMetaObject.connectSlotsByName(self)
         
@@ -94,32 +84,37 @@ class Window(QMainWindow):
         #self._showCoordinates()
         self._createToolBars()
         self._connectActions()
+        #self._on_create()
+        #self._select_rectangle()
         #self.get_events_stations()
-    
-    # SELECT COORDINATES MANUALLY
-    #-------------------------------------------------
-    '''
-    def _selectCoordinates(self):
-        folium.plugins.Draw(draw_options={'rectangle': True},
-                            edit_options={'remove': True, 'edit': True, 'save': True, 'cancel': False}
-                            ).add_to(self.map)
-        self.update_map()
-
-
         
     
-    def _showCoordinates(self,**kwargs):
-        if kwargs.get('type') == 'rectangle':
-            rectangle = kwargs.get('coordinates')
-            IPython.display.clear_output(wait=True)
-            IPython.display.display(IPython.display.Markdown(f'Minimum latitude: {rectangle[0][0][0]}'))
-            IPython.display.display(IPython.display.Markdown(f'Maximum latitude: {rectangle[0][2][0]}'))
-            IPython.display.display(IPython.display.Markdown(f'Minimum longitude: {rectangle[0][0][1]}'))
-            IPython.display.display(IPython.display.Markdown(f'Maximum longitude: {rectangle[0][2][1]}'))
-            
-        self.map.onShapeChange()
+
+    # SELECT COORDINATES MANUALLY
+    #-------------------------------------------------
+    
+    '''
+    def _select_rectangle(self):
+        rect = folium.RectangleMarker(
+            bounds=[(45.5,-122.7),(45.6,-122.6)],
+            color='yellow',
+            fill_color='yellow',
+            fill=True
+        .add_to(self.map))
         self.update_map()
-    '''     
+        
+        def update_doublespinbox(**kwargs):
+            bounds = rect.bounds
+            lat_min,lng_min=bounds[0]
+            lat_max,lng_max=bounds[0]
+            
+            self.minLatChoice.setValue(lat_min)
+            self.maxLatChoice.setValue(lat_max)
+            self.minLonChoice.setValue(lng_min)
+            self.maxLonChoice.setValue(lng_max)
+            
+        rect.on('draw',update_doublespinbox) 
+    '''
     # DEF MENU BAR
     #-----------------------------------------------
     def _createMenuBar(self):
@@ -257,6 +252,9 @@ class Window(QMainWindow):
         #mainToolBar.addAction(self.searchAction)
         
         # FINISHED - NOTHING TO CHANGE
+    
+
+    
 
 
     def _createActions(self):
