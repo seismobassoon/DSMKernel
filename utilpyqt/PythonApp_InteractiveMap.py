@@ -3,34 +3,32 @@
 
 # pip install PyQtWebEngineWidgets
 
-# In[1]:
 
 
 #-*- coding: utf-8 -*-
 """
 Created on Fri Feb  3 16:35:46 2023
-
 @author: Lorraine Delaroque
 """
 
 import sys
+import numpy as np
 import folium
 from folium.plugins import Draw
-from folium.map import Popup, Layer
-from folium.plugins import MarkerCluster
-from folium import ClickForMarker, features
+
 import streamlit as st
-import io
+from streamlit_folium import st_folium
+import ipywidgets.embed as embed
+import io,json
 import pytz
-import IPython
-
-from obspy import read
+from ipyleaflet import Map, basemaps, basemap_to_tiles, DrawControl
 from obspy.clients.fdsn import Client
+from bokeh.models import BoxSelectTool,Tap
+from bokeh.plotting import figure,show
+from DataProcessor_Fonctions import get_depth_color # Load the function "plot_events" provided in tp_obsp
 
-from DataProcessor_Fonctions import get_depth_color, get_periodogram # Load the function "plot_events" provided in tp_obsp
-
-from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox
-from PyQt5.QtWidgets import QToolBar, QDateTimeEdit
+from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog
+from PyQt5.QtWidgets import QDateTimeEdit
 from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox
 
@@ -38,7 +36,7 @@ from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox
 #import qrc_resources
 
 from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSettings
 
 class Window(QMainWindow):
     
@@ -58,24 +56,20 @@ class Window(QMainWindow):
         self.qwebengine = QtWebEngineWidgets.QWebEngineView(self.centralWidget)
         self.qwebengine.setGeometry(QtCore.QRect(50,50,800,600))
         self.qwebengine.setObjectName("qwebengine")
+        
 
 
         self.map = folium.Map(zoom_start=2,location=[0,0])
         draw = Draw(export=True)
         draw.add_to(self.map) 
         self.map.add_child(folium.LatLngPopup())
-        
-        def _on_create(self,event):
-            coords=event['geometry']['coordinates'][0]
-            st.write("Coordinates: ",coords)
-            
-        self.map.save('draw.html')
-        
+
         self.update_map()
         
         
         self.setCentralWidget(self.centralWidget)
         QtCore.QMetaObject.connectSlotsByName(self)
+
         
         self._createActions()
         self._createMenuBar()
@@ -84,6 +78,8 @@ class Window(QMainWindow):
         #self._showCoordinates()
         self._createToolBars()
         self._connectActions()
+        #self._saveValues()
+        #self._closeEvent()
         #self._on_create()
         #self._select_rectangle()
         #self.get_events_stations()
@@ -136,6 +132,9 @@ class Window(QMainWindow):
         #helpMenu = menuBar.addMenu(QIcon(":help-content.svg"), "&Help")
     
     def _createToolBars(self):
+        
+                
+        self.settings = QSettings("MyQtApp", "App1")
         # Using a title
         mainToolBar = self.addToolBar("Tools")
         mainToolBar.setMovable(True)
@@ -147,10 +146,10 @@ class Window(QMainWindow):
         #----------------------------------------------------
         # CLIENT ACTION
         mainToolBar.addWidget(self.clientLabel)
-        self.clientChoice=QComboBox()
+        self.clientChoice=QComboBox(self)
         mainToolBar.addWidget(self.clientChoice)
-        self.clientChoice.addItems(["AusPass","BGR","EMSC","ETH","GEOFON","ICGC","IESDMC","INGV","IPGP","IRISDMC","ISC","KAGSR","KOERI","LMU","NCEDC","NIEP","NOA","ODC","RASPISHAKE","RESIF","SCEDC","UIB-NORSAR","USGS","USP"])
-                
+        self.clientChoice.addItems(["AUSPASS","BRG","EIDA","EMSC","ETH","GEOFON","GEONET","GFZ","ICGC","IESDMC","INGV","IPGP","IRIS","IRISPH5","ISC","KNMI","KOERI","LMU","NCEDC","NIEP","NOA","ODC","RASPISHAKE","RESIF","RESIFPH5","SCEDC","UIB-NORSAR","USGS","USP"])
+        
         # SEPARATING----------------------------------------------
         separator = QAction(self)
         separator.setSeparator(True)  
@@ -233,11 +232,19 @@ class Window(QMainWindow):
         mainToolBar.addAction(separator)    
         
         # NETWORK ACTION
+        
+        
         mainToolBar.addWidget(self.networkLabel)
-        self.networkChoice = QLineEdit()
+        #self.networkChoice = QLineEdit()
+        self.networkChoice = QComboBox(self)
         mainToolBar.addWidget(self.networkChoice)
-        self.networkChoice.setMaxLength(5)
-        self.networkChoice.setPlaceholderText("Enter the network")
+        #self.networkChoice.setMaxLength(5)
+        #self.networkChoice.setPlaceholderText("Enter the network")
+        self.clientChoice.currentIndexChanged.connect(self.updateNetworkChoice)
+        
+        
+        
+        
         
         # SEPARATING----------------------------------------------
         separator = QAction(self)
@@ -252,8 +259,63 @@ class Window(QMainWindow):
         #mainToolBar.addAction(self.searchAction)
         
         # FINISHED - NOTHING TO CHANGE
-    
-
+    def updateNetworkChoice(self):
+        self.networkChoice.clear()
+        selectedValue = self.clientChoice.currentText()
+        if selectedValue == "AUSPASS":
+            self.networkChoice.addItems([""])
+        elif selectedValue == "BRG":
+            self.networkChoice.addItems(["BM"])
+        elif selectedValue == "EIDA":
+            self.networkChoice.addItems(["7J","ZN"])
+        elif selectedValue == "EMSC":
+            self.networkChoice.addItems([""])
+        elif selectedValue == "ETH":  
+            self.networkChoice.addItems(["1C","6H","9E","9L","EH","NA","NL","QZ","X5","XI","XJ","XM","Y1","YJ","YN","YQ","YR","YY","Z4","ZF"])
+        elif selectedValue == "GEOPHON":         
+            self.networkChoice.addItems(["GE"])   
+        elif selectedValue == "GEONET":    
+            self.networkChoice.addItems(["GC"])
+        elif selectedValue == "GFZ":         
+            self.networkChoice.addItems(["4Q","GX","ZE"])
+        elif selectedValue == "ICGC":        
+            self.networkChoice.addItems([""])
+        elif selectedValue == "IESDMC":     
+            self.networkChoice.addItems(["3D","3Q","4P","TV","X3","Y1","YD","ZH"])
+        elif selectedValue == "IPGP":    
+            self.networkChoice.addItems(["G"])
+        elif selectedValue == "IRIS":    
+            self.networkChoice.addItems(["1M","4R","EA","EI","II","IU","YW"])
+        elif selectedValue == "IRISPH5":          
+            self.networkChoice.addItems([""])
+        elif selectedValue == "ISC":
+            self.networkChoice.addItems(["1E","1H","5D","6F","8C","8J","HS",'IM',"JA","OF","TH","XA","XI","XJ","XL","XP","XS","XW","YD","YI","YJ","YK","YS","YV","Z5","ZA","ZD","ZM","ZS","ZT"])
+        elif selectedValue == "KNMI":
+            self.networkChoice.addItems([""])
+        elif selectedValue == "KOERI":
+            self.networkChoice.addItems(["KO"])
+        elif selectedValue == "LMU":
+            self.networkChoice.addItems(["Z6"])
+        elif selectedValue == "NCEDC":
+            self.networkChoice.addItems([""])
+        elif selectedValue == "NIEP":
+            self.networkChoice.addItems(["Y8"])
+        elif selectedValue == "NOA":
+            self.networkChoice.addItems([""])
+        elif selectedValue == "ODC":
+            self.networkChoice.addItems([""])
+        elif selectedValue == "RASPISHAKE":
+            self.networkChoice.addItems([""])
+        elif selectedValue == "RESIF":
+            self.networkChoice.addItems(["FR","ZO"])
+        elif selectedValue == "RESIFPH5":
+            self.networkChoice.addItems([""])
+        elif selectedValue == "UIB-NORSAR":
+            self.networkChoice.addItems([""])
+        elif selectedValue == "USGS":
+            self.networkChoice.addItems(["3F","GT","IU","MI","NC","NT","UL","XC","XG","XU","XZ","Y3","YV","Z7","ZZ"])
+        elif selectedValue == "USC":
+            self.networkChoice.addItems([""])
     
 
 
@@ -317,21 +379,20 @@ class Window(QMainWindow):
    
     
     def startSearch(self):
-        if not self.locChoice.text() or \
-            not self.networkChoice.text():
-                error_message = QMessageBox(QMessageBox.Critical, "Error","All field must be filled!",QMessageBox.Ok)
-                error_message.exec()
+        if not self.locChoice.text():
+            error_message = QMessageBox(QMessageBox.Critical, "Error","All field must be filled!",QMessageBox.Ok)
+            error_message.exec()
                 
-                style = "border: 1px solid red;"
-                if not self.locChoice.text():
-                    self.locChoice.setStyleSheet(style)
-                if not self.networkChoice.text():
-                    self.locChoice.setStyleSheet(style)
+            style = "border: 1px solid red;"
+            if not self.locChoice.text():
+                self.locChoice.setStyleSheet(style)
+                #if not self.networkChoice.text():
+                    #self.locChoice.setStyleSheet(style)
         else:
             # RESET OF THE INITIAL STYLE PARAMETERS
             style = "border: 1px solid black;"
             self.locChoice.setStyleSheet(style)
-            self.locChoice.setStyleSheet(style)
+            #self.locChoice.setStyleSheet(style)
             # DATE INITIALIZATION (convert QDateTime in UTCDateTime)
 
             localStartTime = self.dateStartChoice.dateTime()
@@ -366,8 +427,9 @@ class Window(QMainWindow):
             client_select = str(self.clientChoice.currentText())
             
             # NETWORK INITIALIZATION (convert QLineEdit to str)
-            networkValue = self.networkChoice.text()
-            strNetwork = str(networkValue)
+            networkValue = str(self.networkChoice.currentText())
+            #networkValue = self.networkChoice.text()
+            #strNetwork = str(networkValue)
             
             events_center = Client(client_select).get_events(    
                 minlatitude = intMinLat,
@@ -384,7 +446,7 @@ class Window(QMainWindow):
 
             
             # NETWORK INITIALIZATION
-            network_select = strNetwork
+            network_select = networkValue
             client = Client(client_select)
             inventory = client.get_stations(network=network_select, level="channel")
             
@@ -419,16 +481,16 @@ class Window(QMainWindow):
                     ).add_to(self.map)
                     
             self.update_map()
-            '''
-            def get_description_station(event=None,feature=None,id=None,properties=None):
-                 new_window = QWindow()
-                 new_window.show()
-            '''
-            #markers=[]
+
+            def open_window(**kwargs):
+                window = QDialog()
+                window.exec_()
+
+            #
             for net, sta, lat, lon, elev in stations:
                 name = ".".join([net, sta])
                 infos = "%s (%s, %s) %s m" % (name, lat, lon, elev)
-                folium.features.RegularPolygonMarker(
+                marker = folium.features.RegularPolygonMarker(
                     location=[lat, lon],
                     tooltip=infos,
                     color="blue",
@@ -437,44 +499,45 @@ class Window(QMainWindow):
                     radius=10,
                     fill_opacity=0.3,
                     rotation=30,
-                    popup='<i>Mt. Hood Meadows</i>'
-                ).add_child(folium.ClickForMarker(popup='Waypoint')).add_to(self.map)
-                #self.map.add_child(folium.ClickForMarker(callback=get_description_station))
-                #markers.append(marker)
-                #popup.add_child(folium.Popup(popup_html,parse_html=True))
-
+                    popup='<i>Hello</i>',
+                    callback=open_window
+                ).add_to(self.map)
+                #FastMarkerCluster(marker).add_to(self.map)
+                '''
+                marker.add_child(folium.ClickForMarker(popup="Hello").add_to(self.map))
+                marker.on_click(open_window)
+                marker.add_to(self.map)
+                '''
+ 
+            self.update_map()
               
-                
-                    
-            self.update_map()    
-            #marker_info=folium.plugins.FasterMarkerCluster(marker).add_child(folium.Pupup("Seismic station 1 Info")).add_to(self.map)
-            #self.markers.connect(self.get_description_station)
-           
-            
-            # AFFICHER UNE NOUVELLE FENÊTRE APRES AVOIR CLIQUE SUR UN MARKER
-            #self.map.add_child(folium.ClickForMarker(popup=folium.Popup(max_width=450).add_child(self.get_description_station)))
-            #self.update_map()
-            
-    
-    
-    
-    
-    '''
-    # OBSPY PROCESSING
-    #----------------------------------------------------------------------
-    def get_events_stations(self):
-    '''    
-        
-
-    
         
     def update_map(self):
 
         data = io.BytesIO()
         self.map.save(data,close_file=False)
         self.qwebengine.setHtml(data.getvalue().decode())   
+    ''' 
+    def _closeEvent(self):
+        self.settings.setValue("Start_datetime_edit_value",self.dateStartChoice.dateTime().toString())
+        self.settings.setValue("End_datetime_edit_value",self.dateEndChoice.dateTime().toString())
+        self.settings.setValue("Min_Latitude_value",self.minLatChoice.value())
+        self.settings.setValue("Max_Latitude_value",self.maxLatChoice.value())
+        self.settings.setValue("Min_Longitude_value",self.minLonChoice.value())
+        self.settings.setValue("Max_Longitude_value",self.maxLonChoice.value())
+        self.settings.setValue("Location_value",self.locChoice.text())
+        self.settings.setValue("Magnitude_value",self.magChoice.value())
+        self.settings.setValue("Network_value",self.networkChoice.text())
+        #super().closeEvent()
 
-        
+
+class WebEnginePage(QtWebEngineWidgets.QWebEnginePage):
+       def javaScriptConsoleMessage(self, level, msg, line, sourceID):
+          coords_dict = json.loads(msg)
+          coords = coords_dict['geometry']['coordinates'][0]
+          print(coords)
+    
+     '''   
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = Window()
