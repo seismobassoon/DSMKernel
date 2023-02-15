@@ -11,7 +11,7 @@ from folium.plugins import Draw
 
 import io
 import pytz
-
+import numpy as np
 from obspy.clients.fdsn import Client
 
 from DataProcessor_Fonctions import get_depth_color # Load the function "plot_events" provided in tp_obsp
@@ -50,14 +50,15 @@ class Window(QMainWindow):
         self.drawControl = L.control.draw()
     
         self.map.addControl(self.drawControl)
-
-
+        
+        
         
         self._createActions()
         self._createMenuBar()
         #self._selectCoordinates()
         #self._showCoordinates()
         self._createToolBars()
+        #self._transposeCoord()
         self._connectActions()
         #self._saveValues()
         #self._closeEvent()
@@ -65,14 +66,40 @@ class Window(QMainWindow):
         #self._select_rectangle()
         #self.get_events_stations()
         
-        self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
-
-        self.map.clicked.connect(lambda x: print(x['latlng']))
+        # SELECT COORDINATES MANUALLY
+        #-------------------------------------------------
+     
+        def coords(self,x,coord_lat,coord_lng):
+            lat,lng = x['latlng']['lat'],x['latlng']['lng']
+            #print(lat,lng)
+            coord_lat.append(lat)
+            coord_lng.append(lng)
+            print(coord_lat)
+            print(coord_lng)
+          
+            global minlat 
+            minlat= min(coord_lat)
+            global maxlat
+            maxlat=max(coord_lat)
+            global minlng
+            minlng=min(coord_lng)
+            global maxlng
+            maxlng=max(coord_lng)
+            print(minlat,maxlat,minlng,maxlng)
+            self.minLatChoice.setValue(minlat)
+            self.maxLatChoice.setValue(maxlat)
+            self.minLonChoice.setValue(minlng)
+            self.maxLonChoice.setValue(maxlng)
+            
+       
+        coord_lat=[]
+        coord_lng=[]
         
-    
+        self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
+        
+        #map.on('draw:created', function (event)
+        self.map.clicked.connect(lambda x: coords(self,x,coord_lat,coord_lng))
 
-    # SELECT COORDINATES MANUALLY
-    #-------------------------------------------------
 
     # DEF MENU BAR
     #-----------------------------------------------
@@ -146,6 +173,7 @@ class Window(QMainWindow):
         self.maxLatChoice = QDoubleSpinBox()
         self.minLonChoice = QDoubleSpinBox()
         self.maxLonChoice = QDoubleSpinBox()
+        
         mainToolBar.addWidget(layoutCoor1)
         mainToolBar.addWidget(self.minLatChoice)
         mainToolBar.addWidget(layoutCoor2)
@@ -154,6 +182,7 @@ class Window(QMainWindow):
         mainToolBar.addWidget(self.minLonChoice)
         mainToolBar.addWidget(layoutCoor4)
         mainToolBar.addWidget(self.maxLonChoice)
+        
         self.minLatChoice.setMinimum(-90)
         self.minLatChoice.setMaximum(90)
         self.maxLatChoice.setMinimum(-90)
@@ -210,10 +239,18 @@ class Window(QMainWindow):
         self.searchButton.clicked.connect(self.startSearch)
     
         #mainToolBar.addAction(self.searchAction)
-        
+    '''    
         # FINISHED - NOTHING TO CHANGE
-    
-
+    def _transposeCoord(self):
+        if 'minlat' in globals() \
+            and 'maxlat' in globals() \
+                and 'minlng' in globals() \
+                    and 'maxlng' in globals():
+                        self.minLatChoice.setValue(minlat)
+                        self.maxLatChoice.setValue(maxlat)
+                        self.minLonChoice.setValue(minlng)
+                        self.maxLonChoice.setValue(maxlng)
+    '''
     
 
 
