@@ -51,10 +51,10 @@ class Window(QMainWindow):
     
         self.map.addControl(self.drawControl)
 
+
         
         self._createActions()
         self._createMenuBar()
-        
         #self._selectCoordinates()
         #self._showCoordinates()
         self._createToolBars()
@@ -66,45 +66,14 @@ class Window(QMainWindow):
         #self.get_events_stations()
         
         self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
-        points=[]
-        self.drawControl.drawingFinished.connect(lambda: points.extend(self.drawControl.getFeatures()[0].geometry().asPolygon()))
-        
-        self.drawControl.drawingFinished.connect(lambda:
-            self.minLatChoice.setValue(min([point.lat() for point in points])),
-            self.maxLatChoice.setValue(max([point.lat() for point in points])),
-            self.minLonChoice.setValue(min([point.lng() for point in points])),
-            self.maxLonChoice.setValue(max([point.lng() for point in points]))
-        )
-            
-        self.map.clicked.connect(lambda x:print(x))
+
+        self.map.clicked.connect(lambda x: print(x['latlng']))
         
     
 
     # SELECT COORDINATES MANUALLY
     #-------------------------------------------------
-    
-    '''
-    def _select_rectangle(self):
-        rect = folium.RectangleMarker(
-            bounds=[(45.5,-122.7),(45.6,-122.6)],
-            color='yellow',
-            fill_color='yellow',
-            fill=True
-        .add_to(self.map))
-        self.update_map()
-        
-        def update_doublespinbox(**kwargs):
-            bounds = rect.bounds
-            lat_min,lng_min=bounds[0]
-            lat_max,lng_max=bounds[0]
-            
-            self.minLatChoice.setValue(lat_min)
-            self.maxLatChoice.setValue(lat_max)
-            self.minLonChoice.setValue(lng_min)
-            self.maxLonChoice.setValue(lng_max)
-            
-        rect.on('draw',update_doublespinbox) 
-    '''
+
     # DEF MENU BAR
     #-----------------------------------------------
     def _createMenuBar(self):
