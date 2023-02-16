@@ -60,6 +60,7 @@ class Window(QMainWindow):
         self._createToolBars()
         #self._transposeCoord()
         self._connectActions()
+
         #self._saveValues()
         #self._closeEvent()
         #self._on_create()
@@ -305,6 +306,7 @@ class Window(QMainWindow):
         # Connect Help actions
         self.helpContentAction.triggered.connect(self.helpContent)
         self.aboutAction.triggered.connect(self.about)
+    
    
     
     def startSearch(self):
@@ -400,14 +402,13 @@ class Window(QMainWindow):
                         magnitude.mag,
                     )
                     infos = "(%s %s) depth=%s m mag=%s (%s)" % (lat, lon, depth, mag, comments)
-                    folium.CircleMarker(
-                        location=[lat, lon],
-                        radius=50 * 2 ** (mag) / 2 ** 10,
-                        tooltip=infos,
-                        color=get_depth_color(depth),
-                        fill=True,
-                        fill_color="#FF8C00",
-                    ).add_to(self.map)
+                    L.circleMarker([lat, lon], {
+                        'radius' : 50 * 2 ** (mag) / 2 ** 10,
+                        'fillColor':'ff8C00',
+                        'color':get_depth_color(depth),
+                        'bindTooltip':infos
+                        
+                    }).addTo(self.map)
                     
             #self.update_map()
 
@@ -415,22 +416,18 @@ class Window(QMainWindow):
                 window = QDialog()
                 window.exec_()
 
-            #
+            #self._icon=L.divIcon(html='<svg height="20" width="20"><polygon points="10,0 20,20 0,20" style="fill:ff8C00;stroke:blue;stroke-width:1" /></svg>',iconSize=[20,20])
             for net, sta, lat, lon, elev in stations:
                 name = ".".join([net, sta])
                 infos = "%s (%s, %s) %s m" % (name, lat, lon, elev)
-                L.RegularPolygonMarker(
-                    location=[lat, lon],
-                    tooltip=infos,
-                    color="blue",
-                    fill_color="#FF8C00",
-                    number_of_sides=3,
-                    radius=10,
-                    fill_opacity=0.3,
-                    rotation=30,
-                    popup='<i>Hello</i>',
-                    callback=open_window
-                ).add_to(self.map)
+                L.marker([lat, lon], {
+                    'color':'blue',
+                    #'icon':self._icon,
+                    'fillColor':'FF8C00',
+                    'bindTooltip':infos
+
+                    #callback=open_window
+                }).addTo(self.map)
 
 
             #self.update_map()
