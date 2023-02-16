@@ -12,28 +12,23 @@ Created on Fri Feb  3 16:35:46 2023
 """
 
 import sys
-import numpy as np
 import folium
 from folium.plugins import Draw
 
-import streamlit as st
-from streamlit_folium import st_folium
-import ipywidgets.embed as embed
-import io,json
+import io
 import pytz
-from ipyleaflet import Map, basemaps, basemap_to_tiles, DrawControl
+import numpy as np
 from obspy.clients.fdsn import Client
-from bokeh.models import BoxSelectTool,Tap
-from bokeh.plotting import figure,show
+
 from DataProcessor_Fonctions import get_depth_color # Load the function "plot_events" provided in tp_obsp
 
 from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog
-from PyQt5.QtWidgets import QDateTimeEdit
+from PyQt5.QtWidgets import QDateTimeEdit, QVBoxLayout, QWidget
 from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox
 
-#from PyQt5.QtGui import QIcon
-#import qrc_resources
+from pyqtlet import L, MapWidget 
+from pyqtlet.leaflet.core import Evented
 
 from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
 from PyQt5.QtCore import Qt, QSettings
@@ -47,70 +42,65 @@ class Window(QMainWindow):
         # INITIALIZER
         #---------------------------------------------
         super().__init__(parent)
-        self.setWindowTitle("Geodpy Project - Python Menus & Toolbars")
-        self.resize(800, 600)
-        
-        self.centralWidget = QtWidgets.QWidget(self)
-        self.centralWidget.setObjectName("centralWidget")
-        
-        self.qwebengine = QtWebEngineWidgets.QWebEngineView(self.centralWidget)
-        self.qwebengine.setGeometry(QtCore.QRect(50,50,800,600))
-        self.qwebengine.setObjectName("qwebengine")
-        
+        self.mapWidget = MapWidget()
 
-
-        self.map = folium.Map(zoom_start=2,location=[0,0])
-        draw = Draw(export=True)
-        draw.add_to(self.map) 
-        self.map.add_child(folium.LatLngPopup())
-
-        self.update_map()
-        
-        
-        self.setCentralWidget(self.centralWidget)
+        self.setCentralWidget(self.mapWidget)
         QtCore.QMetaObject.connectSlotsByName(self)
 
+        # Working with the maps with pyqtlet
+        self.map = L.map(self.mapWidget)
+        self.map.setView([0, 0], 2)
+        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(self.map)
+
+        self.drawControl = L.control.draw()
+    
+        self.map.addControl(self.drawControl)
+        #print(dir(self.map))
+        
         
         self._createActions()
         self._createMenuBar()
-        
-        #self._selectCoordinates()
-        #self._showCoordinates()
-        self._createToolBars()
-        self._connectActions()
-        #self._saveValues()
-        #self._closeEvent()
-        #self._on_create()
-        #self._select_rectangle()
-        #self.get_events_stations()
-        
-    
 
-    # SELECT COORDINATES MANUALLY
-    #-------------------------------------------------
-    
-    '''
-    def _select_rectangle(self):
-        rect = folium.RectangleMarker(
-            bounds=[(45.5,-122.7),(45.6,-122.6)],
-            color='yellow',
-            fill_color='yellow',
-            fill=True
-        .add_to(self.map))
-        self.update_map()
+        self._createToolBars()
+
+        self._connectActions()
         
-        def update_doublespinbox(**kwargs):
-            bounds = rect.bounds
-            lat_min,lng_min=bounds[0]
-            lat_max,lng_max=bounds[0]
+        # SELECT COORDINATES MANUALLY
+        #-------------------------------------------------
+     
+        def coords(self,x,coord_lat,coord_lng):
+            lat,lng = x['latlng']['lat'],x['latlng']['lng']
+            #print(lat,lng)
+            coord_lat.append(lat)
+            coord_lng.append(lng)
+            print(coord_lat)
+            print(coord_lng)
+          
+            global minlat 
+            minlat= min(coord_lat)
+            global maxlat
+            maxlat=max(coord_lat)
+            global minlng
+            minlng=min(coord_lng)
+            global maxlng
+            maxlng=max(coord_lng)
+            print(minlat,maxlat,minlng,maxlng)
+            self.minLatChoice.setValue(minlat)
+            self.maxLatChoice.setValue(maxlat)
+            self.minLonChoice.setValue(minlng)
+            self.maxLonChoice.setValue(maxlng)
             
-            self.minLatChoice.setValue(lat_min)
-            self.maxLatChoice.setValue(lat_max)
-            self.minLonChoice.setValue(lng_min)
-            self.maxLonChoice.setValue(lng_max)
-            
-        rect.on('draw',update_doublespinbox) 
-    '''
+       
+        coord_lat=[]
+        coord_lng=[]
+        
+        self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
+        
+        #map.on('draw:created', function (event)
+        self.map.clicked.connect(lambda x: coords(self,x,coord_lat,coord_lng))
+
+
+
     # DEF MENU BAR
     #-----------------------------------------------
     def _createMenuBar(self):
@@ -129,7 +119,6 @@ class Window(QMainWindow):
         exitMenu = menuBar.addMenu("&Exit")
         exitMenu.addAction(self.exitAction)
         
-        #helpMenu = menuBar.addMenu(QIcon(":help-content.svg"), "&Help")
     
     def _createToolBars(self):
         
@@ -149,6 +138,8 @@ class Window(QMainWindow):
         self.clientChoice=QComboBox(self)
         mainToolBar.addWidget(self.clientChoice)
         self.clientChoice.addItems(["AUSPASS","BRG","EIDA","EMSC","ETH","GEOFON","GEONET","GFZ","ICGC","IESDMC","INGV","IPGP","IRIS","IRISPH5","ISC","KNMI","KOERI","LMU","NCEDC","NIEP","NOA","ODC","RASPISHAKE","RESIF","RESIFPH5","SCEDC","UIB-NORSAR","USGS","USP"])
+        # ESSAYER DE CHOISIR TOUS LES CLIENTS
+        
         
         # SEPARATING----------------------------------------------
         separator = QAction(self)
@@ -185,6 +176,7 @@ class Window(QMainWindow):
         self.maxLatChoice = QDoubleSpinBox()
         self.minLonChoice = QDoubleSpinBox()
         self.maxLonChoice = QDoubleSpinBox()
+        
         mainToolBar.addWidget(layoutCoor1)
         mainToolBar.addWidget(self.minLatChoice)
         mainToolBar.addWidget(layoutCoor2)
@@ -193,6 +185,7 @@ class Window(QMainWindow):
         mainToolBar.addWidget(self.minLonChoice)
         mainToolBar.addWidget(layoutCoor4)
         mainToolBar.addWidget(self.maxLonChoice)
+        
         self.minLatChoice.setMinimum(-90)
         self.minLatChoice.setMaximum(90)
         self.maxLatChoice.setMinimum(-90)
@@ -235,15 +228,9 @@ class Window(QMainWindow):
         
         
         mainToolBar.addWidget(self.networkLabel)
-        #self.networkChoice = QLineEdit()
         self.networkChoice = QComboBox(self)
         mainToolBar.addWidget(self.networkChoice)
-        #self.networkChoice.setMaxLength(5)
-        #self.networkChoice.setPlaceholderText("Enter the network")
         self.clientChoice.currentIndexChanged.connect(self.updateNetworkChoice)
-        
-        
-        
         
         
         # SEPARATING----------------------------------------------
@@ -256,7 +243,6 @@ class Window(QMainWindow):
         mainToolBar.addWidget(self.searchButton)
         self.searchButton.clicked.connect(self.startSearch)
     
-        #mainToolBar.addAction(self.searchAction)
         
         # FINISHED - NOTHING TO CHANGE
     def updateNetworkChoice(self):
@@ -352,14 +338,7 @@ class Window(QMainWindow):
         self.helpContentAction = QAction("&Help Content", self)
         self.aboutAction = QAction("&About", self)
         
-        
-    '''  
-    def _createAction(self):
-        actions like make icons !!
-        
-    def _createStatusBar(self):
-    
-    '''
+
     def about(self):
         # Logic for showing an about dialog content goes here...
         self.centralWidget.setText("<b>About</b> clicked")
@@ -471,37 +450,36 @@ class Window(QMainWindow):
                         magnitude.mag,
                     )
                     infos = "(%s %s) depth=%s m mag=%s (%s)" % (lat, lon, depth, mag, comments)
-                    folium.CircleMarker(
-                        location=[lat, lon],
-                        radius=50 * 2 ** (mag) / 2 ** 10,
-                        tooltip=infos,
-                        color=get_depth_color(depth),
-                        fill=True,
-                        fill_color="#FF8C00",
-                    ).add_to(self.map)
+                    L.circleMarker([lat, lon], {
+                        'radius':50 * 2 ** (mag) / 2 ** 10,
+                        #tooltip=infos,
+                        'color':get_depth_color(depth),
+                        #fill=True,
+                        'fillColor':"#FF8C00"
+                    }).addTo(self.map)
                     
-            self.update_map()
+            #self.update_map()
 
-            def open_window(**kwargs):
-                window = QDialog()
-                window.exec_()
+            def openWindow(self):
+                dialog = QDialog(self)
+                dialog.setWindowTitle("Marker clicked")
+                dialog.show
 
             #
             for net, sta, lat, lon, elev in stations:
                 name = ".".join([net, sta])
                 infos = "%s (%s, %s) %s m" % (name, lat, lon, elev)
-                marker = folium.features.RegularPolygonMarker(
-                    location=[lat, lon],
-                    tooltip=infos,
-                    color="blue",
-                    fill_color="#FF8C00",
-                    number_of_sides=3,
-                    radius=10,
-                    fill_opacity=0.3,
-                    rotation=30,
-                    popup='<i>Hello</i>',
-                    callback=open_window
-                ).add_to(self.map)
+                L.marker([lat, lon], {
+                    #tooltip=infos,
+                    'color':"blue",
+                    'fillColor':"#FF8C00",
+                    #number_of_sides=3,
+                    #radius=10,
+                    'fillOpacity':0.3,
+                    #rotation=30,
+                    #popup='<i>Hello</i>',
+                    #callback=openWindow
+                }).addTo(self.map)
                 #FastMarkerCluster(marker).add_to(self.map)
                 '''
                 marker.add_child(folium.ClickForMarker(popup="Hello").add_to(self.map))
@@ -509,7 +487,7 @@ class Window(QMainWindow):
                 marker.add_to(self.map)
                 '''
  
-            self.update_map()
+            #self.update_map()
               
         
     def update_map(self):
@@ -517,29 +495,13 @@ class Window(QMainWindow):
         data = io.BytesIO()
         self.map.save(data,close_file=False)
         self.qwebengine.setHtml(data.getvalue().decode())   
-    ''' 
-    def _closeEvent(self):
-        self.settings.setValue("Start_datetime_edit_value",self.dateStartChoice.dateTime().toString())
-        self.settings.setValue("End_datetime_edit_value",self.dateEndChoice.dateTime().toString())
-        self.settings.setValue("Min_Latitude_value",self.minLatChoice.value())
-        self.settings.setValue("Max_Latitude_value",self.maxLatChoice.value())
-        self.settings.setValue("Min_Longitude_value",self.minLonChoice.value())
-        self.settings.setValue("Max_Longitude_value",self.maxLonChoice.value())
-        self.settings.setValue("Location_value",self.locChoice.text())
-        self.settings.setValue("Magnitude_value",self.magChoice.value())
-        self.settings.setValue("Network_value",self.networkChoice.text())
-        #super().closeEvent()
 
 
-class WebEnginePage(QtWebEngineWidgets.QWebEnginePage):
-       def javaScriptConsoleMessage(self, level, msg, line, sourceID):
-          coords_dict = json.loads(msg)
-          coords = coords_dict['geometry']['coordinates'][0]
-          print(coords)
-    
-     '''   
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    #app.aboutToQuit(saveSettings)
     win = Window()
     win.show()
     sys.exit(app.exec_())
