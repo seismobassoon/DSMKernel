@@ -12,25 +12,22 @@ Created on Fri Feb  3 16:35:46 2023
 """
 
 import sys
-import folium
-from folium.plugins import Draw
 
 import io
 import pytz
-import numpy as np
+
 from obspy.clients.fdsn import Client
 
 from DataProcessor_Fonctions import get_depth_color # Load the function "plot_events" provided in tp_obsp
 
 from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog
-from PyQt5.QtWidgets import QDateTimeEdit, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QDateTimeEdit
 from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox
 
 from pyqtlet import L, MapWidget 
-from pyqtlet.leaflet.core import Evented
 
-from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
+from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QSettings
 
 class Window(QMainWindow):
@@ -55,6 +52,7 @@ class Window(QMainWindow):
         self.drawControl = L.control.draw()
     
         self.map.addControl(self.drawControl)
+        #L.control.mousePosition().addTo(self.map)
         #print(dir(self.map))
         
         
@@ -469,7 +467,7 @@ class Window(QMainWindow):
             for net, sta, lat, lon, elev in stations:
                 name = ".".join([net, sta])
                 infos = "%s (%s, %s) %s m" % (name, lat, lon, elev)
-                L.marker([lat, lon], {
+                self.marker = L.marker([lat, lon], {
                     #tooltip=infos,
                     'color':"blue",
                     'fillColor':"#FF8C00",
@@ -479,13 +477,13 @@ class Window(QMainWindow):
                     #rotation=30,
                     #popup='<i>Hello</i>',
                     #callback=openWindow
-                }).addTo(self.map)
-                #FastMarkerCluster(marker).add_to(self.map)
-                '''
-                marker.add_child(folium.ClickForMarker(popup="Hello").add_to(self.map))
-                marker.on_click(open_window)
-                marker.add_to(self.map)
-                '''
+                })
+                
+                self.map.addLayer(self.marker)
+                popup_html="<b>Marker clické !</b><br/><button id='popup-button'>Click me</button>"
+                self.marker.bindPopup(popup_html)
+                
+
  
             #self.update_map()
               
