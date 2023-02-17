@@ -39,6 +39,8 @@ class Window(QMainWindow):
         # INITIALIZER
         #---------------------------------------------
         super().__init__(parent)
+        self.setWindowTitle("Geodpy Project - Python Menus & Toolbars")
+        self.resize(800, 600)
         self.mapWidget = MapWidget()
 
         self.setCentralWidget(self.mapWidget)
@@ -50,17 +52,13 @@ class Window(QMainWindow):
         L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(self.map)
 
         self.drawControl = L.control.draw()
-    
         self.map.addControl(self.drawControl)
-        #L.control.mousePosition().addTo(self.map)
-        #print(dir(self.map))
+
         
         
         self._createActions()
         self._createMenuBar()
-
         self._createToolBars()
-
         self._connectActions()
         
         # SELECT COORDINATES MANUALLY
@@ -93,7 +91,6 @@ class Window(QMainWindow):
         coord_lng=[]
         
         self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
-        
         #map.on('draw:created', function (event)
         self.map.clicked.connect(lambda x: coords(self,x,coord_lat,coord_lng))
 
@@ -105,14 +102,13 @@ class Window(QMainWindow):
         menuBar = self.menuBar()
         
         # Creating menus using a QMenu object
-        fileMenu = QMenu("&About", self)       #QMenu(title,parent)
+        fileMenu = QMenu("&About", self)      
         menuBar.addMenu(fileMenu)
         fileMenu.addAction(self.aboutAction)
         
         # Creating menus using a title
         helpMenu = menuBar.addMenu("&Help")
         helpMenu.addAction(self.helpContentAction)
-        
         
         exitMenu = menuBar.addMenu("&Exit")
         exitMenu.addAction(self.exitAction)
@@ -447,14 +443,17 @@ class Window(QMainWindow):
                         origin.depth,
                         magnitude.mag,
                     )
-                    infos = "(%s %s) depth=%s m mag=%s (%s)" % (lat, lon, depth, mag, comments)
-                    L.circleMarker([lat, lon], {
+                    infos = "lat/long: (%s %s); depth: %s m; mag: %s (%s)" % (lat, lon, depth, mag, comments)
+                    self.events = L.circleMarker([lat, lon], {
                         'radius':50 * 2 ** (mag) / 2 ** 10,
                         #tooltip=infos,
                         'color':get_depth_color(depth),
                         #fill=True,
                         'fillColor':"#FF8C00"
-                    }).addTo(self.map)
+                    })
+                    self.map.addLayer(self.events)
+                    popup_html = "<em> %s </em>" % infos
+                    self.events.bindPopup(popup_html)
                     
             #self.update_map()
 
@@ -475,12 +474,11 @@ class Window(QMainWindow):
                     #radius=10,
                     'fillOpacity':0.3,
                     #rotation=30,
-                    #popup='<i>Hello</i>',
-                    #callback=openWindow
+
                 })
                 
                 self.map.addLayer(self.marker)
-                popup_html="<b>Marker clické !</b><br/><button id='popup-button'>Click me</button>"
+                popup_html="<b> %s </b><br/><button id='popup-button'>Click me</button>" % infos
                 self.marker.bindPopup(popup_html)
                 
 
