@@ -443,7 +443,7 @@ class Window(QMainWindow):
                         origin.depth,
                         magnitude.mag,
                     )
-                    infos = "lat/long: (%s %s); depth: %s m; mag: %s (%s)" % (lat, lon, depth, mag, comments)
+                    infos = "Lat/Long: (%s %s)<br/>Depth: %s m<br/>Magnitude: %s<br/>Comment: %s" % (lat, lon, depth, mag, comments)
                     self.events = L.circleMarker([lat, lon], {
                         'radius':50 * 2 ** (mag) / 2 ** 10,
                         #tooltip=infos,
@@ -465,7 +465,7 @@ class Window(QMainWindow):
             #
             for net, sta, lat, lon, elev in stations:
                 name = ".".join([net, sta])
-                infos = "%s (%s, %s) %s m" % (name, lat, lon, elev)
+                infos = "Name: %s<br/>Lat/Long: (%s, %s)<br/>Elevation: %s m" % (name, lat, lon, elev)
                 self.marker = L.marker([lat, lon], {
                     #tooltip=infos,
                     'color':"blue",
