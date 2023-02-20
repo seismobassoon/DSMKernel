@@ -21,8 +21,8 @@ from obspy.clients.fdsn import Client
 from DataProcessor_Fonctions import get_depth_color # Load the function "plot_events" provided in tp_obsp
 
 from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog
-from PyQt5.QtWidgets import QDateTimeEdit
-from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox
+from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout
+from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox
 
 from pyqtlet import L, MapWidget 
@@ -271,7 +271,7 @@ class Window(QMainWindow):
         elif selectedValue == "ISC":
             self.networkChoice.addItems(["1E","1H","5D","6F","8C","8J","HS",'IM',"JA","OF","TH","XA","XI","XJ","XL","XP","XS","XW","YD","YI","YJ","YK","YS","YV","Z5","ZA","ZD","ZM","ZS","ZT"])
         elif selectedValue == "KNMI":
-            self.networkChoice.addItems([""])
+            self.networkChoice.addItems(["NL","NA"])
         elif selectedValue == "KOERI":
             self.networkChoice.addItems(["KO"])
         elif selectedValue == "LMU":
@@ -459,7 +459,7 @@ class Window(QMainWindow):
 
             def openWindow(self):
                 dialog = QDialog(self)
-                dialog.setWindowTitle("Marker clicked")
+                dialog.setWindowTitle("Station details")
                 dialog.show
 
             #
@@ -490,16 +490,76 @@ class Window(QMainWindow):
 
         data = io.BytesIO()
         self.map.save(data,close_file=False)
-        self.qwebengine.setHtml(data.getvalue().decode())   
+        self.qwebengine.setHtml(data.getvalue().decode()) 
+        
 
+class MyDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("My Dialog")
+        self.resize(500,600)
+        
+        # TAB DESCRIPTION/PERIODOGRAM/PROCESSING
+        self.tabs = QTabWidget()
+        self.Description = QWidget()
+        self.Periodogram = QWidget()
+        self.Processing = QWidget()
+        
+        #ADD WIDGET & CONTENT AT EVERY TAB
+        self.tabs.addTab(self.Description,"Description")
+        self.tabs.addTab(self.Periodogram,"Periodogram")
+        self.tabs.addTab(self.Processing,"Processing")
+        
+        # Ajouter des layouts à chaque onglet
+        self.Description.layout = QVBoxLayout()
+        self.Periodogram.layout = QVBoxLayout()
+        self.Processing.layout = QVBoxLayout()
 
+        # Ajouter des widgets à chaque layout d'onglet
+        self.Description.layout.addWidget(QWidget())
+        self.Periodogram.layout.addWidget(QWidget())
+        self.Processing.layout.addWidget(QWidget())
+
+        # Définir les layouts pour chaque onglet
+        self.Description.setLayout(self.Description.layout)
+        self.Periodogram.setLayout(self.Periodogram.layout)
+        self.Processing.setLayout(self.Processing.layout)
+
+        # Ajouter le widget QTabWidget à la fenêtre MyDialog
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.tabs)
+        self.setLayout(self.layout)
+        
+        self._contentTab1()
+        
+        
+    def _contentTab1(self):
+        sectionName = QLabel("<b>Name:</b> [...]")
+        self.Description.layout.addWidget(sectionName)
+        
+        code = QLabel("<b>Code:</b> [...]")
+        self.Description.layout.addWidget(code)
+        coordinates = QLabel("<b>Coordinates:</b> [...]")
+        self.Description.layout.addWidget(coordinates)
+        elevation = QLabel("<b>Elevation:</b> [...]")
+        self.Description.layout.addWidget(elevation)
+        
+        separator = QAction(self)
+        separator.setSeparator(True)  
+        self.Description.addAction(separator) 
+        
+        Channel = QLabel("<b> Channel </b>")
+        channelChoice = QLineEdit("Choose a channel")
+        self.Description.layout.addWidget(channelChoice)
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     #app.aboutToQuit(saveSettings)
     win = Window()
+    dia = MyDialog()
     win.show()
+    dia.show()
     sys.exit(app.exec_())
     
     
