@@ -37,7 +37,7 @@ class Window(QMainWindow):
     def __init__(self, parent=None):
         
         # INITIALIZER
-        #---------------------------------------------
+        #-----------------------------------------------------------------------------------------------------
         super().__init__(parent)
         self.setWindowTitle("Geodpy Project - Python Menus & Toolbars")
         self.resize(800, 600)
@@ -46,16 +46,31 @@ class Window(QMainWindow):
         self.setCentralWidget(self.mapWidget)
         QtCore.QMetaObject.connectSlotsByName(self)
 
-        # Working with the maps with pyqtlet
+        # MAP GENERATOR
+        #-----------------------------------------------------------------------------------------------------
         self.map = L.map(self.mapWidget)
         self.map.setView([0, 0], 2)
-        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(self.map)
+        
+        # ADD MAP LAYERS
+        #-----------------------------------------------------------------------------------------------------
+        osm_layer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            'attribution':'Map data &copy; OpenStreetMap contributors'})
+        stamen_terrain_layer = L.tileLayer('http://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.png')
+        stamen_toner_layer = L.tileLayer('http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png')
+        stamen_water_layer = L.tileLayer('http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.png')
 
+        layers = {'OpenStreetMap':osm_layer,'Stamen Terrain':stamen_terrain_layer,'Stamen Toner':stamen_toner_layer,'Stamen Water Color':stamen_water_layer}
+        
+        # ADD DRAWINGS
+        #-----------------------------------------------------------------------------------------------------
         self.drawControl = L.control.draw()
         self.map.addControl(self.drawControl)
-
         
+        self.layersControl=L.control.layers(layers).addTo(self.map)
+        #self.map.addControl(self.layersControl)
         
+        # CONTENT
+        #----------------------------------------------------------------------------------------------------
         self._createActions()
         self._createMenuBar()
         self._createToolBars()
@@ -464,8 +479,11 @@ class Window(QMainWindow):
 
             #
             for net, sta, lat, lon, elev in stations:
-                name = ".".join([net, sta])
-                infos = "Name: %s<br/>Lat/Long: (%s, %s)<br/>Elevation: %s m" % (name, lat, lon, elev)
+                self.name = ".".join([net, sta])
+                self.lat=lat
+                self.lon=lon
+                self.elev=elev
+                self.infos = "Name: %s<br/>Lat/Long: (%s, %s)<br/>Elevation: %s m" % (self.name, lat, lon, elev)
                 self.marker = L.marker([lat, lon], {
                     #tooltip=infos,
                     'color':"blue",
@@ -478,8 +496,10 @@ class Window(QMainWindow):
                 })
                 
                 self.map.addLayer(self.marker)
-                popup_html="<b> %s </b><br/><button id='popup-button'>Click me</button>" % infos
+                popup_html="<b> %s </b><br/><button id='popup-button'>Click me</button>" % self.infos
                 self.marker.bindPopup(popup_html)
+                
+                #popupButton = self.marker.findElement A CONTINUER VOIR TELEPHONE
                 
 
  
@@ -496,7 +516,7 @@ class Window(QMainWindow):
 class MyDialog(QDialog):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("My Dialog")
+        self.setWindowTitle("Seismic station details")
         self.resize(500,600)
         
         # TAB DESCRIPTION/PERIODOGRAM/PROCESSING
@@ -549,8 +569,11 @@ class MyDialog(QDialog):
         self.Description.addAction(separator) 
         
         Channel = QLabel("<b> Channel </b>")
-        channelChoice = QLineEdit("Choose a channel")
+        self.Description.layout.addWidget(Channel)
+        channelChoice = QLineEdit()
         self.Description.layout.addWidget(channelChoice)
+        channelChoice.setPlaceholderText("Enter a channel")
+        
 
 
 if __name__ == "__main__":
@@ -561,6 +584,3 @@ if __name__ == "__main__":
     win.show()
     dia.show()
     sys.exit(app.exec_())
-    
-    
-
