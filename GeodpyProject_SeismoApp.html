@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" charset="utf-8"/>
+
+        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css"/>
+        <link rel="stylesheet" href="http://leaflet.github.io/Leaflet.draw/leaflet.draw.css"/>
+
+        <title>Geodpy Project - SeismoApp</title>
+
+
+        <style>
+            html, body { height: 100% }
+
+            .container {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: stretch;
+                height: 100vh;
+                width: 100%;
+            }
+
+            #map {
+                width: 80%;
+            }
+
+            #form-container {
+                width: 20%;
+                background-color: #f2f2f2;
+                padding: 20px;
+
+            }
+
+            form {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            label {
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+
+            input {
+                margin-bottom:10px;
+            }
+            input[type=number] {
+                width: 50%;
+                margin-left: 75px;
+            }
+
+            button {
+                background-color: #4CAF50;
+                border: none;
+                color: white;
+                padding: 10px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin-top: 10px;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color:#3e8e41;
+            }
+
+            input[type=range] {
+              -webkit-appearance: none;
+              background-color: #ddd;
+              height: 5px;
+              width: 100%;
+              margin-top: 20px;
+            }
+
+            input[type=range]::-webkit-slider-thumb {
+              -webkit-appearance: none;
+              background-color: #222;
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              margin-top: -8px;
+              cursor: pointer;
+              position: relative;
+              z-index: 1;
+            }
+
+            input[type=range]::-webkit-slider-thumb::after {
+              content: attr(value);
+              position: absolute;
+              top: -25px;
+              left: 50%;
+              transform: translate(-50%);
+              background-color: #222;
+              color: #fff;
+              padding: 5px;
+              border-radius: 5px;
+              font-size: 14px;
+              opacity: 0;
+              transition: opacity 0.3s;
+            }
+
+            input[type=range]:hover::-webkit-slider-thumb::after {
+                opacity: 1;
+            }
+
+
+        </style>
+    </head>
+
+
+    <body>
+        <div class = "container">
+            <div id="map"></div>
+
+            <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
+            <script src="http://leaflet.github.io/Leaflet.draw/leaflet.draw.js"></script>
+            <div id="form-container">
+                <form>
+                    <label>Client :</label>
+
+                    <select id="client" name="client">
+                        <option value="">--Choisir un client--</option>
+                        <option value="auspass"> AUSPASS </option>
+                        <option value="brg"> BRG </option>
+                        <option value="eida"> EIDA </option>
+                        <option> EMSC </option>
+                        <option> ETH </option>
+                        <option> GEOFON </option>
+                        <option> GEONET </option>
+                        <option> GFZ </option>
+                        <option> ICGC </option>
+                        <option> IESDMC </option>
+                        <option> INGV </option>
+                        <option> IPGP </option>
+                        <option> IRIS </option>
+                        <option> IRISPH5 </option>
+                        <option> ISC </option>
+                        <option> KNMI </option>
+                        <option> KOERI </option>
+                        <option> LMU </option>
+                        <option> NCEDC </option>
+                        <option> NIEP </option>
+                        <option> NOA </option>
+                        <option> ODC </option>
+                        <option> RASPISHAKE </option>
+                        <option> RESIF </option>
+                        <option> RESIFPH5 </option>
+                        <option> SCEDC </option>
+                        <option> UIB-NORSAR </option>
+                        <option> USGS </option>
+                        <option> USP </option> -->
+                    </select>
+                    <br>
+
+                    <label>Période temporelle :</label>
+                    <input type="date" name="start_date" placeholder="Entrez une date de début">
+                    <input type="date" name="end_date" placeholder="Entrez une date de fin">
+                    <br>
+
+                    <label>Coordonnées :</label>
+                    <input type="number" id="lat-min" min="-90" max="90" name="latitude_min" placeholder="Entrez la latitude minimale">
+                    <input type="number" id="lat-max" min="-90" max="90" name="latitude_max" placeholder="Entrez la latitude maximale">
+                    <input type="number" id="lng-min" min="-180" max="180" name="longitude_min" placeholder="Entrez la longitude minimale">
+                    <input type="number" id="lng-max" min="-180" max="180" name="longitude_max" placeholder="Entrez la longitude maximale">
+
+                    <br>
+
+                    <label>Location :</label>
+                    <input type="text" name="location" placeholder="Entrez une location">
+                    <br>
+
+                    <label>Magnitude</label>
+                    <input type="range" min=0 max= 10 step="0.1" name="magnitude" placeholder="Entrez une magnitude">
+                    <br>
+
+                    <label>Réseau sismique</label>
+                    <!-- <input type="text" list="network" name="seismic_network" placeholder="Entrez un réseau sismique"> -->
+                    <!-- <select id="network" name="network">
+                        <option value="">--Choisir un réseau--</option>
+                    </select> -->
+                    <input type="text" name="network" placeholder="Entrez un réseau">
+
+                    <br>
+
+                    <button type="button">Rechercher</button>
+                </form>
+            </div>
+        </div>
+
+
+    <script type="text/javascript">
+        var map = L.map('map').setView([0, 0], 2); // LIGNE 18
+
+        var osmLayer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', { // LIGNE 20
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        });
+        
+        map.addLayer(osmLayer);
+
+        // Ajout de la barre de dessin
+        //--------------------------------------------------------------------------------
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        var drawControl = new L.Control.Draw({
+            draw: {
+                polygon: false,
+                polyline: false,
+                circle: false,
+                marker: false,
+                rectangle: {
+                    shapeOptions: {
+                        color: "blue"
+                    },
+                },
+            edit: {
+                featureGroup: drawnItems
+            }
+        }});
+        map.addControl(drawControl);
+
+        map.on('draw::created',function(e) {
+            var type = e.layerType,
+            layer=e.layer;
+            drawnItems.addLayer(layer);
+        })
+
+        // Variable pour stocker les coordonnées de la sélection
+        //-----------------------------------------------------------------------------
+        /*var latMin, latMax, lngMin, lngMax;
+
+        var rectangle = L.rectangle([], {
+            color: '#ff7800',
+            weight: 1
+        }).addTo(map)
+
+        map.on('mousedown',function(e) {
+            rectangle.setBounds([e.latlng,e.latlng]);
+            map.on('mousemove',updateRectangle);
+        });
+
+        map.on('mouseup', function(e) {
+            map.off('mousemove',updateRectangle);
+            updateCoordinates();
+        });
+
+        function updateRectangle(e) {
+            rectangle.setBounds([rectangle.getBounds().getNorthWest(),e.latlng]);
+        }
+
+        function updateCoordinates() {
+            var bounds = rectangle.getBounds()
+            latMin = bounds.getSouthWest().lat;
+            latMax = bounds.getNorthEast().lat;
+            lngMin = bounds.getSouthWest().lng;
+            lngMin = bounds.getNorthEast().lng;
+            document.getElementById('lat-min').value = latMin.toFixed(6);
+            document.getElementById('lat-max').value = latMax.toFixed(6);
+            document.getElementById('lng-min').value = lngMin.toFixed(6);
+            document.getElementById('lng-max').value = lngMax.toFixed(6);
+        }*/
+
+        // Modification of the network field wrt the client selected
+        //-------------------------------------------------------------------------------
+        /*const clientSelect = document.getElementById("client");
+        const networkSelect = document.getElementById("network");
+
+        const networkByClient = {
+            'auspass': [""],
+            'brg': ["BM"],
+            'eida':["7J","ZN"]
+
+        };
+
+        clientSelect.addEventListener("change",() => {
+            const client = clientSelect.value()
+            networkSelect.innerHTML = "";
+            if (client) {
+                networkByClient[client].forEach(network => {
+                    const option = document.createElement("option");
+                    option.value = network;
+                    option.textContent = network;
+                    networkSelect.appendChild(option);
+                });
+            }
+
+        });*/
+        var lookup = {
+            'auspass': ['salut','hello'],
+            'brg': ['salut','hello'],
+            'eida': ['salut','hello'],
+        };
+        $('#client').on('change', function() {
+            var selectValue = $(this).val();
+            $('#network').empty();
+
+            for (i=0; i<lookup[selectValue].length; i++) {
+                $('#network').append("<option value='" + lookup[selectValue][i] + "'>" + lookup[selectValue][i] + "</option>");
+            }
+        });
+
+
+
+
+
+
+    </script>
+
+
+        
+
+    </body>
+</html>
