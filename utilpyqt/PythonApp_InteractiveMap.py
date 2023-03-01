@@ -11,7 +11,7 @@ Created on Fri Feb  3 16:35:46 2023
 @author: Lorraine Delaroque
 """
 
-import sys
+import sys, time
 
 import io
 import pytz
@@ -20,15 +20,16 @@ from obspy.clients.fdsn import Client
 
 from DataProcessor_Fonctions import get_depth_color # Load the function "plot_events" provided in tp_obsp
 
-from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog
-from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout
+from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar
+from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout
 from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox
 
+
 from pyqtlet import L, MapWidget 
 
-from PyQt5 import QtCore
-from PyQt5.QtCore import Qt, QSettings
+from PyQt5 import QtCore, QtGui
+from PyQt5.QtCore import Qt, QSettings, QTimer
 
 class Window(QMainWindow):
     
@@ -39,9 +40,21 @@ class Window(QMainWindow):
         # INITIALIZER
         #-----------------------------------------------------------------------------------------------------
         super().__init__(parent)
+        
+        Progress = 10
+        splash_screen.progressUpdate(Progress)
+        time.sleep(2)
+        
+        self.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.setWindowTitle("Geodpy Project - Python Menus & Toolbars")
-        self.resize(800, 600)
+
+        self.resize(1000, 800)
         self.mapWidget = MapWidget()
+        
+        Progress = 30
+        splash_screen.progressUpdate(Progress)
+        time.sleep(2)
+
 
         self.setCentralWidget(self.mapWidget)
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -50,6 +63,12 @@ class Window(QMainWindow):
         #-----------------------------------------------------------------------------------------------------
         self.map = L.map(self.mapWidget)
         self.map.setView([0, 0], 2)
+        
+        Progress = 50
+        splash_screen.progressUpdate(Progress)
+        time.sleep(2)
+        
+
         
         # ADD MAP LAYERS
         #-----------------------------------------------------------------------------------------------------
@@ -67,7 +86,11 @@ class Window(QMainWindow):
         self.map.addControl(self.drawControl)
         
         self.layersControl=L.control.layers(layers).addTo(self.map)
-        #self.map.addControl(self.layersControl)
+        
+        Progress = 75
+        splash_screen.progressUpdate(Progress)
+        time.sleep(2)
+        
         
         # CONTENT
         #----------------------------------------------------------------------------------------------------
@@ -75,6 +98,10 @@ class Window(QMainWindow):
         self._createMenuBar()
         self._createToolBars()
         self._connectActions()
+        
+        Progress = 100
+        splash_screen.progressUpdate(Progress)
+        time.sleep(2)
         
         # SELECT COORDINATES MANUALLY
         #-------------------------------------------------
@@ -127,25 +154,33 @@ class Window(QMainWindow):
         
         exitMenu = menuBar.addMenu("&Exit")
         exitMenu.addAction(self.exitAction)
+                
+        
         
     
-    def _createToolBars(self):
-        
-                
+    def _createToolBars(self):     
         self.settings = QSettings("MyQtApp", "App1")
         # Using a title
-        mainToolBar = self.addToolBar("Tools")
-        mainToolBar.setMovable(True)
+        self.mainToolBar = QToolBar("Toolbar",self)
+        self.addToolBar(Qt.RightToolBarArea,self.mainToolBar)
+        self.mainToolBar.setMovable(False)
+        
+        # Adding a toggle button in order to hide or not the toolbar
+        """
+        self.hideButton=QPushButton('Hide Toolbar',self)
+        self.hideButton.clicked.connect(self.toggleToolbar)
+        """
+        #self.mainToolBar.addWidget(self.hideButton)
         
         # Using a QToolBar object and a toolbar area
-        self.addToolBar(Qt.RightToolBarArea, mainToolBar)
+        self.addToolBar(Qt.RightToolBarArea, self.mainToolBar)
         
         # ADDING THE TOOLS IN THE TOOL BAR
         #----------------------------------------------------
         # CLIENT ACTION
-        mainToolBar.addWidget(self.clientLabel)
+        self.mainToolBar.addWidget(self.clientLabel)
         self.clientChoice=QComboBox(self)
-        mainToolBar.addWidget(self.clientChoice)
+        self.mainToolBar.addWidget(self.clientChoice)
         self.clientChoice.addItems(["AUSPASS","BRG","EIDA","EMSC","ETH","GEOFON","GEONET","GFZ","ICGC","IESDMC","INGV","IPGP","IRIS","IRISPH5","ISC","KNMI","KOERI","LMU","NCEDC","NIEP","NOA","ODC","RASPISHAKE","RESIF","RESIFPH5","SCEDC","UIB-NORSAR","USGS","USP"])
         # ESSAYER DE CHOISIR TOUS LES CLIENTS
         
@@ -153,29 +188,29 @@ class Window(QMainWindow):
         # SEPARATING----------------------------------------------
         separator = QAction(self)
         separator.setSeparator(True)  
-        mainToolBar.addAction(separator)    
+        self.mainToolBar.addAction(separator)    
         
         # DATE ACTION
-        mainToolBar.addWidget(self.dateLabel)
+        self.mainToolBar.addWidget(self.dateLabel)
         layout1=QLabel("From: ")
         layout2=QLabel("To: ")
         
         self.dateStartChoice = QDateTimeEdit(self,calendarPopup=True)
         self.dateEndChoice = QDateTimeEdit(self,calendarPopup=True)
         
-        mainToolBar.addWidget(layout1)
-        mainToolBar.addWidget(self.dateStartChoice)
-        mainToolBar.addWidget(layout2)
-        mainToolBar.addWidget(self.dateEndChoice)
+        self.mainToolBar.addWidget(layout1)
+        self.mainToolBar.addWidget(self.dateStartChoice)
+        self.mainToolBar.addWidget(layout2)
+        self.mainToolBar.addWidget(self.dateEndChoice)
 
                 
         # SEPARATING----------------------------------------------
         separator = QAction(self)
         separator.setSeparator(True)  
-        mainToolBar.addAction(separator)    
+        self.mainToolBar.addAction(separator)    
         
         # COORDINATES ACTION
-        mainToolBar.addWidget(self.coorLabel)
+        self.mainToolBar.addWidget(self.coorLabel)
         layoutCoor1=QLabel("Minimum latitude: ")
         layoutCoor2=QLabel("Maximum latitude: ")
         layoutCoor3=QLabel("Minimum longitude: ")
@@ -186,14 +221,14 @@ class Window(QMainWindow):
         self.minLonChoice = QDoubleSpinBox()
         self.maxLonChoice = QDoubleSpinBox()
         
-        mainToolBar.addWidget(layoutCoor1)
-        mainToolBar.addWidget(self.minLatChoice)
-        mainToolBar.addWidget(layoutCoor2)
-        mainToolBar.addWidget(self.maxLatChoice)
-        mainToolBar.addWidget(layoutCoor3)
-        mainToolBar.addWidget(self.minLonChoice)
-        mainToolBar.addWidget(layoutCoor4)
-        mainToolBar.addWidget(self.maxLonChoice)
+        self.mainToolBar.addWidget(layoutCoor1)
+        self.mainToolBar.addWidget(self.minLatChoice)
+        self.mainToolBar.addWidget(layoutCoor2)
+        self.mainToolBar.addWidget(self.maxLatChoice)
+        self.mainToolBar.addWidget(layoutCoor3)
+        self.mainToolBar.addWidget(self.minLonChoice)
+        self.mainToolBar.addWidget(layoutCoor4)
+        self.mainToolBar.addWidget(self.maxLonChoice)
         
         self.minLatChoice.setMinimum(-90)
         self.minLatChoice.setMaximum(90)
@@ -207,50 +242,60 @@ class Window(QMainWindow):
         # SEPARATING----------------------------------------------
         separator = QAction(self)
         separator.setSeparator(True)  
-        mainToolBar.addAction(separator)    
+        self.mainToolBar.addAction(separator)    
         
         # LOCATION ACTION
-        mainToolBar.addWidget(self.locLabel)
+        self.mainToolBar.addWidget(self.locLabel)
         self.locChoice = QLineEdit()
-        mainToolBar.addWidget(self.locChoice)
+        self.mainToolBar.addWidget(self.locChoice)
         self.locChoice.setMaxLength(5)
         self.locChoice.setPlaceholderText("Enter the location")
                 
         # SEPARATING----------------------------------------------
         separator = QAction(self)
         separator.setSeparator(True)  
-        mainToolBar.addAction(separator)    
+        self.mainToolBar.addAction(separator)    
         
         # MAGNITUDE ACTION
-        mainToolBar.addWidget(self.magLabel)
+        self.mainToolBar.addWidget(self.magLabel)
         self.magChoice = QDoubleSpinBox()
-        mainToolBar.addWidget(self.magChoice)
+        self.mainToolBar.addWidget(self.magChoice)
         self.magChoice.setMinimum(0)
         self.magChoice.setMaximum(10)
         
         # SEPARATING----------------------------------------------
         separator = QAction(self)
         separator.setSeparator(True)  
-        mainToolBar.addAction(separator)    
+        self.mainToolBar.addAction(separator)    
         
         # NETWORK ACTION
         
         
-        mainToolBar.addWidget(self.networkLabel)
+        self.mainToolBar.addWidget(self.networkLabel)
         self.networkChoice = QComboBox(self)
-        mainToolBar.addWidget(self.networkChoice)
+        self.mainToolBar.addWidget(self.networkChoice)
         self.clientChoice.currentIndexChanged.connect(self.updateNetworkChoice)
         
         
         # SEPARATING----------------------------------------------
         separator = QAction(self)
         separator.setSeparator(True)  
-        mainToolBar.addAction(separator)
+        self.mainToolBar.addAction(separator)
         
         # SEARCH ACTION ------------------------------------------
         self.searchButton = QPushButton("Search")
-        mainToolBar.addWidget(self.searchButton)
+        self.mainToolBar.addWidget(self.searchButton)
         self.searchButton.clicked.connect(self.startSearch)
+        
+    def toggleToolbar(self):
+        if self.mainToolBar.isVisible():
+            self.mainToolBar.setVisible(False)
+            self.hideButton.setText('Show Toolbar')
+        else:
+            self.mainToolBar.setVisible(True)
+            self.hideButton.setText('Hide Toolbar')
+
+        
     
         
         # FINISHED - NOTHING TO CHANGE
@@ -471,11 +516,11 @@ class Window(QMainWindow):
                     self.events.bindPopup(popup_html)
                     
             #self.update_map()
-
-            def openWindow(self):
-                dialog = QDialog(self)
+            def openWindow():
+                dialog = QDialog()
                 dialog.setWindowTitle("Station details")
                 dialog.show
+            
 
             #
             for net, sta, lat, lon, elev in stations:
@@ -484,6 +529,7 @@ class Window(QMainWindow):
                 self.lon=lon
                 self.elev=elev
                 self.infos = "Name: %s<br/>Lat/Long: (%s, %s)<br/>Elevation: %s m" % (self.name, lat, lon, elev)
+                
                 self.marker = L.marker([lat, lon], {
                     #tooltip=infos,
                     'color':"blue",
@@ -496,8 +542,25 @@ class Window(QMainWindow):
                 })
                 
                 self.map.addLayer(self.marker)
-                popup_html="<b> %s </b><br/><button id='popup-button'>Click me</button>" % self.infos
+              
+                popup_html="""
+                <!DOCTYPE html>
+                <html>
+                    <button id ='popup-button' onclick="openWindow()">Click me</button> 
+
+                	<script type="text/javascript">
+                        function openWindow() {
+                            window.open("https://github.com/LorrN13")
+                            }
+                    </script>
+                </html>
+                    
+                """
+ 
+                
                 self.marker.bindPopup(popup_html)
+
+               
                 
                 #popupButton = self.marker.findElement A CONTINUER VOIR TELEPHONE
                 
@@ -511,6 +574,8 @@ class Window(QMainWindow):
         data = io.BytesIO()
         self.map.save(data,close_file=False)
         self.qwebengine.setHtml(data.getvalue().decode()) 
+        
+    
         
 
 class MyDialog(QDialog):
@@ -574,13 +639,60 @@ class MyDialog(QDialog):
         self.Description.layout.addWidget(channelChoice)
         channelChoice.setPlaceholderText("Enter a channel")
         
+        
+class SplashScreen(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("My Application")
+        self.setFixedSize(1000, 800)
+        self.setStyleSheet("QMainWindow {background: 'white';}")
+        self.central_widget = QWidget(self)
+        self.setCentralWidget(self.central_widget)
+        
+        self.logo_label=QLabel(self)
+        pixmap=QtGui.QPixmap('logo ipgp.png')
+        self.logo_label.setPixmap(pixmap)
+        self.logo_label.setAlignment(Qt.AlignCenter)
+        
+        
+        #•self.central_widget.setLayout(QVBoxLayout(self.central_widget))
+        #self.central_widget.layout().addWidget(self.logo_label)
+        
+        chargement = QLabel("Loading...")
+        self.pbar = QProgressBar(self)
+        self.pbar.setGeometry(30, 40, 200, 25)
+
+        # Créer le layout de la grille
+        grid_layout = QGridLayout(self.central_widget)
+        grid_layout.setColumnStretch(0, 1) # Première colonne étirée pour aligner à gauche
+        grid_layout.setColumnStretch(1, 1) # Deuxième colonne étirée pour aligner à droite
+        grid_layout.setRowStretch(0, 1) # Première ligne étirée pour aligner en haut
+        grid_layout.setRowStretch(2, 1) # Troisième ligne étirée pour aligner en bas
+
+        # Ajouter les widgets à la grille
+        grid_layout.addWidget(self.logo_label, 1, 0, Qt.AlignCenter) # Aligner au centre de la première colonne
+        grid_layout.addWidget(chargement, 2, 0, Qt.AlignCenter) # Aligner au centre de la deuxième colonne
+        grid_layout.addWidget(self.pbar, 3, 0) # Étirer sur les deux colonnes dans la troisième ligne
+        
+        self.show()
+        
+        self.timer = QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.close)
+        self.timer.start(5000)
+        
+    def progressUpdate(self, progress):
+        self.pbar.setValue(progress)
+
+        
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    splash_screen = SplashScreen()
     #app.aboutToQuit(saveSettings)
     win = Window()
-    dia = MyDialog()
+    #♣dia = MyDialog()
     win.show()
-    dia.show()
+    #dia.show()
     sys.exit(app.exec_())
