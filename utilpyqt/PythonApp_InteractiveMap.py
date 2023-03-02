@@ -47,6 +47,7 @@ class Window(QMainWindow):
         
         self.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.setWindowTitle("Geodpy Project - Python Menus & Toolbars")
+        self.setStyleSheet("QMainWindow {background: 'white';}")
 
         self.resize(1000, 800)
         self.mapWidget = MapWidget()
@@ -547,7 +548,6 @@ class Window(QMainWindow):
                 <!DOCTYPE html>
                 <html>
                     <button id ='popup-button' onclick="openWindow()">Click me</button> 
-
                 	<script type="text/javascript">
                         function openWindow() {
                             window.open("https://github.com/LorrN13")
@@ -643,16 +643,25 @@ class MyDialog(QDialog):
 class SplashScreen(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("My Application")
-        self.setFixedSize(600, 400)
+        
+        
+        self.setWindowIcon(QtGui.QIcon('logo.jpg'))
+        self.setWindowTitle("Geodpy Project - Python Menus & Toolbars")
+        self.setFixedSize(1000, 800)
         self.setStyleSheet("QMainWindow {background: 'white';}")
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
         
-        self.logo_label=QLabel(self)
-        pixmap=QtGui.QPixmap('logo ipgp.png')
-        self.logo_label.setPixmap(pixmap)
-        self.logo_label.setAlignment(Qt.AlignCenter)
+        self.logo_ipgp=QLabel(self)
+        pixmap_ipgp=QtGui.QPixmap('logo ipgp.png').scaled(600,375)
+        self.logo_ipgp.setPixmap(pixmap_ipgp)
+        self.logo_ipgp.setAlignment(Qt.AlignCenter)
+        self.logo_ipgp.setStyleSheet("margin-top: 20px;")
+        
+        self.logo_pyqt = QLabel(self)
+        pixmap_pyqt = QtGui.QPixmap('pyqt_logo.png').scaled(100,100)
+        self.logo_pyqt.setPixmap(pixmap_pyqt)
+        self.logo_pyqt.setAlignment(Qt.AlignCenter)
         
         
         #•self.central_widget.setLayout(QVBoxLayout(self.central_widget))
@@ -660,20 +669,41 @@ class SplashScreen(QMainWindow):
         
         chargement = QLabel("Loading...")
         self.pbar = QProgressBar(self)
-        self.pbar.setGeometry(30, 40, 200, 25)
+        self.pbar.setStyleSheet("""
+           QProgressBar {
+
+               border-radius: 6px;
+               padding: 1px;
+               width: 12px;
+               text-align:center;
+               
+           }
+           QProgressBar::chunk {
+               border-radius: 6px;
+               background-color: crimson;
+           }
+        """)
+        self.pbar.setGeometry(30, 40, 150, 25)
 
         # Créer le layout de la grille
         grid_layout = QGridLayout(self.central_widget)
+        grid_layout.setAlignment(Qt.AlignCenter)
+        grid_layout.setContentsMargins(50,50,50,50)
+        grid_layout.setVerticalSpacing(40)
+        
+        '''
         grid_layout.setColumnStretch(0, 1) # Première colonne étirée pour aligner à gauche
         grid_layout.setColumnStretch(1, 1) # Deuxième colonne étirée pour aligner à droite
         grid_layout.setRowStretch(0, 1) # Première ligne étirée pour aligner en haut
         grid_layout.setRowStretch(2, 1) # Troisième ligne étirée pour aligner en bas
-
+        '''
         # Ajouter les widgets à la grille
-        grid_layout.addWidget(self.logo_label, 1, 0, Qt.AlignCenter) # Aligner au centre de la première colonne
+        grid_layout.addWidget(self.logo_ipgp, 0, 0, Qt.AlignCenter) # Aligner au centre de la première colonne
+        grid_layout.addWidget(self.logo_pyqt, 1, 0, Qt.AlignCenter)
         grid_layout.addWidget(chargement, 2, 0, Qt.AlignCenter) # Aligner au centre de la deuxième colonne
         grid_layout.addWidget(self.pbar, 3, 0) # Étirer sur les deux colonnes dans la troisième ligne
         
+        self._center_screen()
         self.show()
         
         self.timer = QTimer()
@@ -683,6 +713,13 @@ class SplashScreen(QMainWindow):
         
     def progressUpdate(self, progress):
         self.pbar.setValue(progress)
+    
+    def _center_screen(self):
+        screen_rect = QApplication.desktop().availableGeometry(self)
+        window_rect = self.geometry()
+        dx = int((screen_rect.width() - window_rect.width()) / 2)
+        dy = int((screen_rect.height() - window_rect.height()) / 2)
+        self.move(dx,dy)
 
         
 
@@ -690,6 +727,7 @@ class SplashScreen(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     splash_screen = SplashScreen()
+    app.processEvents()
     #app.aboutToQuit(saveSettings)
     win = Window()
     #♣dia = MyDialog()
