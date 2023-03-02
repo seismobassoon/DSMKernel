@@ -644,7 +644,7 @@ class SplashScreen(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("My Application")
-        self.setFixedSize(1000, 800)
+        self.setFixedSize(600, 400)
         self.setStyleSheet("QMainWindow {background: 'white';}")
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
