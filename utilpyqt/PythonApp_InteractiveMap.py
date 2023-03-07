@@ -16,20 +16,21 @@ import sys, time
 import io
 import pytz
 
+
 from obspy.clients.fdsn import Client
 
 from DataProcessor_Fonctions import get_depth_color # Load the function "plot_events" provided in tp_obsp
 
 from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar
-from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout
-from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox
+from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem
+from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget,QSlider,QListWidget
+from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox,QHBoxLayout,QDesktopWidget
 
 
 from pyqtlet import L, MapWidget 
 
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import Qt, QSettings, QTimer
+from PyQt5.QtCore import Qt, QSettings, QTimer, pyqtSlot
 
 class Window(QMainWindow):
     
@@ -163,6 +164,13 @@ class Window(QMainWindow):
         self.settings = QSettings("MyQtApp", "App1")
         # Using a title
         self.mainToolBar = QToolBar("Toolbar",self)
+    
+        screen_width = QDesktopWidget().screenGeometry().width()
+        toolbar_width = int(screen_width*0.1)
+        self.mainToolBar.setFixedWidth(toolbar_width)
+  
+        
+        self.mainToolBar.setStyleSheet("background-color: #f2f2f2; padding: 4px;")
         self.addToolBar(Qt.RightToolBarArea,self.mainToolBar)
         self.mainToolBar.setMovable(False)
         
@@ -176,14 +184,18 @@ class Window(QMainWindow):
         # Using a QToolBar object and a toolbar area
         self.addToolBar(Qt.RightToolBarArea, self.mainToolBar)
         
+        
         # ADDING THE TOOLS IN THE TOOL BAR
         #----------------------------------------------------
         # CLIENT ACTION
         self.mainToolBar.addWidget(self.clientLabel)
         self.clientChoice=QComboBox(self)
         self.mainToolBar.addWidget(self.clientChoice)
+        self.clientChoice.setFixedWidth(150)
+    
         self.clientChoice.addItems(["AUSPASS","BRG","EIDA","EMSC","ETH","GEOFON","GEONET","GFZ","ICGC","IESDMC","INGV","IPGP","IRIS","IRISPH5","ISC","KNMI","KOERI","LMU","NCEDC","NIEP","NOA","ODC","RASPISHAKE","RESIF","RESIFPH5","SCEDC","UIB-NORSAR","USGS","USP"])
         # ESSAYER DE CHOISIR TOUS LES CLIENTS
+        
         
         
         # SEPARATING----------------------------------------------
@@ -258,11 +270,58 @@ class Window(QMainWindow):
         self.mainToolBar.addAction(separator)    
         
         # MAGNITUDE ACTION
+            
         self.mainToolBar.addWidget(self.magLabel)
+        '''
+        self.magChoice = QSlider()
+        
+        layout = QHBoxLayout()
+        self.mag = QLabel()
+        self.magChoice = QSlider()
+        
+        # Placement du QSlider à côté du QLabel
+        layout.addWidget(self.magChoice)
+        layout.addWidget(self.mag)
+   
+        def show(self):
+            self.magLabel.setText(str(self.magChoice.value()))
+        
+        '''
+        '''
+        # Customization of the QSlider
+        layoutMag = QHBoxLayout()
+        
+        self.magChoice.setRange(0,10)
+        self.magChoice.setSingleStep(0.1)
+        self.magChoice.setTickPosition(QSlider.TicksAbove)
+        self.magChoice.setTickInterval(1)
+        self.magChoice.setValue(4)
+        self.magChoice.setOrientation(1)
+        self.magChoice.setFixedWidth(125)
+        
+        label = QLabel("0")
+        layoutMag.addWidget(self.magChoice)
+        layoutMag.addWidget(label)
+        
+        widget = QWidget()
+        widget.setLayout(layoutMag)
+        self.mainToolBar.addWidget(widget)
+        
+        def update_mag_value(value):
+            label.setText(str(value))
+            
+        self.magChoice.valueChanged.connect(update_mag_value)
+      
+        
+        
+        self.mainToolBar.addWidget(self.magChoice)
+        '''
         self.magChoice = QDoubleSpinBox()
         self.mainToolBar.addWidget(self.magChoice)
         self.magChoice.setMinimum(0)
         self.magChoice.setMaximum(10)
+       
+        
         
         # SEPARATING----------------------------------------------
         separator = QAction(self)
@@ -285,8 +344,22 @@ class Window(QMainWindow):
         
         # SEARCH ACTION ------------------------------------------
         self.searchButton = QPushButton("Search")
+        self.searchButton.setStyleSheet("""
+                background-color: #4CAF50;
+                border: none;
+                border-radius: 5px;
+                color: white;
+                padding: 10px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin-top: 10px;
+                cursor: pointer;
+                """)
         self.mainToolBar.addWidget(self.searchButton)
         self.searchButton.clicked.connect(self.startSearch)
+    
         
     def toggleToolbar(self):
         if self.mainToolBar.isVisible():
@@ -364,7 +437,8 @@ class Window(QMainWindow):
         # Creating action using the first constructor
         self.clientLabel = QLabel(self)
         self.clientLabel.setText("<b>Client</b>")
-        self.clientLabel.setAlignment(Qt.AlignCenter)
+        self.clientLabel.setStyleSheet("font-family: bold;")
+        self.clientLabel.setAlignment(Qt.AlignLeft)
         
         # Creating actions using the second constructor
         self.networkLabel = QLabel(self)
@@ -517,19 +591,18 @@ class Window(QMainWindow):
                     self.events.bindPopup(popup_html)
                     
             #self.update_map()
-            def openWindow():
-                dialog = QDialog()
-                dialog.setWindowTitle("Station details")
-                dialog.show
             
 
-            #
+            self.listStation = QListWidget()    
+            self.listStation.itemDoubleClicked.connect(self.buildExamplePopup)
+
             for net, sta, lat, lon, elev in stations:
                 self.name = ".".join([net, sta])
                 self.lat=lat
                 self.lon=lon
                 self.elev=elev
                 self.infos = "Name: %s<br/>Lat/Long: (%s, %s)<br/>Elevation: %s m" % (self.name, lat, lon, elev)
+                QListWidgetItem(self.name,self.listStation)
                 
                 self.marker = L.marker([lat, lon], {
                     #tooltip=infos,
@@ -544,44 +617,53 @@ class Window(QMainWindow):
                 
                 self.map.addLayer(self.marker)
               
-                popup_html="""
-                <!DOCTYPE html>
-                <html>
-                    <button id ='popup-button' onclick="openWindow()">Click me</button> 
-                	<script type="text/javascript">
-                        function openWindow() {
-                            window.open("https://github.com/LorrN13")
-                            }
-                    </script>
-                </html>
-                    
-                """
- 
+                popup_html="<b>%s</b>" %self.infos
                 
                 self.marker.bindPopup(popup_html)
-
-               
+                #js = "{marker}.on('click',{function})".format(marker=self.marker, function=self.on_marker_clicked)
                 
-                #popupButton = self.marker.findElement A CONTINUER VOIR TELEPHONE
+            self.showDialog()
+            self.show()
                 
 
- 
-            #self.update_map()
-              
+            
+     
+    def showDialog(self):
+        self.dialog = QDialog()
+        label = QLabel('Ma fenêtre de liste')
+        label.setAlignment(Qt.AlignCenter)
         
-    def update_map(self):
-
-        data = io.BytesIO()
-        self.map.save(data,close_file=False)
-        self.qwebengine.setHtml(data.getvalue().decode()) 
+        # Créer un QVBoxLayout
+        layout = QVBoxLayout()
+        layout.addWidget(label)
+        layout.addWidget(self.listStation)
         
+        # Appliquer le QVBoxLayout à la QDialog
+        self.dialog.setLayout(layout)
+        
+        # Centrer la QDialog
+        self.dialog.setGeometry(500, 500, 400, 400)
+        self.dialog.setWindowTitle('Seismic stations list')
+        self.dialog.setWindowIcon(QtGui.QIcon('logo.jpg'))
+        self.listStation.setGeometry(100, 100, 200, 200)
+        self.dialog.setModal(False)
+        self.dialog.exec_()
     
-        
 
-class MyDialog(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Seismic station details")
+    #@pyqtSlot(QListWidgetItem)           
+    def buildExamplePopup(self,item):
+        exPopup = ExamplePopup(item.text(), self)
+        exPopup.setWindowTitle("Seismic station {} details".format(item.text()))
+        #exPopup.setGeometry(100, 200, 100, 100)
+        exPopup.show()
+
+
+class ExamplePopup(QDialog):
+
+    def __init__(self, name, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Station %s details",name)
+        self.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.resize(500,600)
         
         # TAB DESCRIPTION/PERIODOGRAM/PROCESSING
@@ -638,6 +720,9 @@ class MyDialog(QDialog):
         channelChoice = QLineEdit()
         self.Description.layout.addWidget(channelChoice)
         channelChoice.setPlaceholderText("Enter a channel")
+    
+
+        
         
         
 class SplashScreen(QMainWindow):
@@ -652,12 +737,14 @@ class SplashScreen(QMainWindow):
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
         
+        # IPGP Logo
         self.logo_ipgp=QLabel(self)
         pixmap_ipgp=QtGui.QPixmap('logo ipgp.png').scaled(600,375)
         self.logo_ipgp.setPixmap(pixmap_ipgp)
         self.logo_ipgp.setAlignment(Qt.AlignCenter)
         self.logo_ipgp.setStyleSheet("margin-top: 20px;")
         
+        # PyQt5 logo
         self.logo_pyqt = QLabel(self)
         pixmap_pyqt = QtGui.QPixmap('pyqt_logo.png').scaled(100,100)
         self.logo_pyqt.setPixmap(pixmap_pyqt)
@@ -691,12 +778,7 @@ class SplashScreen(QMainWindow):
         grid_layout.setContentsMargins(50,50,50,50)
         grid_layout.setVerticalSpacing(40)
         
-        '''
-        grid_layout.setColumnStretch(0, 1) # Première colonne étirée pour aligner à gauche
-        grid_layout.setColumnStretch(1, 1) # Deuxième colonne étirée pour aligner à droite
-        grid_layout.setRowStretch(0, 1) # Première ligne étirée pour aligner en haut
-        grid_layout.setRowStretch(2, 1) # Troisième ligne étirée pour aligner en bas
-        '''
+
         # Ajouter les widgets à la grille
         grid_layout.addWidget(self.logo_ipgp, 0, 0, Qt.AlignCenter) # Aligner au centre de la première colonne
         grid_layout.addWidget(self.logo_pyqt, 1, 0, Qt.AlignCenter)
