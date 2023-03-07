@@ -662,7 +662,6 @@ class ExamplePopup(QDialog):
 
     def __init__(self, name, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Station %s details",name)
         self.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.resize(500,600)
         
