@@ -21,7 +21,7 @@ from obspy.clients.fdsn import Client
 
 from DataProcessor_Fonctions import get_depth_color # Load the function "plot_events" provided in tp_obsp
 
-from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar
+from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar, QFrame
 from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem
 from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget,QSlider,QListWidget
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox,QHBoxLayout,QDesktopWidget
@@ -560,6 +560,7 @@ class Window(QMainWindow):
             
             
             # DISPLAYING THE STATION 
+            global stations
             stations = []
             for net in inventory:  # in fact this loop is only necessary for multiple networks
                 for sta in net:
@@ -627,7 +628,7 @@ class Window(QMainWindow):
                 
 
             
-     
+    
     def showDialog(self):
         self.dialog = QDialog()
         label = QLabel('Ma fenêtre de liste')
@@ -650,17 +651,16 @@ class Window(QMainWindow):
         self.dialog.exec_()
     
 
-    #@pyqtSlot(QListWidgetItem)           
+    @pyqtSlot(QListWidgetItem)           
     def buildExamplePopup(self,item):
-        exPopup = ExamplePopup(item.text(), self)
+        exPopup = ExamplePopup(item.text(),self)
         exPopup.setWindowTitle("Seismic station {} details".format(item.text()))
-        #exPopup.setGeometry(100, 200, 100, 100)
         exPopup.show()
 
 
 class ExamplePopup(QDialog):
 
-    def __init__(self, name, parent=None):
+    def __init__(self, name,parent=None):
         super().__init__(parent)
         self.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.resize(500,600)
@@ -696,23 +696,34 @@ class ExamplePopup(QDialog):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
         
-        self._contentTab1()
+
+        self._contentTab1(name)
         
         
-    def _contentTab1(self):
-        sectionName = QLabel("<b>Name:</b> [...]")
+    def _contentTab1(self,name):
+        sectionName = QLabel("<b>Name:</b> {}".format(name))
         self.Description.layout.addWidget(sectionName)
         
-        code = QLabel("<b>Code:</b> [...]")
-        self.Description.layout.addWidget(code)
-        coordinates = QLabel("<b>Coordinates:</b> [...]")
+        # FAIRE UN TRUC ICI POUR ARRANGER L'AFFICHAGE
+
+
+        for i in stations:
+            nameStation = i[0] + "." + i[1]
+            if nameStation==name:
+                latStation = i[2]
+                lonStation = i[3]
+                elevStation = i[4]
+                break
+       
+        coordinates = QLabel("<b>Coordinates:</b> {}, {}".format(latStation, lonStation))
         self.Description.layout.addWidget(coordinates)
-        elevation = QLabel("<b>Elevation:</b> [...]")
+        elevation = QLabel("<b>Elevation:</b> {}".format(elevStation))
         self.Description.layout.addWidget(elevation)
         
-        separator = QAction(self)
-        separator.setSeparator(True)  
-        self.Description.addAction(separator) 
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        self.Description.layout.addWidget(separator)
         
         Channel = QLabel("<b> Channel </b>")
         self.Description.layout.addWidget(Channel)
