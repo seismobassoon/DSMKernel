@@ -146,7 +146,8 @@ subroutine bcast_allocate_1
 
      print *, maxMemoryInGigabyte, tmpfile, DSMconfFile
      print *, "no error is observed 09032023"
-     if(allocated(qkappa))print *, "wow, qkappa is allocated  before timefilenamegenerator  in ", my_rank, qkappa
+     !if(allocated(qkappa))print *, "wow, qkappa is allocated  before timefilenamegenerator  in ", my_rank, qkappa
+     print *, allocated(qkappa)
      print *, "no error is observed 09032023-2"
 
 
