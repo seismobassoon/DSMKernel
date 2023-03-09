@@ -10,7 +10,7 @@ add_library(sgtPSVMaxlib
 		trial.f90
 		../../share/searchForParams.f90
 		../../share/tmpfileNameGenerator.f90
-	  	pinputDSM.f90
+	  	../../share/pinputDSM.f90
 	)
 
 add_executable(xSGTpsvMax SGTpsv-MPI.f90)
