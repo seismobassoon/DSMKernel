@@ -146,7 +146,7 @@ subroutine bcast_allocate_1
 
      print *, maxMemoryInGigabyte, tmpfile, DSMconfFile
      print *, "no error is observed 09032023"
-     !if(allocated(qkappa))print *, "wow, qkappa is allocated  before timefilenamegenerator  in ", my_rank, qkappa
+     if(allocated(qkappa))print *, "wow, qkappa is allocated  before timefilenamegenerator  in ", my_rank, allocated(qkappa)
      print *, allocated(qkappa)
      print *, "no error is observed 09032023-2"
 
@@ -166,7 +166,6 @@ subroutine bcast_allocate_1
 
   if(allocated(qkappa))print *, "wow, qkappa is allocated after pinput in ", my_rank
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-  print *, 'apo'
   ! exporting DSM parameters
   call MPI_BCAST(re,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(ratc,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
