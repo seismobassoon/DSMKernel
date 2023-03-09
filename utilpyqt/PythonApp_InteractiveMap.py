@@ -16,13 +16,14 @@ import pytz
 import numpy as np
 
 from obspy.clients.fdsn import Client
+import obspy
 from obspy import read, UTCDateTime
 
 from DataProcessor_Fonctions import get_depth_color, get_periodogram # Load the function "plot_events" provided in tp_obsp
 
 from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar, QFrame, QCheckBox
 from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem
-from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget,QSlider,QListWidget
+from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget,QSlider,QListWidget, QRadioButton
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox,QHBoxLayout,QDesktopWidget
 
 from matplotlib.figure import Figure
@@ -32,7 +33,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from pyqtlet import L, MapWidget 
 
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import Qt, QSettings, QTimer, pyqtSlot
+from PyQt5.QtCore import Qt, QSettings, QTimer, pyqtSlot, pyqtSignal
 
 class Window(QMainWindow):
     
@@ -779,6 +780,7 @@ class ExamplePopup(QDialog):
         # DOWNLOAD DATA
         self.download_button = QPushButton("Download",self)
         self.Description.layout.addWidget(self.download_button)
+        
                 
         
         
@@ -815,6 +817,10 @@ class ExamplePopup(QDialog):
             os.remove('trace.mseed')
             
             self.download_button.clicked.connect(self.download_data)
+            
+            #self._contentTab2()
+            
+  
     
     def download_data(self):
         # ESSAYER DE TROUVER UNE ALTERNATIVE POUR LE CHANNEL BH* OU BH?
@@ -834,10 +840,10 @@ class ExamplePopup(QDialog):
         self.Periodogram.layout.addWidget(samplingLabel)
         
         
-        freqs,psd = get_periodogram(x, fs = sampling_rate, semilog = True, show = False)
+        get_periodogram(x, fs = sampling_rate, semilog = True, show = False)
         
         # Creation de la figure
-        
+        '''
         self.figure_spectrum = Figure(figsize=(6,4),dpi=100)
         ax = self.figure_spectrum.add_subplot(111)
         ax.semilogx(freqs, 10 * np.log10(psd))
@@ -848,7 +854,7 @@ class ExamplePopup(QDialog):
         self.Periodogram.layout.addWidget(self.canvas_spectrum)    
         
         self.canvas_spectrum.draw()
-        
+        '''
         #self.figure_spectrum.clear()
         
         
@@ -856,9 +862,67 @@ class ExamplePopup(QDialog):
     def _contentTab3(self):
         instrumental_response = QCheckBox("Remove instrumental response")
         self.Processing.layout.addWidget(instrumental_response)
+        instrumental_response.stateChanged.connect(self.instrument_response_checkbox)
         
+
         remove_mean = QCheckBox("Remove the mean")
         self.Processing.layout.addWidget(remove_mean)
+        remove_mean.stateChanged.connect(self.detrend_checkbox)
+        
+        self.figure_mean = Figure(figsize=(6,4))
+        self.canvas_mean = FigureCanvas(self.figure_mean)
+        self.Processing.layout.addWidget(self.canvas_mean)
+        
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        self.Processing.layout.addWidget(separator)
+        
+        grid = QGridLayout()
+        
+        filteringLabel = QLabel("<b>Filtering</b>")
+        self.Processing.layout.addWidget(filteringLabel)
+        
+        lowpassBox = QRadioButton("Lowpass")
+        bandpassBox = QRadioButton("Bandpass")
+        highpassBox= QRadioButton("Highpass")
+        
+        # Choose the filter
+        grid.addWidget(lowpassBox,0,0)
+        grid.addWidget(bandpassBox,1,0)
+        grid.addWidget(highpassBox,2,0)
+        
+        # Choose the fequency range
+        freqMin = QLineEdit()
+        freqMax = QLineEdit()
+        freqMin.setPlaceholderText("Min freq")
+        freqMax.setPlaceholderText("Max freq")
+        
+        # Add minimal frequency
+        grid.addWidget(freqMin,0,1)
+        grid.addWidget(freqMin,1,1)
+        grid.addWidget(freqMin,2,1)
+        
+        # Add maximal frequency
+        grid.addWidget(freqMax,0,2)
+        grid.addWidget(freqMax,1,2)
+        grid.addWidget(freqMax,2,2)
+        
+        
+        self.Processing.layout.addLayout(grid)
+        
+        
+        
+    def detrend_checkbox(self,state):
+        if state ==2:
+            self.st.detrend("demean")
+        else:
+            pass
+        
+    def instrument_response_checkbox(self,state):
+        if state == 2:
+            self.st.remove_response(output="VEL")
+            self.st.plot(fig=self.figure_mean)
         
         
         
