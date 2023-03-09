@@ -423,7 +423,7 @@ subroutine readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
   real(kind(0d0)) :: re,ratc,ratl,omegai
   integer  :: maxlmax
   integer :: numberLines,io,iLine
-  character(120) :: tmpfile
+  character(200) :: tmpfile
   
   tmpfile='tmpworkingfile_for_DSMconf'
   call tmpfileNameGenerator(tmpfile,tmpfile)

@@ -142,16 +142,7 @@ subroutine bcast_allocate_1
   
   if(my_rank.eq.0) then
      tmpfile='argvModeUsed'
-     print *, allocated(qkappa)
      call pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,tmpfile)
-
-     print *, maxMemoryInGigabyte, tmpfile, DSMconfFile
-     print *, "no error is observed 09032023"
-     if(allocated(qkappa))print *, "wow, qkappa is allocated  before timefilenamegenerator  in ", my_rank, allocated(qkappa)
-     print *, allocated(qkappa)
-     print *, "no error is observed 09032023-2"
-
-
      
      !call readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
      tmpfile='tmpworkingfile_for_psvmodel'
@@ -165,7 +156,7 @@ subroutine bcast_allocate_1
  
   endif
 
-  if(allocated(qkappa))print *, "wow, qkappa is allocated after pinput in ", my_rank
+ 
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   ! exporting DSM parameters
   call MPI_BCAST(re,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
