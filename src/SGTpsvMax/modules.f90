@@ -3,8 +3,8 @@ module parameters
 
 !-------------------------<< input matrix >>----------------------------------
   !include 'mpif.h'  
-  character(120) :: outputDir, psvmodel, modelname,DSMconfFile 
-  character(120) :: list,list1
+  character(200) :: outputDir, psvmodel, modelname,DSMconfFile 
+  character(200) :: list,list1
   character(40) :: datex,timex
   real(kind(0d0)), parameter :: pi=3.1415926535897932d0
   real(kind(0d0)) :: re,ratc,ratl
