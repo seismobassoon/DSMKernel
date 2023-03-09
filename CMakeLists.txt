@@ -27,4 +27,3 @@ add_subdirectory(src/SGTpsvMax)
 add_subdirectory(src/SGTshMax)
 # some example information files
 add_subdirectory(examples/single_kernel)
-add_subdirectory(src/SGTpsvMax_beta)
