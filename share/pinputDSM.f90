@@ -63,9 +63,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   
   print *, tmpfile,DSMinffile
   open(unit=5,file=trim(DSMinffile),status='unknown')
-  print *, '5 is ok'
   open(unit=1, file=trim(tmpfile),status='unknown')
-  print *, '1 is ok'
   do iLine=1,numberLines
   
      read(5,'(a200)') dummy
@@ -76,6 +74,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   close(1)
   close(5)
 
+  print *, "everything is fine"
   ! soon DSMconfFile will disappear
   paramName="DSMconfFile"
   call searchForParams(tmpfile,paramName,DSMconfFile,0)
