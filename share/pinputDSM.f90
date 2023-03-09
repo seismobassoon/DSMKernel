@@ -74,7 +74,6 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   close(1)
   close(5)
 
-  print *, "everything is fine"
   ! soon DSMconfFile will disappear
   paramName="DSMconfFile"
   call searchForParams(tmpfile,paramName,DSMconfFile,0)
