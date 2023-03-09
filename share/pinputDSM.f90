@@ -60,7 +60,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
     
   tmpfile='tmpworkingfile_for_SGTforPinv'
   call tmpfileNameGenerator(tmpfile,tmpfile)
-  print *, "before 5-1"
+
   open(unit=5,file=trim(DSMinffile),status='unknown')
   open(unit=1, file=trim(tmpfile),status='unknown')
   do iLine=1,numberLines
@@ -72,7 +72,6 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   
   close(1)
   close(5)
-  print *, "after 1-5"
 
   ! soon DSMconfFile will disappear
   paramName="DSMconfFile"
@@ -97,6 +96,8 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
      call system(dummy)
   endif
 
+
+  print *, "OK les repertoires sont cres"
 
   paramName='radiiQ'
   call searchForParams(tmpfile,paramName,dummy,1)
