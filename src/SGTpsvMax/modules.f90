@@ -145,8 +145,10 @@ subroutine bcast_allocate_1
      call pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,tmpfile)
 
      print *, maxMemoryInGigabyte, tmpfile, DSMconfFile
-     if(allocated(qkappa))print *, "wow, qkappa is allocated  before timefilenamegenerator  in ", my_rank, qkappa
      print *, "no error is observed 09032023"
+     if(allocated(qkappa))print *, "wow, qkappa is allocated  before timefilenamegenerator  in ", my_rank, qkappa
+     print *, "no error is observed 09032023-2"
+
 
      
      !call readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
