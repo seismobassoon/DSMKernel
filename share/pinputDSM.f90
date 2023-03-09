@@ -97,7 +97,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   endif
 
 
-  print *, "OK les repertoires sont cres"
+
 
   paramName='radiiQ'
   call searchForParams(tmpfile,paramName,dummy,1)
