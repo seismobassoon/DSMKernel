@@ -228,6 +228,8 @@ subroutine bcast_allocate_1
      close(20,status='delete')
 
   endif
+
+  print *, "tlen=", tlen
    
   call MPI_BCAST(vrmin,nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(vrmax,nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
