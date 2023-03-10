@@ -17,7 +17,7 @@ program  SGTpsv
   !                                               2016.07. FUJI Nobuaki (outer core)
   !                                               2017.08. FUJI Nobuaki (outer core fixed)
   !                                               2020.10. FUJI Nobuaki (RSGT for depth: PSGT)
-  !                                               
+  !                                               2023.03. FUJI Nobuaki (Max: optimisation of if-loops)
   !
   !     
   !                 
