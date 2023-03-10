@@ -24,7 +24,7 @@ from DataProcessor_Fonctions import get_depth_color, get_periodogram # Load the 
 from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar, QFrame, QCheckBox
 from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem
 from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget,QSlider,QListWidget, QRadioButton
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox,QHBoxLayout,QDesktopWidget
+from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox,QHBoxLayout,QDesktopWidget,QButtonGroup
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -808,13 +808,14 @@ class ExamplePopup(QDialog):
                 attach_response = True,
             )
             
-            self.st.write('./trace.mseed')
-            st2 = read("trace.mseed")
             self.figure.clear()
-            st2.plot(fig=self.figure)
+            self.st.plot(fig=self.figure)
 
             self.canvas.draw()
-            os.remove('trace.mseed')
+            
+            # Faire une copie de la trace pour conserver l'original dans le "processing"
+            self.original_st = self.st.copy()
+
             
             self.download_button.clicked.connect(self.download_data)
             
@@ -883,38 +884,73 @@ class ExamplePopup(QDialog):
         filteringLabel = QLabel("<b>Filtering</b>")
         self.Processing.layout.addWidget(filteringLabel)
         
-        lowpassBox = QRadioButton("Lowpass")
-        bandpassBox = QRadioButton("Bandpass")
-        highpassBox= QRadioButton("Highpass")
+        buttonGroup = QButtonGroup()
+        lowpassBox = QRadioButton("lowpass")
+        bandpassBox = QRadioButton("bandpass")
+        highpassBox= QRadioButton("highpass")
+        
+        # Creation du groupe de buttons
+        buttonGroup.addButton(lowpassBox)
+        buttonGroup.addButton(bandpassBox)
+        buttonGroup.addButton(highpassBox)
         
         # Choose the filter
         grid.addWidget(lowpassBox,0,0)
         grid.addWidget(bandpassBox,1,0)
         grid.addWidget(highpassBox,2,0)
         
-        # Choose the fequency range
-        freqMin = QLineEdit()
-        freqMax = QLineEdit()
-        freqMin.setPlaceholderText("Min freq")
-        freqMax.setPlaceholderText("Max freq")
+        # Choose the fequency range of the LOWPASS
+        freqMin_lp = QLineEdit()
+        freqMax_lp = QLineEdit()
+        freqMin_lp.setPlaceholderText("Min freq")
+        freqMax_lp.setPlaceholderText("Max freq")
+        
+        # Choose the fequency range of the BANDPASS
+        freqMin_bp = QLineEdit()
+        freqMax_bp = QLineEdit()
+        freqMin_bp.setPlaceholderText("Min freq")
+        freqMax_bp.setPlaceholderText("Max freq")
+        
+        # Choose the fequency range of the HIGHPASS
+        freqMin_hp = QLineEdit()
+        freqMax_hp = QLineEdit()
+        freqMin_hp.setPlaceholderText("Min freq")
+        freqMax_hp.setPlaceholderText("Max freq")
         
         # Add minimal frequency
-        grid.addWidget(freqMin,0,1)
-        grid.addWidget(freqMin,1,1)
-        grid.addWidget(freqMin,2,1)
+        grid.addWidget(freqMin_lp,0,1)
+        grid.addWidget(freqMin_bp,1,1)
+        grid.addWidget(freqMin_hp,2,1)
         
         # Add maximal frequency
-        grid.addWidget(freqMax,0,2)
-        grid.addWidget(freqMax,1,2)
-        grid.addWidget(freqMax,2,2)
+        grid.addWidget(freqMax_lp,0,2)
+        grid.addWidget(freqMax_bp,1,2)
+        grid.addWidget(freqMax_hp,2,2)
         
         
         self.Processing.layout.addLayout(grid)
         
+        #Variable de classe pour stocker la valeur du filtre sélectionné
+        self.filterSelected=None
+        freqMin_bp.textChanged.connect(lambda: self.checkFieldsFilled_BP(bandpassBox,freqMin_bp,freqMax_bp,buttonGroup))
+        freqMax_bp.textChanged.connect(lambda: self.checkFieldsFilled_BP(bandpassBox,freqMin_bp,freqMax_bp,buttonGroup))
+        
+        freqMin_lp.textChanged.connect(lambda: self.checkFieldsFilled_LP(lowpassBox,freqMin_lp,freqMax_lp,buttonGroup))
+        freqMax_lp.textChanged.connect(lambda: self.checkFieldsFilled_LP(lowpassBox,freqMin_lp,freqMax_lp,buttonGroup))
+        
+        freqMin_hp.textChanged.connect(lambda: self.checkFieldsFilled_HP(highpassBox,freqMin_hp,freqMax_hp,buttonGroup))
+        freqMax_hp.textChanged.connect(lambda: self.checkFieldsFilled_HP(highpassBox,freqMin_hp,freqMax_hp,buttonGroup))
+        
+        
+        
+        self.figure_filter = Figure(figsize=(6,4))
+        self.canvas_filter = FigureCanvas(self.figure_filter)
+        self.Processing.layout.addWidget(self.canvas_filter)
+        
         
         
     def detrend_checkbox(self,state):
-        if state ==2:
+        if state == 2:
             self.st.detrend("demean")
         else:
             pass
@@ -923,10 +959,105 @@ class ExamplePopup(QDialog):
         if state == 2:
             self.st.remove_response(output="VEL")
             self.st.plot(fig=self.figure_mean)
-        
-        
-        
+            
+        else:
+            pass
+            
+    def checkFieldsFilled_BP(self,bandpassBox,freqMin_bp,freqMax_bp, buttonGroup):
+        if bandpassBox.isChecked() and freqMin_bp.text() and freqMax_bp.text():
+            freqmin = freqMin_bp.text()
+            freqmax = freqMax_bp.text()
+            
+            def convert_freqmin(freqmin):
+                try:
+                    freqmin_bp = int(freqmin)
+                except ValueError:
+                    freqmin_bp = float(freqmin)
+                return freqmin_bp
+            
+            def convert_freqmax(freqmax):
+                try:
+                    freqmax_bp = int(freqmax)
+                except ValueError:
+                    freqmax_bp = float(freqmax)
+                return freqmax_bp
+            
+            freqmin_bp = convert_freqmin(freqmin)
+            freqmax_bp = convert_freqmax(freqmax)
+                    
 
+            
+            #if self.filterSelected is not None:
+            self.st.filter("bandpass",freqmin=freqmin_bp,freqmax=freqmax_bp)
+            self.st.plot(fig=self.figure_filter)
+            
+        else:
+            pass
+        
+    def checkFieldsFilled_LP(self,lowpassBox,freqMin_lp,freqMax_lp, buttonGroup):
+        if lowpassBox.isChecked() and freqMin_lp.text() and freqMax_lp.text():
+            freqmin = freqMin_lp.text()
+            freqmax = freqMax_lp.text()
+            
+            def convert_freqmin(freqmin):
+                try:
+                    freqmin_lp = int(freqmin)
+                except ValueError:
+                    freqmin_lp = float(freqmin)
+                return freqmin_lp
+            
+            def convert_freqmax(freqmax):
+                try:
+                    freqmax_lp = int(freqmax)
+                except ValueError:
+                    freqmax_lp = float(freqmax)
+                return freqmax_lp
+            
+            freqmin_lp = convert_freqmin(freqmin)
+            freqmax_lp = convert_freqmax(freqmax)
+                    
+
+            
+            #if self.filterSelected is not None:
+            self.st.filter("lowpass",freqmin=freqmin_lp,freqmax=freqmax_lp)
+            self.st.plot(fig=self.figure_filter)
+            
+        else:
+            pass
+        
+    def checkFieldsFilled_HP(self,highpassBox,freqMin_hp,freqMax_hp, buttonGroup):
+        if highpassBox.isChecked() and freqMin_hp.text() and freqMax_hp.text():
+            freqmin = freqMin_hp.text()
+            freqmax = freqMax_hp.text()
+            
+            def convert_freqmin(freqmin):
+                try:
+                    freqmin_hp = int(freqmin)
+                except ValueError:
+                    freqmin_hp = float(freqmin)
+                return freqmin_hp
+            
+            def convert_freqmax(freqmax):
+                try:
+                    freqmax_hp = int(freqmax)
+                except ValueError:
+                    freqmax_hp = float(freqmax)
+                return freqmax_hp
+            
+            freqmin_hp = convert_freqmin(freqmin)
+            freqmax_hp = convert_freqmax(freqmax)
+                    
+
+            
+            #if self.filterSelected is not None:
+            self.st.filter("highpass",freqmin=freqmin_hp,freqmax=freqmax_hp)
+            self.st.plot(fig=self.figure_filter)
+            
+        else:
+            pass
+    
+            
+            
         
             
   
