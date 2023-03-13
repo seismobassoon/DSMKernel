@@ -16,8 +16,7 @@ import pytz
 import numpy as np
 
 from obspy.clients.fdsn import Client
-import obspy
-from obspy import read, UTCDateTime
+from obspy import UTCDateTime
 
 from DataProcessor_Fonctions import get_depth_color, get_periodogram # Load the function "plot_events" provided in tp_obsp
 
@@ -33,6 +32,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from pyqtlet import L, MapWidget 
 
 from PyQt5 import QtCore, QtGui
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt, QSettings, QTimer, pyqtSlot, pyqtSignal
 
 class Window(QMainWindow):
@@ -82,14 +82,15 @@ class Window(QMainWindow):
         stamen_terrain_layer = L.tileLayer('http://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.png')
         stamen_toner_layer = L.tileLayer('http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png')
         stamen_water_layer = L.tileLayer('http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.png')
+        satellite_layer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}')
 
-        layers = {'OpenStreetMap':osm_layer,'Stamen Terrain':stamen_terrain_layer,'Stamen Toner':stamen_toner_layer,'Stamen Water Color':stamen_water_layer}
+        layers = {'OpenStreetMap':osm_layer,'Stamen Terrain':stamen_terrain_layer,'Stamen Toner':stamen_toner_layer,'Stamen Water Color':stamen_water_layer,'Satellite':satellite_layer}
         
         # ADD DRAWINGS
         #-----------------------------------------------------------------------------------------------------
         self.drawControl = L.control.draw()
         self.map.addControl(self.drawControl)
-        
+        satellite_layer.addTo(self.map)
         self.layersControl=L.control.layers(layers).addTo(self.map)
         
         Progress = 75
@@ -678,15 +679,15 @@ class Window(QMainWindow):
     
 
     @pyqtSlot(QListWidgetItem)           
-    def buildExamplePopup(self,item):
-        exPopup = ExamplePopup(item.text(),self)
+    def buildExamplePopup(self,item,inventory):
+        exPopup = ExamplePopup(item.text(),inventory,self)
         exPopup.setWindowTitle("Seismic station {} details".format(item.text()))
         exPopup.show()
 
 
 class ExamplePopup(QDialog):
 
-    def __init__(self, name,parent=None):
+    def __init__(self, name, inventory,parent=None):
         super().__init__(parent)
         self.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.resize(500,600)
@@ -910,10 +911,18 @@ class ExamplePopup(QDialog):
         
         
 
-    def _contentTab3(self):
+    def _contentTab3(self, inventory):
         instrumental_response = QCheckBox("Remove instrumental response")
         self.Processing.layout.addWidget(instrumental_response)
         instrumental_response.stateChanged.connect(self.instrument_response_checkbox)
+        
+        inventory[0].plot_response(min_freq=1e-4,outfile='response.png')
+        figLabel = QLabel(self)
+        pixmap = QPixmap('response.png')
+        figLabel.setixmap(pixmap)
+        self.Processing.layout.addWidget(figLabel)
+        os.remove('response.png')
+        
         
 
         remove_mean = QCheckBox("Remove the mean")
