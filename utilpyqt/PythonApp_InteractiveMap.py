@@ -50,7 +50,7 @@ class Window(QMainWindow):
         time.sleep(2)
         
         self.setWindowIcon(QtGui.QIcon('logo.jpg'))
-        self.setWindowTitle("Geodpy Project - Python Menus & Toolbars")
+        self.setWindowTitle("Geodpy Project - Python application for scientific research")
         self.setStyleSheet("QMainWindow {background: 'white';}")
 
         self.resize(1000, 800)
@@ -675,19 +675,19 @@ class Window(QMainWindow):
         self.dialog.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.listStation.setGeometry(100, 100, 200, 200)
         self.dialog.setModal(False)
-        self.dialog.exec_()
+        self.dialog.show()
     
 
     @pyqtSlot(QListWidgetItem)           
-    def buildExamplePopup(self,item,inventory):
-        exPopup = ExamplePopup(item.text(),inventory,self)
+    def buildExamplePopup(self,item):
+        exPopup = ExamplePopup(item.text(),self)
         exPopup.setWindowTitle("Seismic station {} details".format(item.text()))
         exPopup.show()
 
 
 class ExamplePopup(QDialog):
 
-    def __init__(self, name, inventory,parent=None):
+    def __init__(self, name,parent=None):
         super().__init__(parent)
         self.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.resize(500,600)
@@ -837,7 +837,7 @@ class ExamplePopup(QDialog):
                 
                 self.download_button.clicked.connect(self.download_data)
                 
-            except Exception as e:
+            except Exception:
                 error_message = QMessageBox(QMessageBox.Critical, "No data found","Please, check the parameter filled!",QMessageBox.Ok)
                 error_message.exec()
             
@@ -911,18 +911,18 @@ class ExamplePopup(QDialog):
         
         
 
-    def _contentTab3(self, inventory):
+    def _contentTab3(self):
         instrumental_response = QCheckBox("Remove instrumental response")
         self.Processing.layout.addWidget(instrumental_response)
         instrumental_response.stateChanged.connect(self.instrument_response_checkbox)
-        
+        '''
         inventory[0].plot_response(min_freq=1e-4,outfile='response.png')
         figLabel = QLabel(self)
         pixmap = QPixmap('response.png')
         figLabel.setixmap(pixmap)
         self.Processing.layout.addWidget(figLabel)
         os.remove('response.png')
-        
+        '''
         
 
         remove_mean = QCheckBox("Remove the mean")
@@ -1130,7 +1130,7 @@ class SplashScreen(QMainWindow):
         
         
         self.setWindowIcon(QtGui.QIcon('logo.jpg'))
-        self.setWindowTitle("Geodpy Project - Python Menus & Toolbars")
+        self.setWindowTitle("Geodpy Project - Python application for scientific research")
         self.setFixedSize(1000, 800)
         self.setStyleSheet("QMainWindow {background: 'white';}")
         self.central_widget = QWidget(self)
