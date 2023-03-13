@@ -157,6 +157,12 @@ class Window(QMainWindow):
         helpMenu = menuBar.addMenu("&Help")
         helpMenu.addAction(self.helpContentAction)
         
+        searchStation = menuBar.addMenu("&Search by station")
+        searchStation.addAction(self.searchStationAction)
+        
+        searchEvent = menuBar.addMenu("&Search by event")
+        searchEvent.addAction(self.searchEventAction)
+        
         exitMenu = menuBar.addMenu("&Exit")
         exitMenu.addAction(self.exitAction)
                 
@@ -363,6 +369,7 @@ class Window(QMainWindow):
                 """)
         self.mainToolBar.addWidget(self.searchButton)
         self.searchButton.clicked.connect(self.startSearch)
+        self.mainToolBar.setVisible(False)
     
         
     def toggleToolbar(self):
@@ -441,7 +448,7 @@ class Window(QMainWindow):
         # Creating action using the first constructor
         self.clientLabel = QLabel(self)
         self.clientLabel.setText("<b>Client</b>")
-        self.clientLabel.setStyleSheet("font-family: bold;")
+        self.clientLabel.setStyleSheet("font-family: calibri;")
         self.clientLabel.setAlignment(Qt.AlignLeft)
         
         # Creating actions using the second constructor
@@ -471,6 +478,11 @@ class Window(QMainWindow):
         self.helpContentAction = QAction("&Help Content", self)
         self.aboutAction = QAction("&About", self)
         
+        self.searchStationAction = QAction("Search by station",self)
+        self.searchStationAction.triggered.connect(self.showToolBar)
+        
+        self.searchEventAction = QAction("Search by event",self)
+        
 
     def about(self):
         # Logic for showing an about dialog content goes here...
@@ -479,6 +491,9 @@ class Window(QMainWindow):
     def helpContent(self):
         # Logic for launching help goes here...
         self.centralWidget.setText("<b>Help > Help Content</b> clicked")
+        
+    def showToolBar(self):
+        self.mainToolBar.setVisible(not self.mainToolBar.isVisible())
     
     # CONNECTING ACTIONS
     #-------------------------------------------------------------------
@@ -780,6 +795,7 @@ class ExamplePopup(QDialog):
         # DOWNLOAD DATA
         self.download_button = QPushButton("Download",self)
         self.Description.layout.addWidget(self.download_button)
+    
         
                 
         
@@ -788,36 +804,41 @@ class ExamplePopup(QDialog):
     def plot_seismic(self):
             
         if (self.channelChoice.text() and self.startTrace.dateTime() and self.endTrace.dateTime()):
-            '''
-            pyStartTime = self.startTrace.toPyDateTime()
-            UTCStartTime = pyStartTime.astimezone(pytz.UTC)
-            
-            pyEndTime = self.endTrace.toPyDateTime()
-            UTCEndTime = pyEndTime.astimezone(pytz.UTC)
-            '''
-            self.nameStation = self.name.split('.')[1]
-
-            
-            self.st = client.get_waveforms(
-                network = network_select,
-                station = self.nameStation,
-                location = location,
-                channel = self.channelChoice.text(),
-                starttime = UTCDateTime("2018-02-12T03:08:02"),
-                endtime = UTCDateTime("2018-02-12T03:08:02") +90,
-                attach_response = True,
-            )
-            
-            self.figure.clear()
-            self.st.plot(fig=self.figure)
-
-            self.canvas.draw()
-            
-            # Faire une copie de la trace pour conserver l'original dans le "processing"
-            self.original_st = self.st.copy()
-
-            
-            self.download_button.clicked.connect(self.download_data)
+            try:
+                '''
+                pyStartTime = self.startTrace.toPyDateTime()
+                UTCStartTime = pyStartTime.astimezone(pytz.UTC)
+                
+                pyEndTime = self.endTrace.toPyDateTime()
+                UTCEndTime = pyEndTime.astimezone(pytz.UTC)
+                '''
+                self.nameStation = self.name.split('.')[1]
+    
+                
+                self.st = client.get_waveforms(
+                    network = network_select,
+                    station = self.nameStation,
+                    location = location,
+                    channel = self.channelChoice.text(),
+                    starttime = UTCDateTime("2018-02-12T03:08:02"),
+                    endtime = UTCDateTime("2018-02-12T03:08:02") +90,
+                    attach_response = True,
+                )
+                
+                self.figure.clear()
+                self.st.plot(fig=self.figure)
+    
+                self.canvas.draw()
+                
+                # Faire une copie de la trace pour conserver l'original dans le "processing"
+                self.original_st = self.st.copy()
+    
+                
+                self.download_button.clicked.connect(self.download_data)
+                
+            except Exception as e:
+                error_message = QMessageBox(QMessageBox.Critical, "No data found","Please, check the parameter filled!",QMessageBox.Ok)
+                error_message.exec()
             
             #self._contentTab2()
             
@@ -841,22 +862,51 @@ class ExamplePopup(QDialog):
         self.Periodogram.layout.addWidget(samplingLabel)
         
         
-        get_periodogram(x, fs = sampling_rate, semilog = True, show = False)
+        freqs,psd = get_periodogram(x, sampling_rate, show = False)
+        fig = Figure(figsize=(6, 4), dpi=100)
+        ax = fig.add_subplot(111)
+        ax.semilogx(freqs, 10 * np.log10(psd))
+        ax.set_xlabel('Frequency (Hz)')
+        ax.set_ylabel('Power spectral density (dB/Hz)')
+
+        canvas = FigureCanvas(fig)
+        canvas.draw()
         
         # Creation de la figure
         '''
-        self.figure_spectrum = Figure(figsize=(6,4),dpi=100)
-        ax = self.figure_spectrum.add_subplot(111)
+        st = obspy.read("vendee4.6.mseed")
+        x = st[0].data
+        sampling_rate = st[0].stats.sampling_rate
+
+        # Calculate the spectrum
+        freqs, psd = get_periodogram(x, sampling_rate,show=False)
+
+        # Create Matplotlib figure and canvas
+        fig = Figure(figsize=(5, 4), dpi=100)
+        ax = fig.add_subplot(111)
         ax.semilogx(freqs, 10 * np.log10(psd))
         ax.set_xlabel('Frequency (Hz)')
-        ax.set_ylabel('Power (dB)')
-        
-        self.canvas_spectrum = FigureCanvas(self.figure_spectrum)
-        self.Periodogram.layout.addWidget(self.canvas_spectrum)    
-        
-        self.canvas_spectrum.draw()
+        ax.set_ylabel('Power spectral density (dB/Hz)')
+
+        canvas = FigureCanvas(fig)
         '''
         #self.figure_spectrum.clear()
+        
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        self.Description.layout.addWidget(separator)
+        
+        # SPECTROGRAM - A METTRE DANS LE FILTRAGE ET METTRE ICI LE SPECTRE DE FREQUENCE ??
+        spectrogramLabel = QLabel("<b>Spectrogram</b>")
+        self.Periodogram.layout.addWidget(spectrogramLabel)
+        
+        '''
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        self.Description.layout.addWidget(separator)
+        '''
         
         
 
@@ -873,6 +923,7 @@ class ExamplePopup(QDialog):
         self.figure_mean = Figure(figsize=(6,4))
         self.canvas_mean = FigureCanvas(self.figure_mean)
         self.Processing.layout.addWidget(self.canvas_mean)
+        
         
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
@@ -929,6 +980,7 @@ class ExamplePopup(QDialog):
         
         
         self.Processing.layout.addLayout(grid)
+
         
         #Variable de classe pour stocker la valeur du filtre sélectionné
         self.filterSelected=None
@@ -948,7 +1000,7 @@ class ExamplePopup(QDialog):
         self.Processing.layout.addWidget(self.canvas_filter)
         
         
-        
+    # DETRENDING DATA    
     def detrend_checkbox(self,state):
         if state == 2:
             self.st.detrend("demean")
@@ -958,6 +1010,7 @@ class ExamplePopup(QDialog):
     def instrument_response_checkbox(self,state):
         if state == 2:
             self.st.remove_response(output="VEL")
+            #self.figure_mean.clear()
             self.st.plot(fig=self.figure_mean)
             
         else:
@@ -989,6 +1042,7 @@ class ExamplePopup(QDialog):
             
             #if self.filterSelected is not None:
             self.st.filter("bandpass",freqmin=freqmin_bp,freqmax=freqmax_bp)
+            self.figure.clear()
             self.st.plot(fig=self.figure_filter)
             
         else:
