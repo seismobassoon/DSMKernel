@@ -28,8 +28,9 @@ subroutine whoDoesWhatDSM
   enddo
 
   ! the total of Phi can take the 60% of memory (just testing)
-  
+  print *, "maxMemoryInGigabyte=", maxMemoryInGigabyte
   reasonableLwidthInReal = 6.d-1 * maxMemoryInGigabyte * 1.d9 / 16.d0 / 57.d0 / dble(theta_n)
+  print *, "reasonableLwidthInReal", reasonableLwidthInReal
   reasonableLwidth = int(reasonableLwidthInReal)
 
   nAngularOrderChunk = (maxlmax-1)/reasonableLwidth
