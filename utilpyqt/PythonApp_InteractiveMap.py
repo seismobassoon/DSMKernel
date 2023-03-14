@@ -51,7 +51,16 @@ class Window(QMainWindow):
         
         self.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.setWindowTitle("Geodpy Project - Python application for scientific research")
-        self.setStyleSheet("QMainWindow {background: 'white';}")
+        self.setStyleSheet("""
+                           QMainWindow {
+                               background: 'white';
+                                }
+                           
+                           QToolBar {
+                               transition: height 0.5s ease;
+                               }
+                           
+                           """)
 
         self.resize(1000, 800)
         self.mapWidget = MapWidget()
@@ -68,7 +77,7 @@ class Window(QMainWindow):
         #-----------------------------------------------------------------------------------------------------
         self.map = L.map(self.mapWidget)
         self.map.setView([0, 0], 2)
-        
+
         Progress = 50
         splash_screen.progressUpdate(Progress)
         time.sleep(2)
@@ -89,7 +98,7 @@ class Window(QMainWindow):
         # ADD DRAWINGS
         #-----------------------------------------------------------------------------------------------------
         self.drawControl = L.control.draw()
-        self.map.addControl(self.drawControl)
+        #self.map.addControl(self.drawControl)
         satellite_layer.addTo(self.map)
         self.layersControl=L.control.layers(layers).addTo(self.map)
         
@@ -103,6 +112,7 @@ class Window(QMainWindow):
         self._createActions()
         self._createMenuBar()
         self._createToolBars()
+        self._createToolBars2()
         self._connectActions()
         
         Progress = 100
@@ -128,11 +138,17 @@ class Window(QMainWindow):
             minlng=min(coord_lng)
             global maxlng
             maxlng=max(coord_lng)
+            # ADD LATITUDE/LONGITUDE VALUES TO BOTH TOOLBARS
             print(minlat,maxlat,minlng,maxlng)
             self.minLatChoice.setValue(minlat)
             self.maxLatChoice.setValue(maxlat)
             self.minLonChoice.setValue(minlng)
             self.maxLonChoice.setValue(maxlng)
+            
+            self.minLatEventChoice.setValue(minlat)
+            self.maxLatEventChoice.setValue(maxlat)
+            self.minLonEventChoice.setValue(minlng)
+            self.maxLonEventChoice.setValue(maxlng)
             
        
         coord_lat=[]
@@ -141,6 +157,8 @@ class Window(QMainWindow):
         self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
         #map.on('draw:created', function (event)
         self.map.clicked.connect(lambda x: coords(self,x,coord_lat,coord_lng))
+        
+    
 
 
 
@@ -184,12 +202,6 @@ class Window(QMainWindow):
         self.addToolBar(Qt.RightToolBarArea,self.mainToolBar)
         self.mainToolBar.setMovable(False)
         
-        # Adding a toggle button in order to hide or not the toolbar
-        """
-        self.hideButton=QPushButton('Hide Toolbar',self)
-        self.hideButton.clicked.connect(self.toggleToolbar)
-        """
-        #self.mainToolBar.addWidget(self.hideButton)
         
         # Using a QToolBar object and a toolbar area
         self.addToolBar(Qt.RightToolBarArea, self.mainToolBar)
@@ -215,21 +227,20 @@ class Window(QMainWindow):
         
         # DATE ACTION
         self.mainToolBar.addWidget(self.dateLabel)
-        layout1=QLabel("From: ")
-        layout2=QLabel("To: ")
+        self.from_Date=QLabel("From: ")
+        self.to_Date=QLabel("To: ")
         
         self.dateStartChoice = QDateTimeEdit(self,calendarPopup=True)
         self.dateEndChoice = QDateTimeEdit(self,calendarPopup=True)
         
-        self.mainToolBar.addWidget(layout1)
+        self.mainToolBar.addWidget(self.from_Date)
         self.mainToolBar.addWidget(self.dateStartChoice)
-        self.mainToolBar.addWidget(layout2)
+        self.mainToolBar.addWidget(self.to_Date)
         self.mainToolBar.addWidget(self.dateEndChoice)
 
                 
         # SEPARATING----------------------------------------------
-        separator = QAction(self)
-        separator.setSeparator(True)  
+
         self.mainToolBar.addAction(separator)    
         
         # COORDINATES ACTION
@@ -263,8 +274,7 @@ class Window(QMainWindow):
         self.maxLonChoice.setMaximum(180)
                 
         # SEPARATING----------------------------------------------
-        separator = QAction(self)
-        separator.setSeparator(True)  
+
         self.mainToolBar.addAction(separator)    
         
         # LOCATION ACTION
@@ -276,8 +286,7 @@ class Window(QMainWindow):
         self.locChoice.setPlaceholderText("Enter the location")
                 
         # SEPARATING----------------------------------------------
-        separator = QAction(self)
-        separator.setSeparator(True)  
+ 
         self.mainToolBar.addAction(separator)    
         
         # MAGNITUDE ACTION
@@ -335,8 +344,7 @@ class Window(QMainWindow):
         
         
         # SEPARATING----------------------------------------------
-        separator = QAction(self)
-        separator.setSeparator(True)  
+
         self.mainToolBar.addAction(separator)    
         
         # NETWORK ACTION
@@ -349,8 +357,7 @@ class Window(QMainWindow):
         
         
         # SEPARATING----------------------------------------------
-        separator = QAction(self)
-        separator.setSeparator(True)  
+
         self.mainToolBar.addAction(separator)
         
         # SEARCH ACTION ------------------------------------------
@@ -442,15 +449,122 @@ class Window(QMainWindow):
             self.networkChoice.addItems(["3F","GT","IU","MI","NC","NT","UL","XC","XG","XU","XZ","Y3","YV","Z7","ZZ"])
         elif selectedValue == "USC":
             self.networkChoice.addItems([""])
+            
+    # TOOLBAR OF THE EVENT SECTION -----------------------------------------------------------------------------------        
+    def _createToolBars2(self):
+        # TOOLBAR SET UP
+        self.eventToolBar = QToolBar("Toolbar",self)
     
+        screen_width = QDesktopWidget().screenGeometry().width()
+        toolbar_width = int(screen_width*0.1)
+        self.eventToolBar.setFixedWidth(toolbar_width)
+  
+        
+        self.eventToolBar.setStyleSheet("background-color: #f2f2f2; padding: 4px;")
+        self.addToolBar(Qt.RightToolBarArea,self.eventToolBar)
+        self.eventToolBar.setMovable(False)
+        self.eventToolBar.setVisible(False)
+        
+        # CLIENT SELECTION
+        self.eventToolBar.addWidget(self.clientEventLabel)
+        self.clientEventChoice = QComboBox(self)
+        self.eventToolBar.addWidget(self.clientEventChoice)
+        self.clientEventChoice.setFixedWidth(150)
+    
+        self.clientEventChoice.addItems(["AUSPASS","BRG","EIDA","EMSC","ETH","GEOFON","GEONET","GFZ","ICGC","IESDMC","INGV","IPGP","IRIS","IRISPH5","ISC","KNMI","KOERI","LMU","NCEDC","NIEP","NOA","ODC","RASPISHAKE","RESIF","RESIFPH5","SCEDC","UIB-NORSAR","USGS","USP"])
+     
+        # SEPARATING
+        separator = QAction(self)
+        separator.setSeparator(True)  
+        self.eventToolBar.addAction(separator)    
+        
+        # DATE OF THE EVENT
+        self.eventToolBar.addWidget(self.dateEventLabel)
+        self.from_eventDate = QLabel("From: ")
+        self.to_eventDate = QLabel("To: ")
+        
+        self.dateStartEventChoice = QDateTimeEdit(self,calendarPopup=True)
+        self.dateEndEventChoice = QDateTimeEdit(self,calendarPopup=True)
+        
+        self.eventToolBar.addWidget(self.from_eventDate)
+        self.eventToolBar.addWidget(self.dateStartEventChoice)
+        self.eventToolBar.addWidget(self.to_eventDate)
+        self.eventToolBar.addWidget(self.dateEndEventChoice)
+        
+        self.eventToolBar.addAction(separator)
+        
+        # COORDINATES OF THE EVENT
+        self.eventToolBar.addWidget(self.coorEventLabel)
+        layoutCoor1=QLabel("Minimum latitude: ")
+        layoutCoor2=QLabel("Maximum latitude: ")
+        layoutCoor3=QLabel("Minimum longitude: ")
+        layoutCoor4=QLabel("Maximum longitude: ")
+       
+        self.minLatEventChoice = QDoubleSpinBox()
+        self.maxLatEventChoice = QDoubleSpinBox()
+        self.minLonEventChoice = QDoubleSpinBox()
+        self.maxLonEventChoice = QDoubleSpinBox()
+        
+        self.eventToolBar.addWidget(layoutCoor1)
+        self.eventToolBar.addWidget(self.minLatEventChoice)
+        self.eventToolBar.addWidget(layoutCoor2)
+        self.eventToolBar.addWidget(self.maxLatEventChoice)
+        self.eventToolBar.addWidget(layoutCoor3)
+        self.eventToolBar.addWidget(self.minLonEventChoice)
+        self.eventToolBar.addWidget(layoutCoor4)
+        self.eventToolBar.addWidget(self.maxLonEventChoice)
+        
+        self.minLatEventChoice.setMinimum(-90)
+        self.minLatEventChoice.setMaximum(90)
+        self.maxLatEventChoice.setMinimum(-90)
+        self.maxLatEventChoice.setMaximum(90)
+        self.minLonEventChoice.setMinimum(-180)
+        self.minLonEventChoice.setMaximum(180)
+        self.maxLonEventChoice.setMinimum(-180)
+        self.maxLonEventChoice.setMaximum(180)
+        
+        self.eventToolBar.addAction(separator)
+        
+        # MAGITUDE MINIMUM
+        self.eventToolBar.addWidget(self.magEventLabel)
+        self.magEventChoice = QDoubleSpinBox()
+        self.eventToolBar.addWidget(self.magEventChoice)
+        self.magEventChoice.setMinimum(0)
+        self.magEventChoice.setMaximum(10)
+        
+        
+        self.searchEventButton = QPushButton("Search")
+        self.searchEventButton.setStyleSheet("""
+                background-color: #CD5C5C;
+                border: none;
+                border-radius: 5px;
+                color: white;
+                padding: 10px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin-top: 10px;
+                cursor: pointer;
+                """)
+        self.eventToolBar.addWidget(self.searchEventButton)
+        self.searchEventButton.clicked.connect(self.startEventSearch)
+        
+        # COORDINATES OF THE EVENT
+       
 
-
+    # CREATE ACTION FOR BOTH TOOLBARS
     def _createActions(self):
         # Creating action using the first constructor
         self.clientLabel = QLabel(self)
         self.clientLabel.setText("<b>Client</b>")
-        self.clientLabel.setStyleSheet("font-family: calibri;")
-        self.clientLabel.setAlignment(Qt.AlignLeft)
+        self.clientLabel.setStyleSheet("font-family: bold;")
+        self.clientLabel.setAlignment(Qt.AlignCenter)
+        
+        self.clientEventLabel = QLabel(self)
+        self.clientEventLabel.setText("<b>Client</b>")
+        self.clientEventLabel.setStyleSheet("font-family: bold;")
+        self.clientEventLabel.setAlignment(Qt.AlignCenter)
         
         # Creating actions using the second constructor
         self.networkLabel = QLabel(self)
@@ -461,9 +575,17 @@ class Window(QMainWindow):
         self.magLabel.setText("<b>Magnitude min</b>")
         self.magLabel.setAlignment(Qt.AlignCenter)
         
+        self.magEventLabel = QLabel(self)
+        self.magEventLabel.setText("<b>Magnitude min</b>")
+        self.magEventLabel.setAlignment(Qt.AlignCenter)
+        
         self.dateLabel = QLabel(self)
         self.dateLabel.setText("<b>Date</b>")
         self.dateLabel.setAlignment(Qt.AlignCenter)
+        
+        self.dateEventLabel = QLabel(self)
+        self.dateEventLabel.setText("<b>Date</b>")
+        self.dateEventLabel.setAlignment(Qt.AlignCenter)
         
         self.locLabel = QLabel(self)
         self.locLabel.setText("<b>Location</b>")
@@ -473,6 +595,10 @@ class Window(QMainWindow):
         self.coorLabel.setText("<b>Coordinates</b>")
         self.coorLabel.setAlignment(Qt.AlignCenter)
         
+        self.coorEventLabel = QLabel(self)
+        self.coorEventLabel.setText("<b>Coordinates</b>")
+        self.coorEventLabel.setAlignment(Qt.AlignCenter)
+        
         #self.searchAction = QAction("&Search...",self)
         
         self.exitAction = QAction("&Exit", self)
@@ -480,9 +606,12 @@ class Window(QMainWindow):
         self.aboutAction = QAction("&About", self)
         
         self.searchStationAction = QAction("Search by station",self)
-        self.searchStationAction.triggered.connect(self.showToolBar)
+        self.searchStationAction.triggered.connect(self.showMainToolBar)
         
         self.searchEventAction = QAction("Search by event",self)
+        self.searchEventAction.triggered.connect(self.showSecondToolBar)
+        
+        
         
 
     def about(self):
@@ -493,8 +622,17 @@ class Window(QMainWindow):
         # Logic for launching help goes here...
         self.centralWidget.setText("<b>Help > Help Content</b> clicked")
         
-    def showToolBar(self):
+    def showMainToolBar(self):
+
+        self.map.addControl(self.drawControl)
+        self.eventToolBar.setVisible(False)
         self.mainToolBar.setVisible(not self.mainToolBar.isVisible())
+        
+    def showSecondToolBar(self):
+
+        self.map.addControl(self.drawControl)
+        self.mainToolBar.setVisible(False)
+        self.eventToolBar.setVisible(not self.eventToolBar.isVisible())
     
     # CONNECTING ACTIONS
     #-------------------------------------------------------------------
@@ -534,6 +672,7 @@ class Window(QMainWindow):
             global start,end
             start = UTCStartTime
             end = UTCEndTime
+            
 
             #start = UTCDateTime(self.dateStartChoice)
             #end = UTCDateTime(self.dateEndChoice)
@@ -622,7 +761,7 @@ class Window(QMainWindow):
             
 
             self.listStation = QListWidget()    
-            self.listStation.itemDoubleClicked.connect(self.buildExamplePopup)
+            self.listStation.itemDoubleClicked.connect(self.buildStationPopup)
 
             for net, sta, lat, lon, elev in stations:
                 self.name = ".".join([net, sta])
@@ -679,13 +818,114 @@ class Window(QMainWindow):
     
 
     @pyqtSlot(QListWidgetItem)           
-    def buildExamplePopup(self,item):
-        exPopup = ExamplePopup(item.text(),self)
+    def buildStationPopup(self,item):
+        exPopup = StationPopup(item.text(),self)
         exPopup.setWindowTitle("Seismic station {} details".format(item.text()))
         exPopup.show()
+        
+        
+        
+    # START SEARCH EVENT SECTION
+    #--------------------------------------------------------------------------------------
+    def startEventSearch(self):
+        localStartTime = self.dateStartEventChoice.dateTime()
+        pyStartTime = localStartTime.toPyDateTime()
+        UTCStartTime = pyStartTime.astimezone(pytz.UTC)
+        
+        localEndTime = self.dateEndEventChoice.dateTime()
+        pyEndTime = localEndTime.toPyDateTime()
+        UTCEndTime = pyEndTime.astimezone(pytz.UTC)
+        
+        global startEvent,endEvent
+        startEvent = UTCStartTime
+        endEvent = UTCEndTime
 
+        #start = UTCDateTime(self.dateStartChoice)
+        #end = UTCDateTime(self.dateEndChoice)
+        
+        # COORDINATES INITIALIZATION (convert QDoubleSpinBox to int)
+        valueMinLat = self.minLatEventChoice.value()
+        intMinLat = int(valueMinLat)
+        valueMaxLat = self.maxLatEventChoice.value()
+        intMaxLat = int(valueMaxLat)
+        valueMinLon = self.minLonEventChoice.value()
+        intMinLon = int(valueMinLon)
+        valueMaxLon = self.maxLonEventChoice.value()
+        intMaxLon = int(valueMaxLon)
+        
+        # CLIENT INITIALIZATION (convert QComboBox to str)
+        client_select = str(self.clientEventChoice.currentText())
+        
+        # MAGNITUDE INITIALIZATION (convert QDoubleSpinBox to int)
+        valueMagMin = self.magEventChoice.value()
+        intMag = int(valueMagMin)
+        
+        events_center = Client(client_select).get_events(    
+            minlatitude = intMinLat,
+            maxlatitude = intMaxLat,
+            minlongitude = intMinLon,
+            maxlongitude = intMaxLon,
+            
+            minmagnitude = intMag,
+            starttime=startEvent,
+            endtime=endEvent,
+        )
+        print("\nFound %s event(s) from %s Data Center:\n" % (len(events_center),client_select))
+        print(events_center)
+        
+        global clientEvent
+        clientEvent = Client(client_select)
+        inventoryEvent = clientEvent.get_stations(network="*", level="channel")
+        
+        
+        # DISPLAYING THE STATION 
+        global stationsEvent
+        stationsEvent = []
+        for net in inventoryEvent:  # in fact this loop is only necessary for multiple networks
+            for sta in net:
+                stationsEvent.append(
+                    [net.code, sta.code, sta.latitude, sta.longitude, sta.elevation]
+                )
+        comments='ISC'
+        origin=[0, 0]
+        
+        for event in events_center:
+            for origin, magnitude in zip(event.origins, event.magnitudes):
+                lat, lon, depth, mag = (
+                    origin.latitude,
+                    origin.longitude,
+                    origin.depth,
+                    magnitude.mag,
+                )
+                infos = "Lat/Long: (%s %s)<br/>Depth: %s m<br/>Magnitude: %s<br/>Comment: %s" % (lat, lon, depth, mag, comments)
+                events = L.circleMarker([lat, lon], {
+                    'radius':50 * 2 ** (mag) / 2 ** 10,
+                    'color':get_depth_color(depth),
+                    'fillColor':"#FF8C00"
+                })
+                self.map.addLayer(events)
+                popup_html = "<em> %s </em>" % infos
+                events.bindPopup(popup_html)
+                
+        for net, sta, lat, lon, elev in stationsEvent:
+            name = ".".join([net, sta])
+            infos = "Name: %s<br/>Lat/Long: (%s, %s)<br/>Elevation: %s m" % (name, lat, lon, elev)
+            
+            marker = L.marker([lat, lon], {
+                'color':"blue",
+                'fillColor':"#FF8C00",
+                'fillOpacity':0.3,
 
-class ExamplePopup(QDialog):
+            })
+            
+            self.map.addLayer(marker)
+          
+            popup_html="<b>%s</b>" %infos
+            
+            marker.bindPopup(popup_html)
+        
+
+class StationPopup(QDialog):
 
     def __init__(self, name,parent=None):
         super().__init__(parent)
@@ -771,12 +1011,16 @@ class ExamplePopup(QDialog):
         # DATE INITIALIZATION
         date = QLabel("Period of the seismic trace")
         self.Description.layout.addWidget(date)
-        dateMin = start
-        dateMax = end
         
         layoutTime = QHBoxLayout()
         self.startTrace = QDateTimeEdit()
         self.endTrace = QDateTimeEdit()
+        # Boundaries
+        #self.startTrace.setMinimumDateTime(start)
+        self.startTrace.setDateTime(start)
+        ##self.endTrace.setMaximumDateTime(end)
+        self.endTrace.setDateTime(end)
+        # Add widgets to tab
         layoutTime.addWidget(self.startTrace)
         layoutTime.addWidget(self.endTrace)
         self.Description.layout.addLayout(layoutTime)
@@ -787,7 +1031,7 @@ class ExamplePopup(QDialog):
         self.channelChoice.editingFinished.connect(self.plot_seismic)
         self.startTrace.editingFinished.connect(self.plot_seismic)
         self.endTrace.editingFinished.connect(self.plot_seismic)
-        
+
         # Création d'un widget pour afficher la graphique de la trace sismique
         self.figure = Figure(figsize=(6,4))
         self.canvas = FigureCanvas(self.figure)
@@ -806,13 +1050,18 @@ class ExamplePopup(QDialog):
             
         if (self.channelChoice.text() and self.startTrace.dateTime() and self.endTrace.dateTime()):
             try:
-                '''
-                pyStartTime = self.startTrace.toPyDateTime()
+                # Convert QDateTime value to UTCDateTime
+                localStartTime = self.startTrace.dateTime()
+                pyStartTime = localStartTime.toPyDateTime()
                 UTCStartTime = pyStartTime.astimezone(pytz.UTC)
                 
-                pyEndTime = self.endTrace.toPyDateTime()
+                localEndTime = self.endTrace.dateTime()
+                pyEndTime = localEndTime.toPyDateTime()
                 UTCEndTime = pyEndTime.astimezone(pytz.UTC)
-                '''
+                
+                print(UTCStartTime)
+                print(UTCEndTime)
+               
                 self.nameStation = self.name.split('.')[1]
     
                 
@@ -821,8 +1070,8 @@ class ExamplePopup(QDialog):
                     station = self.nameStation,
                     location = location,
                     channel = self.channelChoice.text(),
-                    starttime = UTCDateTime("2018-02-12T03:08:02"),
-                    endtime = UTCDateTime("2018-02-12T03:08:02") +90,
+                    starttime = UTCStartTime,
+                    endtime = UTCEndTime,
                     attach_response = True,
                 )
                 
