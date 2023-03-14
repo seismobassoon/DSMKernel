@@ -789,13 +789,13 @@ class Window(QMainWindow):
                 self.marker.bindPopup(popup_html)
                 #js = "{marker}.on('click',{function})".format(marker=self.marker, function=self.on_marker_clicked)
                 
-            self.showDialog()
+            self.showStationDialog()
             self.show()
                 
 
             
     
-    def showDialog(self):
+    def showStationDialog(self):
         self.dialog = QDialog()
         label = QLabel('My stations list')
         label.setAlignment(Qt.AlignCenter)
@@ -822,8 +822,7 @@ class Window(QMainWindow):
         exPopup = StationPopup(item.text(),self)
         exPopup.setWindowTitle("Seismic station {} details".format(item.text()))
         exPopup.show()
-        
-        
+            
         
     # START SEARCH EVENT SECTION
     #--------------------------------------------------------------------------------------
@@ -889,8 +888,12 @@ class Window(QMainWindow):
         comments='ISC'
         origin=[0, 0]
         
+        self.listEvent = QListWidget()    
+        self.listEvent.itemDoubleClicked.connect(self.buildEventPopup)
+        
         for event in events_center:
             for origin, magnitude in zip(event.origins, event.magnitudes):
+                
                 lat, lon, depth, mag = (
                     origin.latitude,
                     origin.longitude,
@@ -898,6 +901,8 @@ class Window(QMainWindow):
                     magnitude.mag,
                 )
                 infos = "Lat/Long: (%s %s)<br/>Depth: %s m<br/>Magnitude: %s<br/>Comment: %s" % (lat, lon, depth, mag, comments)
+                self.nameEvent = "Mw %.2f, (%.2f,%.2f), depth. %.2f m" % (mag,lat,lon,depth)
+                QListWidgetItem(self.nameEvent,self.listEvent)
                 events = L.circleMarker([lat, lon], {
                     'radius':50 * 2 ** (mag) / 2 ** 10,
                     'color':get_depth_color(depth),
@@ -906,6 +911,7 @@ class Window(QMainWindow):
                 self.map.addLayer(events)
                 popup_html = "<em> %s </em>" % infos
                 events.bindPopup(popup_html)
+                
                 
         for net, sta, lat, lon, elev in stationsEvent:
             name = ".".join([net, sta])
@@ -923,8 +929,56 @@ class Window(QMainWindow):
             popup_html="<b>%s</b>" %infos
             
             marker.bindPopup(popup_html)
+            
+        self.showEventDialog()
+        self.show()
         
 
+    def showEventDialog(self):
+        self.dialogEvent = QDialog()
+        label = QLabel('My events list')
+        label.setAlignment(Qt.AlignCenter)
+        
+        # Search event by name
+        searchEventEdit = QLineEdit()
+        searchEventEdit.setPlaceholderText('Search...')
+        searchEventEdit.setStyleSheet("QLineEdit { color: #888888; } ")
+        searchEventEdit.textChanged.connect(self.updateListEventWidget)
+        
+        # Créer un QVBoxLayout
+        layout = QVBoxLayout()
+        layout.addWidget(searchEventEdit)
+        layout.addWidget(label)
+        layout.addWidget(self.listEvent)
+        
+        # Appliquer le QVBoxLayout à la QDialog
+        self.dialogEvent.setLayout(layout)
+        
+        # Centrer la QDialog
+        self.dialogEvent.setGeometry(500, 500, 400, 400)
+        self.dialogEvent.setWindowTitle('Seismic events list')
+        self.dialogEvent.setWindowIcon(QtGui.QIcon('logo.jpg'))
+        self.listEvent.setGeometry(100, 100, 200, 200)
+        self.dialogEvent.setModal(False)
+        self.dialogEvent.show()
+    
+    def updateListEventWidget(self, text):
+        for index in range(self.listEvent.count()):
+            item = self.listEvent.item(index)
+        if text.lower() in item.text().lower():
+            item.setHidden(False)
+        else:
+            item.setHidden(True)
+    
+
+    @pyqtSlot(QListWidgetItem)           
+    def buildEventPopup(self,item):
+        exPopup = EventPopup(item.text(),self)
+        exPopup.setWindowTitle("Seismic event {} details".format(item.text()))
+        exPopup.show()
+        
+
+    
 class StationPopup(QDialog):
 
     def __init__(self, name,parent=None):
@@ -1368,7 +1422,13 @@ class StationPopup(QDialog):
         else:
             pass
     
-            
+
+class EventPopup(QDialog):
+
+    def __init__(self, name,parent=None):
+        super().__init__(parent)
+        self.setWindowIcon(QtGui.QIcon('logo.jpg'))
+        self.resize(900,700)            
             
         
             
@@ -1399,7 +1459,7 @@ class SplashScreen(QMainWindow):
         self.logo_pyqt.setAlignment(Qt.AlignCenter)
         
         
-        #•self.central_widget.setLayout(QVBoxLayout(self.central_widget))
+        #self.central_widget.setLayout(QVBoxLayout(self.central_widget))
         #self.central_widget.layout().addWidget(self.logo_label)
         
         chargement = QLabel("Loading...")
