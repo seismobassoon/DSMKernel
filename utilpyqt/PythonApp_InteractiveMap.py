@@ -21,7 +21,7 @@ from obspy import UTCDateTime
 from DataProcessor_Fonctions import get_depth_color, get_periodogram # Load the function "plot_events" provided in tp_obsp
 
 from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar, QFrame, QCheckBox
-from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem
+from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem,QTreeView
 from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget,QSlider,QListWidget, QRadioButton
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox,QHBoxLayout,QDesktopWidget,QButtonGroup
 
@@ -32,7 +32,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from pyqtlet import L, MapWidget 
 
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QStandardItemModel
 from PyQt5.QtCore import Qt, QSettings, QTimer, pyqtSlot, pyqtSignal
 
 class Window(QMainWindow):
@@ -611,16 +611,21 @@ class Window(QMainWindow):
         self.searchEventAction = QAction("Search by event",self)
         self.searchEventAction.triggered.connect(self.showSecondToolBar)
         
-        
-        
 
     def about(self):
         # Logic for showing an about dialog content goes here...
-        self.centralWidget.setText("<b>About</b> clicked")
+        msg = QMessageBox()
+        msg.setWindowTitle("About the project")
+        msg.setText("Welcome in this interface!")
+        msg.setIcon(QMessageBox.Question)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.setDefaultButton(QMessageBox.Ok)
+        msg.exec_()
+        
         
     def helpContent(self):
         # Logic for launching help goes here...
-        self.centralWidget.setText("<b>Help > Help Content</b> clicked")
+        QMessageBox.aboutQt(self)
         
     def showMainToolBar(self):
 
@@ -981,6 +986,7 @@ class Window(QMainWindow):
         self.dialogEvent.setModal(False)
         self.dialogEvent.show()
     
+    # Pour filtrer la recherche
     def updateListEventWidget(self, text):
         for index in range(self.listEvent.count()):
             item = self.listEvent.item(index)
@@ -1508,6 +1514,13 @@ class EventPopup(QDialog):
         
         listLabel = QLabel("<b>List station</b>")
         leftLayout.addWidget(listLabel)
+        
+        model = QStandardItemModel(0,2,self)
+        model.setHorizontalHeaderLabels(["","Stations"])
+        
+        tree_view = QTreeView()
+        tree_view.setModel(model)
+        leftLayout.addWidget(tree_view)
      
         
         # Separation of the window into two parts
