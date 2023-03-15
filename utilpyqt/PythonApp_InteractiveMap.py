@@ -572,11 +572,11 @@ class Window(QMainWindow):
         self.networkLabel.setAlignment(Qt.AlignCenter)
         
         self.magLabel = QLabel(self)
-        self.magLabel.setText("<b>Magnitude min</b>")
+        self.magLabel.setText("<b>Magnitude constraints</b>")
         self.magLabel.setAlignment(Qt.AlignCenter)
         
         self.magEventLabel = QLabel(self)
-        self.magEventLabel.setText("<b>Magnitude min</b>")
+        self.magEventLabel.setText("<b>Magnitude constraints</b>")
         self.magEventLabel.setAlignment(Qt.AlignCenter)
         
         self.dateLabel = QLabel(self)
@@ -738,6 +738,7 @@ class Window(QMainWindow):
             
             # plot_events_stations(self,events_center, stations, origin=[0, 0], zoom=2, color="blue",comments="ISC")
             for event in events_center:
+                print(events_center)
                 for origin, magnitude in zip(event.origins, event.magnitudes):
                     lat, lon, depth, mag = (
                         origin.latitude,
@@ -859,7 +860,7 @@ class Window(QMainWindow):
         valueMagMin = self.magEventChoice.value()
         intMag = int(valueMagMin)
         
-        events_center = Client(client_select).get_events(    
+        self.events_center = Client(client_select).get_events(    
             minlatitude = intMinLat,
             maxlatitude = intMaxLat,
             minlongitude = intMinLon,
@@ -869,8 +870,9 @@ class Window(QMainWindow):
             starttime=startEvent,
             endtime=endEvent,
         )
-        print("\nFound %s event(s) from %s Data Center:\n" % (len(events_center),client_select))
-        print(events_center)
+        print("\nFound %s event(s) from %s Data Center:\n" % (len(self.events_center),client_select))
+        print(self.events_center)
+ 
         
         global clientEvent
         clientEvent = Client(client_select)
@@ -888,10 +890,12 @@ class Window(QMainWindow):
         comments='ISC'
         origin=[0, 0]
         
-        self.listEvent = QListWidget()    
+        
+        
+        self.listEvent = QListWidget(self)    
         self.listEvent.itemDoubleClicked.connect(self.buildEventPopup)
         
-        for event in events_center:
+        for event in self.events_center:
             for origin, magnitude in zip(event.origins, event.magnitudes):
                 
                 lat, lon, depth, mag = (
@@ -901,8 +905,17 @@ class Window(QMainWindow):
                     magnitude.mag,
                 )
                 infos = "Lat/Long: (%s %s)<br/>Depth: %s m<br/>Magnitude: %s<br/>Comment: %s" % (lat, lon, depth, mag, comments)
+                
+                '''
+                item = QListWidgetItem()
+                item.setText(str(event))
+                self.listEvent.addItem(item)
+            
+                '''
                 self.nameEvent = "Mw %.2f, (%.2f,%.2f), depth. %.2f m" % (mag,lat,lon,depth)
                 QListWidgetItem(self.nameEvent,self.listEvent)
+               
+
                 events = L.circleMarker([lat, lon], {
                     'radius':50 * 2 ** (mag) / 2 ** 10,
                     'color':get_depth_color(depth),
@@ -911,12 +924,18 @@ class Window(QMainWindow):
                 self.map.addLayer(events)
                 popup_html = "<em> %s </em>" % infos
                 events.bindPopup(popup_html)
-                
-                
+        
+        
+        
         for net, sta, lat, lon, elev in stationsEvent:
             name = ".".join([net, sta])
             infos = "Name: %s<br/>Lat/Long: (%s, %s)<br/>Elevation: %s m" % (name, lat, lon, elev)
-            
+            '''
+            # Generate the list of checkbox for the station selection 
+            checkbox = QCheckBox(name,self)
+            self.checkboxes[name] = checkbox
+            layoutCheckBox.addWidget(checkbox)
+            '''
             marker = L.marker([lat, lon], {
                 'color':"blue",
                 'fillColor':"#FF8C00",
@@ -936,7 +955,7 @@ class Window(QMainWindow):
 
     def showEventDialog(self):
         self.dialogEvent = QDialog()
-        label = QLabel('My events list')
+        label = QLabel('<b>My events list</b>')
         label.setAlignment(Qt.AlignCenter)
         
         # Search event by name
@@ -973,6 +992,22 @@ class Window(QMainWindow):
 
     @pyqtSlot(QListWidgetItem)           
     def buildEventPopup(self,item):
+        # Recupération de la position de l'élément séléctionné dans la liste
+        index = self.listEvent.row(item)
+        
+        global eqo, eqoMag
+        eqo = self.events_center[index].origins[0]
+        eqoMag = self.events_center[index].magnitudes[0].mag
+        
+        '''
+        selected_event = item.text()
+        print("Selected event :",selected_event)
+        for event_num, event in self.event_dict.items():
+            if event == selected_event:
+                print("selected event number: ",event_num)
+                break
+        '''
+        
         exPopup = EventPopup(item.text(),self)
         exPopup.setWindowTitle("Seismic event {} details".format(item.text()))
         exPopup.show()
@@ -1112,10 +1147,11 @@ class StationPopup(QDialog):
                 localEndTime = self.endTrace.dateTime()
                 pyEndTime = localEndTime.toPyDateTime()
                 UTCEndTime = pyEndTime.astimezone(pytz.UTC)
-                
-                print(UTCStartTime)
-                print(UTCEndTime)
-               
+                '''
+                start = UTCDateTime(UTCStartTime)
+                end = UTCDateTime(UTCEndTime)
+                '''
+                start = UTCDateTime("2018-02-12T03:08:02")
                 self.nameStation = self.name.split('.')[1]
     
                 
@@ -1124,8 +1160,10 @@ class StationPopup(QDialog):
                     station = self.nameStation,
                     location = location,
                     channel = self.channelChoice.text(),
-                    starttime = UTCStartTime,
-                    endtime = UTCEndTime,
+                    #starttime = UTCStartTime,
+                    #endtime = UTCEndTime,
+                    starttime = start,
+                    endtime = start + 90,
                     attach_response = True,
                 )
                 
@@ -1209,7 +1247,7 @@ class StationPopup(QDialog):
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
         separator.setFrameShadow(QFrame.Sunken)
-        self.Description.layout.addWidget(separator)
+        self.Periodogram.layout.addWidget(separator)
         '''
         
         
@@ -1314,13 +1352,13 @@ class StationPopup(QDialog):
         
     # DETRENDING DATA    
     def detrend_checkbox(self,state):
-        if state == 2:
+        if state == 2 and hasattr(self,'st'):
             self.st.detrend("demean")
         else:
             pass
         
     def instrument_response_checkbox(self,state):
-        if state == 2:
+        if state == 2 and hasattr(self,'st'):
             self.st.remove_response(output="VEL")
             #self.figure_mean.clear()
             self.st.plot(fig=self.figure_mean)
@@ -1329,7 +1367,7 @@ class StationPopup(QDialog):
             pass
             
     def checkFieldsFilled_BP(self,bandpassBox,freqMin_bp,freqMax_bp, buttonGroup):
-        if bandpassBox.isChecked() and freqMin_bp.text() and freqMax_bp.text():
+        if bandpassBox.isChecked() and freqMin_bp.text() and freqMax_bp.text() and hasattr(self,'st'):
             freqmin = freqMin_bp.text()
             freqmax = freqMax_bp.text()
             
@@ -1428,7 +1466,91 @@ class EventPopup(QDialog):
     def __init__(self, name,parent=None):
         super().__init__(parent)
         self.setWindowIcon(QtGui.QIcon('logo.jpg'))
-        self.resize(900,700)            
+        self.resize(900,700)
+        
+        # TAB DESCRIPTION/PERIODOGRAM/PROCESSING
+        self.tabs = QTabWidget()
+        self.Description = QWidget()
+        self.Section = QWidget()
+        
+        #ADD WIDGET & CONTENT AT EVERY TAB
+        self.tabs.addTab(self.Description,"Description")
+        self.tabs.addTab(self.Section,"Record section")
+        
+        # Ajouter des layouts à chaque onglet
+        self.Description.layout = QVBoxLayout()
+        self.Section.layout = QVBoxLayout()
+        
+        # Ajouter des widgets à chaque layout d'onglet
+        self.Description.layout.addWidget(QWidget())
+        self.Section.layout.addWidget(QWidget())
+
+        # Définir les layouts pour chaque onglet
+        self.Description.setLayout(self.Description.layout)
+        self.Section.setLayout(self.Section.layout)
+
+        # Ajouter le widget QTabWidget à la fenêtre MyDialog
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.tabs)
+        self.setLayout(self.layout)
+        
+
+        self._contentTab1()
+        
+    def _contentTab1 (self):
+        
+        
+        layout = QHBoxLayout(self)
+        
+        # LEFT PART
+        leftLayout = QVBoxLayout()
+        layout.addLayout(leftLayout)
+        
+        listLabel = QLabel("<b>List station</b>")
+        leftLayout.addWidget(listLabel)
+     
+        
+        # Separation of the window into two parts
+        separator = QFrame(self)
+        separator.setFrameShape(QFrame.VLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(separator) 
+        
+        # RIGHT PART
+        rightLayout = QVBoxLayout()
+        layout.addLayout(rightLayout)
+        
+        eqLabel = QLabel("<b>Earthquake information</b>")
+        rightLayout.addWidget(eqLabel)
+        
+        # EQ INFO
+        eqoMagLabel = QLabel("eqo.mag: {}".format(eqoMag))
+        eqoLatLabel = QLabel("eqo.latitude: {}".format(eqo.latitude))
+        eqoLonLabel = QLabel("eqo.longitude: {}".format(eqo.longitude))
+        eqoDepthLabel = QLabel("eqo.depth: {}".format(eqo.depth))
+        eqoStartLabel = QLabel("eqo.start: {}".format(eqo.time))
+        rightLayout.addWidget(eqoMagLabel)
+        rightLayout.addWidget(eqoLatLabel)
+        rightLayout.addWidget(eqoLonLabel)
+        rightLayout.addWidget(eqoDepthLabel)
+        rightLayout.addWidget(eqoStartLabel)
+        
+        # CHANNEL INITIALIZATION
+        channelLayout = QHBoxLayout()
+        rightLayout.addLayout(channelLayout)
+        Channel = QLabel("<b>Channel: </b>")
+        channelLayout.addWidget(Channel)
+        self.channelChoice = QLineEdit()
+        channelLayout.addWidget(self.channelChoice)
+        self.channelChoice.setPlaceholderText("Enter a channel")
+        self.channel = self.channelChoice.text()
+        
+        
+        
+        self.Description.layout.addLayout(layout)
+        
+        eqContent = QVBoxLayout
+        
             
         
             
