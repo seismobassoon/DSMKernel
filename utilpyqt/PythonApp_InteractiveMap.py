@@ -619,8 +619,12 @@ class Window(QMainWindow):
         msg = QMessageBox()
         msg.setWindowTitle("About the project")
         msg.resize(500,500)
-        msg.setText("Welcome in this interface! More information are coming")
-        msg.setIcon(QMessageBox.Question)
+        
+        with open('about.txt','r',encoding='utf-8') as f:
+            message = f.read()
+            
+        msg.setText(message)
+        msg.setIcon(QMessageBox.Information)
         msg.setStandardButtons(QMessageBox.Ok)
         msg.setDefaultButton(QMessageBox.Ok)
         msg.exec_()
@@ -1512,22 +1516,26 @@ class EventPopup(QDialog):
         model = QStandardItemModel(0,2,self)
         model.setHorizontalHeaderLabels(["","Stations"])
         
-        '''
+   
+        # Tri des stations par réseau
         stations_tries = {}
         for station in stations:
-            if station[0] not in stations_tries:
-                stations_tries[station[0]] = []
-            stations_tries[stations[0]].append(station[1])
-            
-        #Ajout de headers pour chaque network
+            network = tuple(station[:1]) # conversion de la liste en un tuple
+            if network not in stations_tries:
+                stations_tries[network] = []
+            stations_tries[network].append(station[1])
+        
+        # Ajout des headers pour chaque réseau et de la liste des noms correspondants
         row = 0
         for network, names in stations_tries.items():
-            model.setHeaderData(row,Qt.Vertical,network)
+            network_str = network[0] # récupération du réseau sous forme de chaîne de caractères
+            model.setHeaderData(row, QtCore.Qt.Vertical, network_str)
             for name in names:
                 item = QtGui.QStandardItem(name)
-                model.setItem(row,0,item)
+                model.setItem(row, 0, item)
                 row += 1
-        '''
+
+     
         
         
         #for state, stations in
