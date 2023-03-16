@@ -17,6 +17,7 @@ import numpy as np
 
 from obspy.clients.fdsn import Client
 from obspy import UTCDateTime
+from geopy.geocoders import Nominatim
 
 from DataProcessor_Fonctions import get_depth_color, get_periodogram # Load the function "plot_events" provided in tp_obsp
 
@@ -548,6 +549,7 @@ class Window(QMainWindow):
                 cursor: pointer;
                 """)
         self.eventToolBar.addWidget(self.searchEventButton)
+        self.searchEventButton.setDefault(True)
         self.searchEventButton.clicked.connect(self.startEventSearch)
         
         # COORDINATES OF THE EVENT
@@ -616,7 +618,8 @@ class Window(QMainWindow):
         # Logic for showing an about dialog content goes here...
         msg = QMessageBox()
         msg.setWindowTitle("About the project")
-        msg.setText("Welcome in this interface!")
+        msg.resize(500,500)
+        msg.setText("Welcome in this interface! More information are coming")
         msg.setIcon(QMessageBox.Question)
         msg.setStandardButtons(QMessageBox.Ok)
         msg.setDefaultButton(QMessageBox.Ok)
@@ -911,12 +914,6 @@ class Window(QMainWindow):
                 )
                 infos = "Lat/Long: (%s %s)<br/>Depth: %s m<br/>Magnitude: %s<br/>Comment: %s" % (lat, lon, depth, mag, comments)
                 
-                '''
-                item = QListWidgetItem()
-                item.setText(str(event))
-                self.listEvent.addItem(item)
-            
-                '''
                 self.nameEvent = "Mw %.2f, (%.2f,%.2f), depth. %.2f m" % (mag,lat,lon,depth)
                 QListWidgetItem(self.nameEvent,self.listEvent)
                
@@ -930,17 +927,11 @@ class Window(QMainWindow):
                 popup_html = "<em> %s </em>" % infos
                 events.bindPopup(popup_html)
         
-        
-        
+        global stations
+        stations = []
         for net, sta, lat, lon, elev in stationsEvent:
             name = ".".join([net, sta])
             infos = "Name: %s<br/>Lat/Long: (%s, %s)<br/>Elevation: %s m" % (name, lat, lon, elev)
-            '''
-            # Generate the list of checkbox for the station selection 
-            checkbox = QCheckBox(name,self)
-            self.checkboxes[name] = checkbox
-            layoutCheckBox.addWidget(checkbox)
-            '''
             marker = L.marker([lat, lon], {
                 'color':"blue",
                 'fillColor':"#FF8C00",
@@ -949,6 +940,7 @@ class Window(QMainWindow):
             })
             
             self.map.addLayer(marker)
+            stations.append([net,sta])
           
             popup_html="<b>%s</b>" %infos
             
@@ -1134,7 +1126,9 @@ class StationPopup(QDialog):
         
         # DOWNLOAD DATA
         self.download_button = QPushButton("Download",self)
+        self.download_button.setFixedWidth(150)
         self.Description.layout.addWidget(self.download_button)
+        self.Description.layout.setAlignment(Qt.AlignCenter)
     
         
                 
@@ -1518,6 +1512,26 @@ class EventPopup(QDialog):
         model = QStandardItemModel(0,2,self)
         model.setHorizontalHeaderLabels(["","Stations"])
         
+        '''
+        stations_tries = {}
+        for station in stations:
+            if station[0] not in stations_tries:
+                stations_tries[station[0]] = []
+            stations_tries[stations[0]].append(station[1])
+            
+        #Ajout de headers pour chaque network
+        row = 0
+        for network, names in stations_tries.items():
+            model.setHeaderData(row,Qt.Vertical,network)
+            for name in names:
+                item = QtGui.QStandardItem(name)
+                model.setItem(row,0,item)
+                row += 1
+        '''
+        
+        
+        #for state, stations in
+        
         tree_view = QTreeView()
         tree_view.setModel(model)
         leftLayout.addWidget(tree_view)
@@ -1537,11 +1551,18 @@ class EventPopup(QDialog):
         rightLayout.addWidget(eqLabel)
         
         # EQ INFO
+        '''
+        geolocator = Nominatim(user_agent='my_application')
+        location = geolocator.reverse(f"{eqo.latitude},{eqo.longitude}")
+        locationCountry = location.raw['address']['country']
+        eqoCountry = QLabel("Country: {}".format(locationCountry))
+        '''
         eqoMagLabel = QLabel("eqo.mag: {}".format(eqoMag))
         eqoLatLabel = QLabel("eqo.latitude: {}".format(eqo.latitude))
         eqoLonLabel = QLabel("eqo.longitude: {}".format(eqo.longitude))
         eqoDepthLabel = QLabel("eqo.depth: {}".format(eqo.depth))
         eqoStartLabel = QLabel("eqo.start: {}".format(eqo.time))
+        #rightLayout.addWidget(eqoCountry)
         rightLayout.addWidget(eqoMagLabel)
         rightLayout.addWidget(eqoLatLabel)
         rightLayout.addWidget(eqoLonLabel)
@@ -1558,11 +1579,25 @@ class EventPopup(QDialog):
         self.channelChoice.setPlaceholderText("Enter a channel")
         self.channel = self.channelChoice.text()
         
+        # LOCATION INITIALIZATION
+        locationLayout = QHBoxLayout()
+        rightLayout.addLayout(locationLayout)
+        Location = QLabel("<b>Location: </b>")
+        locationLayout.addWidget(Location)
+        self.locationChoice = QLineEdit()
+        locationLayout.addWidget(self.locationChoice)
+        self.locationChoice.setPlaceholderText("Enter a location (ex. '00')")
+        self.location = self.locationChoice.text()
+        
+        # FOCAL MECHANISMS
+        self.figure = Figure(figsize=(6,4))
+        self.canvas = FigureCanvas(self.figure)
+        rightLayout.addWidget(self.canvas)
         
         
         self.Description.layout.addLayout(layout)
         
-        eqContent = QVBoxLayout
+        #eqContent = QVBoxLayout
         
             
         
