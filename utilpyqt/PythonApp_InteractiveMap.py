@@ -108,6 +108,7 @@ class Window(QMainWindow):
         time.sleep(2)
         
         
+        
         # CONTENT
         #----------------------------------------------------------------------------------------------------
         self._createActions()
@@ -293,45 +294,35 @@ class Window(QMainWindow):
         # MAGNITUDE ACTION
             
         self.mainToolBar.addWidget(self.magLabel)
-        '''
-        self.magChoice = QSlider()
-        
-        layout = QHBoxLayout()
-        self.mag = QLabel()
-        self.magChoice = QSlider()
-        
-        # Placement du QSlider à côté du QLabel
-        layout.addWidget(self.magChoice)
-        layout.addWidget(self.mag)
    
-        def show(self):
-            self.magLabel.setText(str(self.magChoice.value()))
         
-        '''
-        '''
-        # Customization of the QSlider
         layoutMag = QHBoxLayout()
         
-        self.magChoice.setRange(0,10)
-        self.magChoice.setSingleStep(0.1)
-        self.magChoice.setTickPosition(QSlider.TicksAbove)
-        self.magChoice.setTickInterval(1)
-        self.magChoice.setValue(4)
-        self.magChoice.setOrientation(1)
-        self.magChoice.setFixedWidth(125)
+        self.magChoice = QSlider()
+        self.magValue = QDoubleSpinBox()
+        self.magValue.setValue(5)
+        #self.magValue.setFixedWidth(25)
         
-        label = QLabel("0")
+        self.magChoice.setRange(0,100)
+        self.magChoice.setSingleStep(1)
+        self.magChoice.setTickPosition(QSlider.TicksAbove)
+        self.magChoice.setTickInterval(10)
+        self.magChoice.setValue(50)
+        self.magChoice.setOrientation(1)
+        #self.magChoice.setFixedWidth(125)
+        
+        #label = QLabel("0")
         layoutMag.addWidget(self.magChoice)
-        layoutMag.addWidget(label)
+        layoutMag.addWidget(self.magValue)
         
         widget = QWidget()
         widget.setLayout(layoutMag)
         self.mainToolBar.addWidget(widget)
         
-        def update_mag_value(value):
-            label.setText(str(value))
+        
             
-        self.magChoice.valueChanged.connect(update_mag_value)
+        self.magChoice.valueChanged.connect(self.update_mag_value)
+        self.magValue.valueChanged.connect(self.update_mag_slider)
       
         
         
@@ -341,7 +332,7 @@ class Window(QMainWindow):
         self.mainToolBar.addWidget(self.magChoice)
         self.magChoice.setMinimum(0)
         self.magChoice.setMaximum(10)
-       
+        '''
         
         
         # SEPARATING----------------------------------------------
@@ -379,6 +370,13 @@ class Window(QMainWindow):
         self.mainToolBar.addWidget(self.searchButton)
         self.searchButton.clicked.connect(self.startSearch)
         self.mainToolBar.setVisible(False)
+        
+    
+    def update_mag_value(self,value):
+        self.magValue.setValue(float(value)/10)
+        
+    def update_mag_slider(self,value):
+        self.magChoice.setValue(int(value*10))
     
         
     def toggleToolbar(self):
@@ -527,11 +525,34 @@ class Window(QMainWindow):
         self.eventToolBar.addAction(separator)
         
         # MAGITUDE MINIMUM
+        
         self.eventToolBar.addWidget(self.magEventLabel)
-        self.magEventChoice = QDoubleSpinBox()
+        layoutMag = QHBoxLayout()
+        self.magEventChoice = QSlider()
+        self.magEventValue = QDoubleSpinBox()
+        self.magEventValue.setValue(5)
+        #self.magValue.setFixedWidth(25)
+        
+        self.magEventChoice.setRange(0,100)
+        self.magEventChoice.setSingleStep(1)
+        self.magEventChoice.setTickPosition(QSlider.TicksAbove)
+        self.magEventChoice.setTickInterval(10)
+        self.magEventChoice.setValue(50)
+        self.magEventChoice.setOrientation(1)
+
+        layoutMag.addWidget(self.magEventChoice)
+        layoutMag.addWidget(self.magEventValue)
+        
+        widget = QWidget()
+        widget.setLayout(layoutMag)
+        self.eventToolBar.addWidget(widget)
+        
+        self.magEventChoice.valueChanged.connect(self.update_magEvent_value)
+        self.magEventValue.valueChanged.connect(self.update_magEvent_slider)
+
         self.eventToolBar.addWidget(self.magEventChoice)
-        self.magEventChoice.setMinimum(0)
-        self.magEventChoice.setMaximum(10)
+        
+        # SEARCH ACTION
         
         
         self.searchEventButton = QPushButton("Search")
@@ -552,7 +573,11 @@ class Window(QMainWindow):
         self.searchEventButton.setDefault(True)
         self.searchEventButton.clicked.connect(self.startEventSearch)
         
-        # COORDINATES OF THE EVENT
+    def update_magEvent_value(self,value):
+        self.magEventValue.setValue(float(value)/10)
+        
+    def update_magEvent_slider(self,value):
+        self.magEventChoice.setValue(int(value*10))
        
 
     # CREATE ACTION FOR BOTH TOOLBARS
@@ -667,6 +692,8 @@ class Window(QMainWindow):
                 #if not self.networkChoice.text():
                     #self.locChoice.setStyleSheet(style)
         else:
+            
+
             # RESET OF THE INITIAL STYLE PARAMETERS
             style = "border: 1px solid black;"
             self.locChoice.setStyleSheet(style)
@@ -704,7 +731,7 @@ class Window(QMainWindow):
             location = self.locChoice.text()
             
             # MAGNITUDE INITIALIZATION (convert QDoubleSpinBox to int)
-            valueMagMin = self.magChoice.value()
+            valueMagMin = self.magValue.value()
             intMag = int(valueMagMin)
             
             # CLIENT INITIALIZATION (convert QComboBox to str)
@@ -748,6 +775,15 @@ class Window(QMainWindow):
             comments='ISC'
             origin=[0, 0]
             
+            if 'eventsGroup' in locals():
+                print("eventsGroup existe!")
+                eventsGroup.clearLayers()
+    
+            if 'markerGroup' in locals():
+                print("markersGroup existe!")
+                markerGroup.clearLayers()
+            
+            eventsGroup = L.featureGroup()
             # plot_events_stations(self,events_center, stations, origin=[0, 0], zoom=2, color="blue",comments="ISC")
             for event in events_center:
                 print(events_center)
@@ -759,22 +795,28 @@ class Window(QMainWindow):
                         magnitude.mag,
                     )
                     infos = "Lat/Long: (%s %s)<br/>Depth: %s m<br/>Magnitude: %s<br/>Comment: %s" % (lat, lon, depth, mag, comments)
-                    self.events = L.circleMarker([lat, lon], {
+                    events = L.circleMarker([lat, lon], {
                         'radius':50 * 2 ** (mag) / 2 ** 10,
                         #tooltip=infos,
                         'color':get_depth_color(depth),
                         #fill=True,
                         'fillColor':"#FF8C00"
                     })
-                    self.map.addLayer(self.events)
+                    
+                    
+                    #self.map.addLayer(self.events)
+                    eventsGroup.addLayer(events)
                     popup_html = "<em> %s </em>" % infos
-                    self.events.bindPopup(popup_html)
+                    events.bindPopup(popup_html)
+                    
                     
             #self.update_map()
-            
+            self.map.addLayer(eventsGroup)
 
             self.listStation = QListWidget()    
             self.listStation.itemDoubleClicked.connect(self.buildStationPopup)
+            
+            markersGroup= L.featureGroup()
 
             for net, sta, lat, lon, elev in stations:
                 self.name = ".".join([net, sta])
@@ -795,13 +837,14 @@ class Window(QMainWindow):
 
                 })
                 
-                self.map.addLayer(self.marker)
-              
+                #self.map.addLayer(self.marker)
+                
                 popup_html="<b>%s</b>" %self.infos
                 
                 self.marker.bindPopup(popup_html)
+                markersGroup.addLayer(self.marker)
                 #js = "{marker}.on('click',{function})".format(marker=self.marker, function=self.on_marker_clicked)
-                
+            self.map.addLayer(markersGroup)    
             self.showStationDialog()
             self.show()
                 
@@ -869,7 +912,7 @@ class Window(QMainWindow):
         client_select = str(self.clientEventChoice.currentText())
         
         # MAGNITUDE INITIALIZATION (convert QDoubleSpinBox to int)
-        valueMagMin = self.magEventChoice.value()
+        valueMagMin = self.magEventValue.value()
         intMag = int(valueMagMin)
         
         self.events_center = Client(client_select).get_events(    
