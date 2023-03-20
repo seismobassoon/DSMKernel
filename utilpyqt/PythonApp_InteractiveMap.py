@@ -21,9 +21,9 @@ from geopy.geocoders import Nominatim
 
 from DataProcessor_Fonctions import get_depth_color, get_periodogram # Load the function "plot_events" provided in tp_obsp
 
-from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar, QFrame, QCheckBox
-from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem,QTreeView
-from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget,QSlider,QListWidget, QRadioButton
+from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar, QFrame, QCheckBox,QSpacerItem
+from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem,QTreeView,QAbstractItemView
+from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget,QSlider,QListWidget, QRadioButton, QSizePolicy
 from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox,QHBoxLayout,QDesktopWidget,QButtonGroup
 
 from matplotlib.figure import Figure
@@ -33,7 +33,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from pyqtlet import L, MapWidget 
 
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtGui import QPixmap, QStandardItemModel
+from PyQt5.QtGui import QPixmap, QStandardItemModel, QFont, QStandardItem
 from PyQt5.QtCore import Qt, QSettings, QTimer, pyqtSlot, pyqtSignal
 
 class Window(QMainWindow):
@@ -197,10 +197,9 @@ class Window(QMainWindow):
     
         screen_width = QDesktopWidget().screenGeometry().width()
         toolbar_width = int(screen_width*0.1)
-        self.mainToolBar.setFixedWidth(toolbar_width)
-  
+        self.mainToolBar.setFixedWidth(toolbar_width) 
         
-        self.mainToolBar.setStyleSheet("background-color: #f2f2f2; padding: 4px;")
+        self.mainToolBar.setStyleSheet("background-color: white; padding: 3px;")
         self.addToolBar(Qt.RightToolBarArea,self.mainToolBar)
         self.mainToolBar.setMovable(False)
         
@@ -208,7 +207,22 @@ class Window(QMainWindow):
         # Using a QToolBar object and a toolbar area
         self.addToolBar(Qt.RightToolBarArea, self.mainToolBar)
         
+        # TITLE
+        #-------------------------------------------------------------------------------------------
+        title = QLabel("<b>Search by station</b>")
+        title.setFont(QFont('Calibri',13))
         
+        #verticalSpacer = QSpacerItem(20,20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        #self.mainToolBar.addWidget(verticalSpacer)
+        
+        self.mainToolBar.addWidget(title)
+        self.separatorLine = QFrame()
+        self.separatorLine.setFrameShape(QFrame.HLine)
+        self.separatorLine.setLineWidth(2)
+        self.mainToolBar.addWidget(self.separatorLine)
+        
+        blank = QLabel("")
+        self.mainToolBar.addWidget(blank)
         # ADDING THE TOOLS IN THE TOOL BAR
         #----------------------------------------------------
         # CLIENT ACTION
@@ -221,11 +235,11 @@ class Window(QMainWindow):
         # ESSAYER DE CHOISIR TOUS LES CLIENTS
         
         
-        
         # SEPARATING----------------------------------------------
         separator = QAction(self)
         separator.setSeparator(True)  
         self.mainToolBar.addAction(separator)    
+        
         
         # DATE ACTION
         self.mainToolBar.addWidget(self.dateLabel)
@@ -310,6 +324,25 @@ class Window(QMainWindow):
         self.magChoice.setValue(50)
         self.magChoice.setOrientation(1)
         #self.magChoice.setFixedWidth(125)
+        self.magChoice.setStyleSheet("""
+                                     QSlider {
+                                         border-radius: 10px;
+                                    }
+                                     QSlider::groove:horizontal {
+                                         height: 5px;
+                                         background: #000;
+                                    }
+                                     QSlider::handle:horizontal {
+                                         background: #f00;
+                                         width: 16px;
+                                         height: 16px;
+                                         margin: -6px 0;
+                                         border-radius: 8px;
+                                    }
+                                     QSlider::sub-page:horizontal {
+                                         background: #f90; 
+                                    }
+                                    """)
         
         #label = QLabel("0")
         layoutMag.addWidget(self.magChoice)
@@ -451,18 +484,37 @@ class Window(QMainWindow):
             
     # TOOLBAR OF THE EVENT SECTION -----------------------------------------------------------------------------------        
     def _createToolBars2(self):
+        
+        
         # TOOLBAR SET UP
         self.eventToolBar = QToolBar("Toolbar",self)
     
         screen_width = QDesktopWidget().screenGeometry().width()
         toolbar_width = int(screen_width*0.1)
         self.eventToolBar.setFixedWidth(toolbar_width)
-  
         
-        self.eventToolBar.setStyleSheet("background-color: #f2f2f2; padding: 4px;")
+        self.eventToolBar.setStyleSheet("background-color: white; padding: 3px;")
         self.addToolBar(Qt.RightToolBarArea,self.eventToolBar)
         self.eventToolBar.setMovable(False)
         self.eventToolBar.setVisible(False)
+        
+        
+        # TITLE
+        #-------------------------------------------------------------------------------------------
+        title = QLabel("<b>Search by event</b>")
+        title.setFont(QFont('Calibri',13))
+        
+        #verticalSpacer = QSpacerItem(20,20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        #self.mainToolBar.addWidget(verticalSpacer)
+        
+        self.eventToolBar.addWidget(title)
+        self.separatorLine = QFrame()
+        self.separatorLine.setFrameShape(QFrame.HLine)
+        self.separatorLine.setLineWidth(2)
+        self.eventToolBar.addWidget(self.separatorLine)
+        
+        blank = QLabel("")
+        self.eventToolBar.addWidget(blank)
         
         # CLIENT SELECTION
         self.eventToolBar.addWidget(self.clientEventLabel)
@@ -539,6 +591,26 @@ class Window(QMainWindow):
         self.magEventChoice.setTickInterval(10)
         self.magEventChoice.setValue(50)
         self.magEventChoice.setOrientation(1)
+        
+        self.magEventChoice.setStyleSheet("""
+                                     QSlider {
+                                         border-radius: 10px;
+                                    }
+                                     QSlider::groove:horizontal {
+                                         height: 5px;
+                                         background: #000;
+                                    }
+                                     QSlider::handle:horizontal {
+                                         background: #f00;
+                                         width: 16px;
+                                         height: 16px;
+                                         margin: -6px 0;
+                                         border-radius: 8px;
+                                    }
+                                     QSlider::sub-page:horizontal {
+                                         background: #f90; 
+                                    }
+                                    """)
 
         layoutMag.addWidget(self.magEventChoice)
         layoutMag.addWidget(self.magEventValue)
@@ -1545,48 +1617,48 @@ class EventPopup(QDialog):
         self._contentTab1()
         
     def _contentTab1 (self):
-        
-        
         layout = QHBoxLayout(self)
         
-        # LEFT PART
-        leftLayout = QVBoxLayout()
-        layout.addLayout(leftLayout)
+        # Les stations peuvent être nombreuses... Outil qui permet de les rechercher plus rapidement.
+        self.ui_search = QLineEdit()
+        self.ui_search.setPlaceholderText('Search...')
         
-        listLabel = QLabel("<b>List station</b>")
-        leftLayout.addWidget(listLabel)
-        
-        model = QStandardItemModel(0,2,self)
-        model.setHorizontalHeaderLabels(["","Stations"])
-        
-   
-        # Tri des stations par réseau
+        self.tags_model = SearchProxyModel()
+        self.tags_model.setSourceModel(QtGui.QStandardItemModel())
+        self.tags_model.setDynamicSortFilter(True)
+        self.tags_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
+        # Création de la liste exaustive des stations sismiques à choisir pour réaliser la "record section"
+        self.ui_tags = QTreeView()
+        self.ui_tags.setSortingEnabled(True)
+        self.ui_tags.sortByColumn(0, QtCore.Qt.AscendingOrder)
+        self.ui_tags.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.ui_tags.setHeaderHidden(True)
+        self.ui_tags.setRootIsDecorated(True)
+        self.ui_tags.setUniformRowHeights(True)
+        self.ui_tags.setModel(self.tags_model)
+
+        # layout pour afficher le dictionnaire de station et la barre de recherche sur la gauche de la fenêtre
+        leftlayout = QVBoxLayout()
+        leftlayout.addWidget(self.ui_search)
+        leftlayout.addWidget(self.ui_tags)
+        #self.setLayout(main_layout)
+        layout.addLayout(leftlayout)
+
+        # Pour convertir la liste de stations en dictionnaire
         stations_tries = {}
         for station in stations:
-            network = tuple(station[:1]) # conversion de la liste en un tuple
-            if network not in stations_tries:
-                stations_tries[network] = []
-            stations_tries[network].append(station[1])
-        
-        # Ajout des headers pour chaque réseau et de la liste des noms correspondants
-        row = 0
-        for network, names in stations_tries.items():
-            network_str = network[0] # récupération du réseau sous forme de chaîne de caractères
-            model.setHeaderData(row, QtCore.Qt.Vertical, network_str)
-            for name in names:
-                item = QtGui.QStandardItem(name)
-                model.setItem(row, 0, item)
-                row += 1
+            if station[0] not in stations_tries:
+                stations_tries[station[0]] = []
+            stations_tries[station[0]].append(station[1])
 
-     
+        # signals
+        self.ui_tags.doubleClicked.connect(self.tag_double_clicked)
+        self.ui_search.textChanged.connect(self.search_text_changed)
+
+        # init
+        self.create_model(stations_tries)
         
-        
-        #for state, stations in
-        
-        tree_view = QTreeView()
-        tree_view.setModel(model)
-        leftLayout.addWidget(tree_view)
-     
         
         # Separation of the window into two parts
         separator = QFrame(self)
@@ -1649,6 +1721,38 @@ class EventPopup(QDialog):
         self.Description.layout.addLayout(layout)
         
         #eqContent = QVBoxLayout
+        
+    def create_model(self,stations_tries):
+        model = self.ui_tags.model().sourceModel()
+        self.populate_tree(stations_tries, model.invisibleRootItem())
+        self.ui_tags.sortByColumn(0, QtCore.Qt.AscendingOrder)
+
+
+    def populate_tree(self, children, parent):
+        for child in sorted(children):
+            node = QStandardItem(child)
+            parent.appendRow(node)
+
+            if isinstance(children, dict):
+                self.populate_tree(children[child], node)
+
+
+    def tag_double_clicked(self, index):
+        text = index.data(role=QtCore.Qt.DisplayRole)
+        print([text])
+        self.clickedTag.emit([text])
+
+
+    def search_text_changed(self, text):
+        regExp = QtCore.QRegExp(self.ui_search.text(), QtCore.Qt.CaseInsensitive, QtCore.QRegExp.FixedString)
+
+        self.tags_model.text = self.ui_search.text().lower()
+        self.tags_model.setFilterRegExp(regExp)
+
+        if len(self.ui_search.text()) >= 1 and self.tags_model.rowCount() > 0:
+            self.ui_tags.expandAll()
+        else:
+            self.ui_tags.collapseAll()
         
             
         
@@ -1731,6 +1835,36 @@ class SplashScreen(QMainWindow):
         dx = int((screen_rect.width() - window_rect.width()) / 2)
         dy = int((screen_rect.height() - window_rect.height()) / 2)
         self.move(dx,dy)
+        
+        
+class SearchProxyModel(QtCore.QSortFilterProxyModel):
+    def __init__(self, parent=None):
+        super(SearchProxyModel, self).__init__(parent)
+        self.text = ''
+
+    # Recursive search
+    
+    def _accept_index(self, idx):
+        if idx.isValid():
+            text = idx.data(role=QtCore.Qt.DisplayRole).lower()
+            condition = text.find(self.text) >= 0
+
+            if condition:
+                return True
+            for childnum in range(idx.model().rowCount(parent=idx)):
+                if self._accept_index(idx.model().index(childnum, 0, parent=idx)):
+                    return True
+        return False
+
+    def filterAcceptsRow(self, sourceRow, sourceParent):
+        # Only first column in model for search
+        idx = self.sourceModel().index(sourceRow, 0, sourceParent)
+        return self._accept_index(idx)
+
+    def lessThan(self, left, right):
+        leftData = self.sourceModel().data(left)
+        rightData = self.sourceModel().data(right)
+        return leftData < rightData
 
         
 
@@ -1741,7 +1875,5 @@ if __name__ == "__main__":
     app.processEvents()
     #app.aboutToQuit(saveSettings)
     win = Window()
-    #♣dia = MyDialog()
     win.show()
-    #dia.show()
     sys.exit(app.exec_())
