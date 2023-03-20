@@ -10,7 +10,7 @@ module parameters
   real(kind(0d0)) :: re,ratc,ratl
   integer :: maxlmax,deltalwindow
   real(kind(0d0)) :: maxMemoryInGigabyte
-  integer, allocatable :: iFrequencyArray(:), lChunk(:,:)
+  integer, allocatable :: iFrequencyArray(:), lChunk(:,:), lmaxPredefined(:)
   integer :: iFrequencyChunk,nFrequencyChunk
   integer :: iAngularOrderChunk,nAngularOrderChunk
 

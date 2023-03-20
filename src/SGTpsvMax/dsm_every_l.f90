@@ -5,12 +5,20 @@ subroutine whoDoesWhatDSM
   use mpi
   use parameters
   implicit none
+  real(kind(0d0)) :: omegaLocal,frequencyLocal
   real(kind(0d0)) :: reasonableLwidthInReal
   integer :: reasonableLwidth
 
+  allocate(lmaxPredefined(imin:imax))
+  
   nFrequencyChunk = 0
   do i=imin,imax
      !if((i.ne.0).and.((mod(imax-my_rank-i,2*nproc).eq.0).or.(mod(imax+my_rank+1-i,2*nproc).eq.0))) then
+     frequencyLocal = dble(i)/tlen
+     omegaLocal = 2.d0 * pi * dble(i) / tlen
+
+     ! NF this is ok for the Earth (5 km around)
+     lmaxPredefined(i)=20000+int(frequencyLocal*5.d3)
      
      if((i.ne.0).and.(mod(my_rank,nproc).eq.0)) then ! forget about the l-max problem, since we work for max l every omega
         nFrequencyChunk = nFrequencyChunk + 1
@@ -45,8 +53,13 @@ subroutine whoDoesWhatDSM
   lChunk(1,nAngularOrderChunk) = (nAngularOrderChunk-1)*reasonableLwidth
   lChunk(2,nAngularOrderChunk) = maxlmax
 
+  if(imin.eq.0) then
+     lmaxPredefined(0) = 0
+  endif
+
   print *, "lChunk starting points:", lChunk(1,:)
   print *, "lChunk ending points:", lChunk(2,:)
+  print *, lmaxPredefined(:)
   stop
   return
 
