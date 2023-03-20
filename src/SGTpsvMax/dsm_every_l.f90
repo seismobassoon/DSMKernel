@@ -59,7 +59,7 @@ subroutine whoDoesWhatDSM
 
   print *, "lChunk starting points:", lChunk(1,:)
   print *, "lChunk ending points:", lChunk(2,:)
-  print *, lmaxPredefined(:)
+  print *, 'lmaxPredefined', lmaxPredefined(:)
   stop
   return
 
