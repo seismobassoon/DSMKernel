@@ -24,6 +24,7 @@ subroutine whoDoesWhatDSM
         nFrequencyChunk = nFrequencyChunk + 1
      endif
   enddo
+  
   allocate (iFrequencyArray(1:nFrequencyChunk))
   iFrequencyChunk = 0 
   do i=imin,imax

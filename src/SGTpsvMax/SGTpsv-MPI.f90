@@ -36,9 +36,7 @@ program  SGTpsv
   call preparation_2
   call allocation_preparation_3
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-
   call whoDoesWhatDSM ! i-chunk and l-chunk 
-
 
   
   do iFrequencyChunk = 1,nFrequencyChunk           ! omega-loop start
@@ -94,7 +92,9 @@ program  SGTpsv
      enddo
      
      call cpu_time(end_time)
-     print *, "i, l-independent matrix construction time", i, end_time - start_time
+
+     
+     print *, "i, my_rank,  l-independent matrix construction time", i, my_rank, end_time - start_time
      
      kc = 1
      ismall = 0
