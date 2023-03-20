@@ -35,9 +35,10 @@ program  SGTpsv
   call bcast_allocate_1
   call preparation_2
   call allocation_preparation_3
-  call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   call whoDoesWhatDSM ! i-chunk and l-chunk 
+  call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
+  print *, my_rank
   
   do iFrequencyChunk = 1,nFrequencyChunk           ! omega-loop start
 
