@@ -38,7 +38,6 @@ program  SGTpsv
   call whoDoesWhatDSM ! i-chunk and l-chunk 
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
 
-  print *, my_rank
   
   do iFrequencyChunk = 1,nFrequencyChunk           ! omega-loop start
 
