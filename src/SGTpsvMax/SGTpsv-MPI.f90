@@ -40,9 +40,6 @@ program  SGTpsv
   call whoDoesWhatDSM ! i-chunk and l-chunk 
 
 
-
-  
-
   
   do iFrequencyChunk = 1,nFrequencyChunk           ! omega-loop start
 
