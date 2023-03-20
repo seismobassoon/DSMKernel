@@ -57,10 +57,10 @@ subroutine whoDoesWhatDSM
      lmaxPredefined(0) = 0
   endif
 
-  print *, "lChunk starting points:", lChunk(1,:)
-  print *, "lChunk ending points:", lChunk(2,:)
-  print *, 'lmaxPredefined', lmaxPredefined(:)
-  stop
+  !print *, "lChunk starting points:", lChunk(1,:)
+  !print *, "lChunk ending points:", lChunk(2,:)
+  !print *, 'lmaxPredefined', lmaxPredefined(:)
+  !stop
   return
 
   

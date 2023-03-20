@@ -99,7 +99,7 @@ program  SGTpsv
      kc = 1
      ismall = 0
      maxamp = -1.d0
-     llog = maxlmax
+     !llog = maxlmax
         
      
      !l=0
@@ -122,7 +122,7 @@ program  SGTpsv
      
      !l>4
      
-     do l=5,maxlmax    ! l-loop start
+     do l=5,lmaxPredefined(i)    ! l-loop start
         
         call dsm_l_big
         
