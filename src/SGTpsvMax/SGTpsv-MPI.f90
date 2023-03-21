@@ -132,6 +132,8 @@ program  SGTpsv
         call dsm_l_big
         
      enddo               ! l-loop end        
+
+     call dsm_write_files
      
      call cpu_time(start_time)
      print *, "l-dependent:", i, my_rank, lmaxPredefined(i), end_time-start_time 

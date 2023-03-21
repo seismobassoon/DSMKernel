@@ -13,8 +13,8 @@ outputDir = ${SGT_ROOT}
 
 psvmodel = ${PROJECT_SOURCE_DIR}/etc/models/ak135.psv.model
 
-tlen = 819.2d0
-
+!tlen = 819.2d0
+tlen = 3276.8d0
 	tlen is preferred to be set as powers of 2 time 0.1 seconds to be sampled safely at 20 Hz
 
 radiiQ = 3491.d0 6371.d0 20.d0

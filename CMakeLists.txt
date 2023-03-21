@@ -24,6 +24,7 @@ add_subdirectory(src/KernelMaker)
 add_subdirectory(share)
 
 add_subdirectory(src/SGTpsvMax)
+add_subdirectory(src/SGTpsvLChunk)
 add_subdirectory(src/SGTshMax)
 # some example information files
 add_subdirectory(examples/single_kernel)
