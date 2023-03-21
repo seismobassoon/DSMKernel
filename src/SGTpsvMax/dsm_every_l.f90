@@ -20,7 +20,7 @@ subroutine whoDoesWhatDSM
      ! NF this is ok for the Earth (5 km around)
      lmaxPredefined(i)=20000+int(frequencyLocal*5.d3)
      
-     if((i.ne.0).and.(mod(my_rank,nproc).eq.0)) then ! forget about the l-max problem, since we work for max l every omega
+     if((i.ne.0).and.(mod(i-my_rank,nproc).eq.0)) then ! forget about the l-max problem, since we work for max l every omega
         nFrequencyChunk = nFrequencyChunk + 1
      endif
   enddo
@@ -30,7 +30,7 @@ subroutine whoDoesWhatDSM
   do i=imin,imax
      !if((i.ne.0).and.((mod(imax-my_rank-i,2*nproc).eq.0).or.(mod(imax+my_rank+1-i,2*nproc).eq.0))) then
      
-     if((i.ne.0).and.(mod(my_rank,nproc).eq.0)) then ! forget about the l-max problem, since we work for max l every omega
+     if((i.ne.0).and.(mod(i-my_rank,nproc).eq.0)) then ! forget about the l-max problem, since we work for max l every omega
         iFrequencyChunk = iFrequencyChunk + 1
         iFrequencyArray(iFrequencyChunk) = i
      endif
