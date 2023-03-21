@@ -41,6 +41,7 @@ subroutine whoDoesWhatDSM
   reasonableLwidthInReal = 6.d-1 * maxMemoryInGigabyte * 1.d9 / 16.d0 / 57.d0 / dble(theta_n)
 
   reasonableLwidth = int(reasonableLwidthInReal)
+  print *, "reasonableLwidth=", reasonableLwidth
 
   nAngularOrderChunk = (maxlmax-1)/reasonableLwidth
   if(mod(maxlmax-1,nAngularOrderChunk).ne.0) nAngularOrderChunk = nAngularOrderChunk + 1

@@ -17,11 +17,11 @@ tlen = 819.2d0
 
 	tlen is preferred to be set as powers of 2 time 0.1 seconds to be sampled safely at 20 Hz
 
-radiiQ = 5471.d0 6371.d0 20.d0
+radiiQ = 3491.d0 6371.d0 20.d0
 
 	radiiQ needs three radii in km for min, max and delta for points to compute strains
 
-epicentralDistancesQ = 0.d0 60.d0 5.d-1
+epicentralDistancesQ = 0.d0 180.d0 2.5d-1
 	
 	epicentralDistancesQ needs three angles in degrees for min, max and delta 
 	for points to compute strains

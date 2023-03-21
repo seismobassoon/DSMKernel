@@ -38,13 +38,13 @@ program  SGTpsv
   call whoDoesWhatDSM ! i-chunk and l-chunk 
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   call cpu_time(end_time)
-  print *, "preparation time =", my_rank, end_time - start_time
+  if(my_rank.eq.0) print *, "preparation time =", my_rank, end_time - start_time
 
  
   do iFrequencyChunk = 1,nFrequencyChunk           ! omega-loop start
 
      i = iFrequencyArray(iFrequencyChunk)
-     print *, i, my_rank
+  
      ir0 = 1 ! we compute only for one source depth!
      
      tsgt = dcmplx(0.d0)
@@ -96,9 +96,9 @@ program  SGTpsv
      call cpu_time(end_time)
      
      
-     print *, "i, my_rank,  l-independent matrix construction time", i, my_rank, end_time - start_time
+     if(my_rank.eq.0) print *, "i, my_rank,  l-independent matrix construction time", i, my_rank, end_time - start_time
   
-     
+     call cpu_time(start_time)
      
      kc = 1
      ismall = 0
@@ -124,7 +124,6 @@ program  SGTpsv
      
      call dsm_l_4
 
-     print *, "l=4 for i=", i, my_rank
      
      !l>4
      
@@ -134,7 +133,8 @@ program  SGTpsv
         
      enddo               ! l-loop end        
      
-  
+     call cpu_time(start_time)
+     print *, "l-dependent:", i, my_rank, lmaxPredefined(i), end_time-start_time 
   
   enddo
 
