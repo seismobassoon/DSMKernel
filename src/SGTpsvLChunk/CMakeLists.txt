@@ -13,6 +13,6 @@ add_library(sgtPSVLChunklib
 	  	../../share/pinputDSM.f90
 	)
 
-add_executable(xSGTpsvMax SGTpsv-MPI.f90)
+add_executable(xSGTpsvLChunk SGTpsv-MPI.f90)
 target_link_libraries(xSGTpsvLChunk sgtPSVLChunklib)
 
