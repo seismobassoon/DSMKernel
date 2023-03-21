@@ -27,7 +27,7 @@ program  SGTpsv
   implicit none
   real(kind(0d0)) :: start_time, end_time
   
-  
+  call cpu_time(start_time)
   call MPI_INIT(ierr)
   call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
   call MPI_COMM_RANK(MPI_COMM_WORLD,my_rank,ierr)
@@ -37,6 +37,8 @@ program  SGTpsv
   call allocation_preparation_3
   call whoDoesWhatDSM ! i-chunk and l-chunk 
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+  call cpu_time(end_time)
+  if(my_rank.eq.0) print *, "preparation time =", end_time - start_time
 
   
   do iFrequencyChunk = 1,nFrequencyChunk           ! omega-loop start
@@ -95,8 +97,8 @@ program  SGTpsv
      
      
      print *, "i, my_rank,  l-independent matrix construction time", i, my_rank, end_time - start_time
-     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
-     stop
+  
+     
      
      kc = 1
      ismall = 0
@@ -121,6 +123,8 @@ program  SGTpsv
      !l=4
      
      call dsm_l_4
+
+     print *, "l=4 for i=", i, my_rank
      
      !l>4
      
