@@ -1,16 +1,17 @@
+
 module parameters  
 
 
 !-------------------------<< input matrix >>----------------------------------
   !include 'mpif.h'  
-  character(200) :: outputDir, psvmodel, modelname,DSMconfFile 
-  character(200) :: list,list1
+  character(120) :: outputDir, psvmodel, modelname,DSMconfFile 
+  character(120) :: list,list1
   character(40) :: datex,timex
   real(kind(0d0)), parameter :: pi=3.1415926535897932d0
   real(kind(0d0)) :: re,ratc,ratl
   integer :: maxlmax,deltalwindow
   real(kind(0d0)) :: maxMemoryInGigabyte
-  integer, allocatable :: iFrequencyArray(:), lChunk(:,:), lmaxPredefined(:)
+  integer, allocatable :: iFrequencyArray(:), lChunk(:,:)
   integer :: iFrequencyChunk,nFrequencyChunk
   integer :: iAngularOrderChunk,nAngularOrderChunk
 
@@ -27,7 +28,7 @@ module parameters
   integer, allocatable :: iista(:,:)
   integer :: r_n,r0_n,ciista, ir_,ir0,imt,icomp,itheta, theta_n
   integer :: intir0  
-  character(200) :: coutfile
+  character(120) :: coutfile
   integer :: imin, imax
   integer :: rsgtswitch, tsgtswitch, synnswitch, psgtswitch
 
@@ -143,7 +144,7 @@ subroutine bcast_allocate_1
   if(my_rank.eq.0) then
      tmpfile='argvModeUsed'
      call pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin_,rmax_,rdelta_,r0min,r0max,r0delta,thetamin,thetamax,thetadelta,imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch,re,ratc,ratl,omegai,maxlmax,deltalwindow,maxMemoryInGigabyte,tmpfile)
-     
+     if(allocated(qkappa))print *, "wow, qkappa is allocated  before timefilenamegenerator  in ", my_rank, qkappa
      !call readDSMconfFile(DSMconfFile,re,ratc,ratl,omegai,maxlmax)
      tmpfile='tmpworkingfile_for_psvmodel'
      call tmpfileNameGenerator(tmpfile,tmpfile)
@@ -156,8 +157,9 @@ subroutine bcast_allocate_1
  
   endif
 
- 
+  if(allocated(qkappa))print *, "wow, qkappa is allocated after pinput in ", my_rank
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+  print *, 'apo'
   ! exporting DSM parameters
   call MPI_BCAST(re,  1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(ratc,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
@@ -165,11 +167,9 @@ subroutine bcast_allocate_1
   call MPI_BCAST(omegai,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(maxlmax,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   
-  call MPI_BCAST(maxMemoryInGigabyte,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-  
-  call MPI_BCAST(outputDir,200,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-  call MPI_BCAST(psvmodel,200,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-  call MPI_BCAST(modelname,200,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(outputDir,120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(psvmodel,120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
+  call MPI_BCAST(modelname,120,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(tlen,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(imin,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(imax,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
@@ -230,7 +230,6 @@ subroutine bcast_allocate_1
      close(20,status='delete')
 
   endif
-
    
   call MPI_BCAST(vrmin,nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
   call MPI_BCAST(vrmax,nzone,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
