@@ -40,7 +40,7 @@ program  SGTpsv
   call cpu_time(end_time)
   print *, "preparation time =", my_rank, end_time - start_time
 
-  
+  print *, "before iFrequencyChunk", i, my_rank
   do iFrequencyChunk = 1,nFrequencyChunk           ! omega-loop start
 
      i = iFrequencyArray(iFrequencyChunk)
