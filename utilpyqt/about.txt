@@ -1,0 +1,5 @@
+Welcome to this interface!
+
+The principle of this python application is to easily obtain seismic data in one click, as well as to have more interaction between the user and the interface.
+
+This program includes a whole toolbox that allows you to download data, filter them and do all the customised processing according to the users' needs.
