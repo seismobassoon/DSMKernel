@@ -42,7 +42,7 @@ program  SGTpsv
   do iFrequencyChunk = 1,nFrequencyChunk           ! omega-loop start
 
      i = iFrequencyArray(iFrequencyChunk)
-     
+     print *, my_rank, i
      ir0 = 1 ! we compute only for one source depth!
      
      tsgt = dcmplx(0.d0)
@@ -92,9 +92,11 @@ program  SGTpsv
      enddo
      
      call cpu_time(end_time)
-
+     
      
      print *, "i, my_rank,  l-independent matrix construction time", i, my_rank, end_time - start_time
+     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+     stop
      
      kc = 1
      ismall = 0
