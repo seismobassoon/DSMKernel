@@ -1,4 +1,4 @@
-add_library(sgtPSVMaxlib
+add_library(sgtPSVLChunklib
 		calmat.f90
 		dcsymbdl.f90
 		dcsymbdl3.f90
@@ -14,5 +14,5 @@ add_library(sgtPSVMaxlib
 	)
 
 add_executable(xSGTpsvMax SGTpsv-MPI.f90)
-target_link_libraries(xSGTpsvLChunk sgtPSVMaxlib)
+target_link_libraries(xSGTpsvLChunk sgtPSVLChunklib)
 
