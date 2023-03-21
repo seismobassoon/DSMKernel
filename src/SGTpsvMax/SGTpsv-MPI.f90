@@ -38,13 +38,13 @@ program  SGTpsv
   call whoDoesWhatDSM ! i-chunk and l-chunk 
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   call cpu_time(end_time)
-  if(my_rank.eq.0) print *, "preparation time =", end_time - start_time
+  print *, "preparation time =", my_rank, end_time - start_time
 
   
   do iFrequencyChunk = 1,nFrequencyChunk           ! omega-loop start
 
      i = iFrequencyArray(iFrequencyChunk)
-     print *, my_rank, i
+     print *, i, my_rank
      ir0 = 1 ! we compute only for one source depth!
      
      tsgt = dcmplx(0.d0)
