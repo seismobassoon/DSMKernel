@@ -19,7 +19,7 @@ from obspy.clients.fdsn import Client
 from obspy import UTCDateTime
 from geopy.geocoders import Nominatim
 
-from DataProcessor_Fonctions import get_depth_color, get_periodogram # Load the function "plot_events" provided in tp_obsp
+from DataProcessor_Fonctions import get_depth_color, get_periodogram, plot_record_section # Load the function "plot_events" provided in tp_obsp
 
 from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar, QFrame, QCheckBox,QSpacerItem
 from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem,QTreeView,QAbstractItemView
@@ -1142,17 +1142,7 @@ class Window(QMainWindow):
         exPopup = EventPopup(item.text(),self)
         exPopup.setWindowTitle("Seismic event {} details".format(item.text()))
         exPopup.show()
-    '''    
-    def search_text_changed(self, text):
-        regExp = QtCore.QRegExp(text, Qt.CaseSensitive, QtCore.QRegExp.FixedString)
-        items = self.listEvent.findItems("",Qt.MatchContains)
-        
-        for item in items:
-            if regExp.exactMatch(item.text()):
-                item.setHidden(False)
-            else:
-                item.setHidden(True)
-    '''  
+
         
 
     
@@ -1339,7 +1329,7 @@ class StationPopup(QDialog):
         #self.plot_seismic(name,channel,startTrace,endTrace)
         
     def _contentTab2(self):
-        
+        # Periodogram
         x = self.st[0].data
         sampling_rate = self.st[0].stats.sampling_rate
         
@@ -1357,6 +1347,7 @@ class StationPopup(QDialog):
 
         canvas = FigureCanvas(fig)
         canvas.draw()
+        self.Periodogram.layout.addWidget(canvas)
         
         # Creation de la figure
         '''
@@ -1386,6 +1377,7 @@ class StationPopup(QDialog):
         # SPECTROGRAM - A METTRE DANS LE FILTRAGE ET METTRE ICI LE SPECTRE DE FREQUENCE ??
         spectrogramLabel = QLabel("<b>Spectrogram</b>")
         self.Periodogram.layout.addWidget(spectrogramLabel)
+        self.st[0].spectrogram(log=True)
         
         '''
         separator = QFrame()
@@ -1418,6 +1410,10 @@ class StationPopup(QDialog):
         self.canvas_mean = FigureCanvas(self.figure_mean)
         self.Processing.layout.addWidget(self.canvas_mean)
         
+        self.download_mean = QPushButton("Download",self)
+        self.download_mean.setFixedWidth(150)
+        self.Processing.layout.addWidget(self.download_mean)
+        self.download_mean.clicked.connect(self.downloadMeanTrace)
         
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
@@ -1474,6 +1470,7 @@ class StationPopup(QDialog):
         
         
         self.Processing.layout.addLayout(grid)
+        
 
         
         #Variable de classe pour stocker la valeur du filtre sélectionné
@@ -1492,6 +1489,11 @@ class StationPopup(QDialog):
         self.figure_filter = Figure(figsize=(6,4))
         self.canvas_filter = FigureCanvas(self.figure_filter)
         self.Processing.layout.addWidget(self.canvas_filter)
+        
+        self.download_filter = QPushButton("Download",self)
+        self.download_filter.setFixedWidth(150)
+        self.Processing.layout.addWidget(self.download_filter)
+        self.download_filter.clicked.connect(self.downloadFilteredTrace)
         
         
     # DETRENDING DATA    
@@ -1574,6 +1576,7 @@ class StationPopup(QDialog):
             pass
         
     def checkFieldsFilled_HP(self,highpassBox,freqMin_hp,freqMax_hp, buttonGroup):
+        
         if highpassBox.isChecked() and freqMin_hp.text() and freqMax_hp.text():
             freqmin = freqMin_hp.text()
             freqmax = freqMax_hp.text()
@@ -1604,6 +1607,11 @@ class StationPopup(QDialog):
         else:
             pass
     
+    def downloadMeanTrace(self):
+        self.st.write("trace_demean.mseed")
+        
+    def downloadFilteredTrace(self):
+        self.st.write('trace_filtered.mseed')
 
 class EventPopup(QDialog):
 
@@ -1750,11 +1758,13 @@ class EventPopup(QDialog):
         self.canvas = FigureCanvas(self.figure)
         rightLayout.addWidget(self.canvas)
         
-        
         self.Description.layout.addLayout(layout)
         
-        #eqContent = QVBoxLayout
+        # ACQUISITION DE LA DONNEE
+        self.channelChoice.editingFinished.connect(self.get_waveforms)
         
+    # ORGANISATION DE LA LISTE DE STATION
+    #--------------------------------------------------------------------------------------------------------
     def create_model(self,stations_tries):
         model = self.ui_tags.model().sourceModel()
         self.populate_tree(stations_tries, model.invisibleRootItem())
@@ -1788,19 +1798,48 @@ class EventPopup(QDialog):
         else:
             self.ui_tags.collapseAll()
             
-            
+    # ONGLET SUR LE PLOT RECORD SECTION
+    # ----------------------------------------------------------------------------------------------------         
     def _contentTab2(self):
-        self.figure_record_section = Figure(figsize=(4,2))
-        self.canvas_record_section = FigureCanvas(self.figure_record_section)
-        self.Section.layout.addWidget(self.canvas_record_section)
+        label = QLabel("<b>Plotting the record section</b>")
+        label.setFont(QFont('Calibri',12))
+        self.Section.layout.addWidget(label)
+        layout = QHBoxLayout()
+        self.Section.layout.addLayout(layout)
+        # Detrend
+        detrendLabel = QLabel("Detrend: ")
+        detrendChoice = QComboBox()
+        detrendChoice.addItems(["demean","linear","spline","simple","polynomial"])
+        layout.addWidget(detrendLabel)
+        layout.addWidget(detrendChoice)
+        # Remove response
+        layout2 = QHBoxLayout()
+        self.Section.layout.addLayout(layout2)
+        removeResponseLabel = QLabel("Remove instrumental response: ")
+        removeResponseChoice = QCheckBox()
+        layout2.addWidget(removeResponseLabel)
+        layout2.addWidget(removeResponseChoice)
+        self.Section.layout.addLayout(layout2)
         
+        # Normaliza
+        layout4 = QHBoxLayout()
+        self.Section.layout.addLayout(layout4)
+        normalizeLabel = QLabel("Normalize: ")
+        normalizeChoice = QCheckBox()
+        layout4.addWidget(normalizeLabel)
+        layout4.addWidget(normalizeChoice)
+        #self.Section.layout.addLayout(layout4)
+        '''
         self.separatorLine = QFrame()
         self.separatorLine.setFrameShape(QFrame.HLine)
         self.separatorLine.setLineWidth(2)
-        self.Section.layout.addWidget(self.separatorLine)
         
+        self.Section.layout.addWidget(self.separatorLine)
+        '''
 
     def get_waveforms(self):
+        client = Client('RESIF')
+        start = UTCDateTime('2011-03-11T05:46:23')
         
         self.st = client.get_waveforms(
             network = "G",
@@ -1808,7 +1847,7 @@ class EventPopup(QDialog):
             location = "00",
             channel = "LHZ",
             starttime = start,
-            endtime = end,
+            endtime = start + 14400,
             attach_response = True, 
             )
         
@@ -1817,9 +1856,27 @@ class EventPopup(QDialog):
         self.st.filter('bandpass', freqmin=0.005, freqmax=0.01)
         self.st.normalize()
         
-        self.st.plot(fig=self.figure_record_section)
+        #self.st.plot(fig=self.figure_record_section)
+        minlg =-180
+        maxlg =180
+        minlat = -90
+        maxlat=90
         
-            
+        inventory = client.get_stations(network="G")
+        stations = []
+        for net in inventory:
+            for sta in net:
+                if minlat <= sta.latitude <= maxlat and minlg <= sta.longitude <= maxlg:
+                    stations.append(
+                        [net.code, sta.code, sta.latitude, sta.longitude, sta.elevation]
+                        )
+                    print(net.code, sta.code, sta.latitude, sta.longitude, sta.elevation)
+        
+        name = 'record_section_ev_%s.png' % str(start)[:10]
+        
+        self.figure_record_section = plot_record_section(self.st, stations, eqo.latitude, eqo.longitude, outfile=name)
+        self.canvas_record_section = FigureCanvas(self.figure_record_section)
+        self.Section.layout.addWidget(self.canvas_record_section)    
         
             
   
