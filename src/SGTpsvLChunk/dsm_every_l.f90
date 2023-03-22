@@ -99,9 +99,16 @@ subroutine computePLMforlChunkLocal
 
   plmLocal = 0.d0
 
+ 
+  
   if(iAngularOrderChunk.eq.1) then
+     
+     allocate(plmLocalLast(1:2,0:3,iThetaMinLocal:iThetaMaxLocal))
+     
      do itheta=iThetaMinLocal,iThetaMaxLocal
+        
         x = dcos(theta_radian(itheta))
+        
         plmtmp = 0.d0
         do l=0,4
            do m = 0, min0(l,3)
@@ -115,33 +122,58 @@ subroutine computePLMforlChunkLocal
            enddo
            plmLocal(0:3,l,itheta)=plmtmp(1,0:3)
         enddo
+        plmLocalLast(1:2,0:3,itheta)=plmtmp(1:2,0:3)
      enddo
-
+     
+     allocate(plmGlobal(0:3,lChunk(1,iAngularOrderChunk):lChunk(2,iAngularOrderChunk),1:theta_n))
+     
   else
+     
+     deallocate(plmGlobalTranspose)
+     
      do itheta=iThetaMinLocal,iThetaMaxLocal
+        
         x = dcos(theta_radian(itheta))
-        plmtmp = 0.d0
-        plmtmp(1,0:3) = plmGlobal(0:3,lChunk(2,iAngularOrderChunk-1),itheta)
-        plmtmp(2,0:3) = plmGlobal(0:3,lChunk(2,iAngularOrderChunk-1)-1,itheta) 
+        
+        plmtmp(1:2,0:3)=plmLocalLast(1:2,0:3,itheta)
+        plmtmp(3,0:3) = 0.d0
+        
         !!! plmGlobal should be deallocated after this
         
         do l= lChunk(1,iAngularOrderChunk), lChunk(2,iAngularOrderChunk)
            do m = 0, 3
               call calplm_l_big(l,m,x,plmtmp(1:3,0:3))
            enddo
-           plmLocal(0:2,l,itheta)=plmtmp(1,0:2)
+           plmLocal(0:3,l,itheta)=plmtmp(1,0:3)
+        enddo
+        plmLocalLast(1:2,0:3,itheta)=plmtmp(1:2,0:3)
+     enddo
+
+     allocate(plmGlobal(0:3,lChunk(1,iAngularOrderChunk):lChunk(2,iAngularOrderChunk),1:theta_n))
      
-     ! This should be very much MPI-ed!!
-     ! First compute plm with each processor and communicate them each other and construct bvec
+  endif
 
 
-     
-     
-       
+
+  call MPI_ALLGATHER(plmLocal,4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
+       MPI_DOUBLE_PRECISION, &
+       4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
+       MPI_DOUBLE_PRECISION, MPI_COMM_WORLD,ierr)
+  call MPI_BARRIER(MPI_COMM_WORLD,ierr)
+  
+  allocate(plmGlobalTranspose(1:theta_n,0:3,lChunk(1,iAngularOrderChunk):lChunk(2,iAngularOrderChunk)))
+  do itheta=1,theta_n
+     do l = lChunk(1,iAngularOrderChunk), lChunk(2,iAngularOrderChunk)
+        plmGlobalTranspose(itheta,0:3,l) = plmGlobal(0:3,l,itheta)
+     enddo
   enddo
-  ! MPI_ALLGATHER
+  deallocate(plmGlobal)
   
   
+  ! This should be very much MPI-ed!!
+  ! First compute plm with each processor and communicate them each other and construct bvec
+
+  return
   
 end subroutine computePLMforlChunkLocal
 

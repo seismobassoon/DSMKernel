@@ -15,6 +15,8 @@ module parameters
   integer :: iAngularOrderChunk,nAngularOrderChunk
   integer, allocatable :: iThetaChunck(:,:)
   integer :: nThetaLength, iThetaMinLocal, iThetaMaxLocal
+  real(kind(0d0)), allocatable :: plmGlobal(:,:,:), plmGlobalTranspose(:,:,:)
+  real(kind(0d0)), allocatable :: plmLocalLast(:,:,:)
   
   real(kind(0d0)) :: tlen 
   real(kind(0d0)) :: rmin_, rmax_, rdelta_ 
@@ -101,10 +103,10 @@ module parameters
   
   !-----------------------------------------------------------------------
   !complex(kind(0d0)), allocatable :: dvec(:,:,:,:),dvecdt(:,:,:,:),dvecdp(:,:,:,:)
-  complex(kind(0d0)), allocatable :: dvec0(:,:,:),dvecdt0(:,:,:),dvecdp0(:,:,:)
+  !complex(kind(0d0)), allocatable :: dvec0(:,:,:),dvecdt0(:,:,:),dvecdp0(:,:,:)
   complex(kind(0d0)), allocatable :: tsgt(:,:,:,:),rsgt(:,:,:),synn(:,:) ,psgt(:,:,:,:)
   complex(kind(0e0)), allocatable :: tsgtsngl(:,:), rsgtsngl(:,:),synnsngl(:,:),psgtsngl(:,:)
-  real(kind(0d0)), allocatable :: plm(:,:,:)
+  !real(kind(0d0)), allocatable :: plm(:,:,:)
   complex(kind(0d0)) :: rdvec(1:3,-2:2)
   complex(kind(0d0))::u(1:3),udr(1:3),udt(1:3),udp(1:3),uder(1:3,1:3)
 
@@ -278,10 +280,10 @@ subroutine bcast_allocate_1
 
   allocate(theta(1:theta_n))
   allocate(theta_radian(1:theta_n))
-  allocate(dvec0(1:3,-2:2,1:theta_n))
-  allocate(dvecdt0(1:3,-2:2,1:theta_n))
-  allocate(dvecdp0(1:3,-2:2,1:theta_n))
-  allocate(plm(1:3,0:3,1:theta_n))
+  !allocate(dvec0(1:3,-2:2,1:theta_n))
+  !allocate(dvecdt0(1:3,-2:2,1:theta_n))
+  !allocate(dvecdp0(1:3,-2:2,1:theta_n))
+  !allocate(plm(1:3,0:3,1:theta_n))
   
   do i = 1,theta_n
      theta(i) = (thetamin + dble(i-1)*thetadelta)

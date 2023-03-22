@@ -45,11 +45,15 @@ program  SGTpsv
   do iAngularOrderChunk=1, nAngularOrderChunk
 
      ! first compute PLM with nproc processors and share them between lChunk(1,iAngularOrderChunk) and lChunk(2,iAngularOrderChunk)
-     
+     call cpu_time(start_time)
      call computePLMforlChunkLocal
+     call cpu_time(end_time)
+     if(my_rank.eq.0) then
+        print *, "MPIed PLM compulation time", end_time-start_time, "for l=", lChunk(1,iAngularOrderChunk), lChunk(2,iAngularOrderChunk)
+     endif
 
-     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
- 
+
+     stop 
      do iFrequencyChunk = 1,nFrequencyChunk           ! omega-loop start
         
         i = iFrequencyArray(iFrequencyChunk)

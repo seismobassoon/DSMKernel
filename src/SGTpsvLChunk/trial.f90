@@ -1,31 +1,3 @@
-subroutine clPLM(plm,lmax,theta_radian,iStart,iEnd)
-  implicit none
-  integer :: itheta, l, lmax,m, 
-  real(kind(0d0)) :: plm(1:3,0:3,iStart:iEnd,0:lmax),theta_radian(iStart:iEnd)
-  real(kind(0d0)) :: tmpthetainrad
-  real(kind(0d0)), parameter :: pi=3.1415926535897932d0
-  real(kind(0d0)) :: x, plmtmp(1:3,0:3)
-  
-  plm = 0.d0
-
-  do itheta = 1, theta_n
-     tmpthetainrad = theta(itheta)/180.d0*pi
-     x = cos(tmpthetainrad)
-     plmtmp = 0.d0
-     do l = 0, lmax
-        do m = 0, min0(l,3)
-           call calplm(l,m,x,plmtmp(1:3,m))
-        enddo
-        plm(1:3,0:3,itheta,l) = plmtmp(1:3,0:3)
-        !print *, plmtmp(1:3,0:3)
-     enddo
-  enddo
-  return
-end subroutine clPLM
-
-
-
-
 subroutine calplm_l_small( l,m,x,plm )
   implicit none
   integer :: l,m,i
