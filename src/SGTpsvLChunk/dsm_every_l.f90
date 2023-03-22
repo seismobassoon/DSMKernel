@@ -87,7 +87,8 @@ subroutine computePLMforlChunkLocal
   use mpi
   use parameters
   implicit none
-  real(kind(0d0)) :: plmLocal(1:3,0:3,lChunk(1,iAngularOrderChunk):lChunk(2,iAngularOrderChunk),iThetaMinLocal:iThetaMaxLocal)
+  real(kind(0d0)) :: plmtmp(1:3,0:3),x
+  real(kind(0d0)) :: plmLocal(0:3,lChunk(1,iAngularOrderChunk):lChunk(2,iAngularOrderChunk),iThetaMinLocal:iThetaMaxLocal)
   integer :: itheta
   
   
@@ -97,11 +98,44 @@ subroutine computePLMforlChunkLocal
   ! first we compute plm and bvec for all the l in the lChunk
 
   plmLocal = 0.d0
-  
-  do l = lChunk(1,iAngularOrderChunk), lChunk(2,iAngularOrderChunk)
+
+  if(iAngularOrderChunk.eq.1) then
+     do itheta=iThetaMinLocal,iThetaMaxLocal
+        x = dcos(theta_radian(itheta))
+        plmtmp = 0.d0
+        do l=0,4
+           do m = 0, min0(l,3)
+              call calplm_l_small(l,m,x,plmtmp(1:3,0:3))
+           enddo
+           plmLocal(0:3,l,itheta)=plmtmp(1,0:3)
+        enddo
+        do l=5, lChunk(2,1)
+           do m = 0, 3
+              call calplm_l_big(l,m,x,plmtmp(1:3,0:3))
+           enddo
+           plmLocal(0:3,l,itheta)=plmtmp(1,0:3)
+        enddo
+     enddo
+
+  else
+     do itheta=iThetaMinLocal,iThetaMaxLocal
+        x = dcos(theta_radian(itheta))
+        plmtmp = 0.d0
+        plmtmp(1,0:3) = plmGlobal(0:3,lChunk(2,iAngularOrderChunk-1),itheta)
+        plmtmp(2,0:3) = plmGlobal(0:3,lChunk(2,iAngularOrderChunk-1)-1,itheta) 
+        !!! plmGlobal should be deallocated after this
+        
+        do l= lChunk(1,iAngularOrderChunk), lChunk(2,iAngularOrderChunk)
+           do m = 0, 3
+              call calplm_l_big(l,m,x,plmtmp(1:3,0:3))
+           enddo
+           plmLocal(0:2,l,itheta)=plmtmp(1,0:2)
      
      ! This should be very much MPI-ed!!
      ! First compute plm with each processor and communicate them each other and construct bvec
+
+
+     
      
        
   enddo
