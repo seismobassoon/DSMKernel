@@ -64,6 +64,15 @@ subroutine whoDoesWhatDSM
      lmaxPredefined(0) = 0
   endif
 
+
+  ! Here I organise itheta arrays for each rank in order to precompute plm for reasonableLwidth
+  nThetaLength = theta_n/nproc + 1
+  iThetaMinLocal = my_rank*nThetaLength+1
+  iThetaMaxLocal = min0((my_rank+1)*nThetaLength, theta_n)
+  
+  
+
+  
   !print *, "lChunk starting points:", lChunk(1,:)
   !print *, "lChunk ending points:", lChunk(2,:)
   !print *, 'lmaxPredefined', lmaxPredefined(:)
@@ -73,6 +82,34 @@ subroutine whoDoesWhatDSM
   
 end subroutine whoDoesWhatDSM
 
+
+subroutine computePLMforlChunkLocal
+  use mpi
+  use parameters
+  implicit none
+  real(kind(0d0)) :: plmLocal(1:3,0:3,lChunk(1,iAngularOrderChunk):lChunk(2,iAngularOrderChunk),iThetaMinLocal:iThetaMaxLocal)
+  integer :: itheta
+  
+  
+  ! if it is the first lChunk (starting with l=0) then we start without no pb
+  ! but if iAngularOrderChun ne 1 then we need to get the last result from the global plm
+  ! 
+  ! first we compute plm and bvec for all the l in the lChunk
+
+  plmLocal = 0.d0
+  
+  do l = lChunk(1,iAngularOrderChunk), lChunk(2,iAngularOrderChunk)
+     
+     ! This should be very much MPI-ed!!
+     ! First compute plm with each processor and communicate them each other and construct bvec
+     
+       
+  enddo
+  ! MPI_ALLGATHER
+  
+  
+  
+end subroutine computePLMforlChunkLocal
 
 subroutine dsm_write_files
 
@@ -86,7 +123,7 @@ subroutine dsm_write_files
   do ir_ = 1,r_n
      ! do ir0 = 1,r0_n
      ir0 = 1
-     write(coutfile, '(I7,".",I7,".",I7,".TSGT_PSV")') intir0,int(r_(ir_)*1.d3),i
+     write(coutfile, '(I7,".",I7,".",I7,".TSGT_PSV_",i3.3)') intir0,int(r_(ir_)*1.d3),i,iAngularOrderChunk
      do j = 1,29
         if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
      enddo
@@ -99,7 +136,7 @@ subroutine dsm_write_files
      write(1,rec=1)tsgtsngl(1:num_tsgt,1:theta_n)
      close(1)                     
         !end
-     write(coutfile, '(I7,".",I7,".RSGT_PSV")') int(r_(ir_)*1.d3),i
+     write(coutfile, '(I7,".",I7,".RSGT_PSV_",i3.3)') int(r_(ir_)*1.d3),i,iAngularOrderChunk
      do j = 1,21
         if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
      enddo
@@ -117,7 +154,7 @@ subroutine dsm_write_files
   ir0 =1
   
   
-  write(coutfile, '(I7,".",I7,".SYNN_PSV") ') intir0,i
+  write(coutfile, '(I7,".",I7,".SYNN_PSV_",i3.3) ') intir0,i,iAngularOrderChunk
   do j = 1,21
      if (coutfile(j:j).eq.' ')coutfile(j:j) = '0'
   enddo

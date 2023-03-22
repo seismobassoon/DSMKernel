@@ -44,9 +44,11 @@ program  SGTpsv
 
   do iAngularOrderChunk=1, nAngularOrderChunk
 
+     ! first compute PLM with nproc processors and share them between lChunk(1,iAngularOrderChunk) and lChunk(2,iAngularOrderChunk)
      
+     call computePLMforlChunkLocal
 
-  
+     call MPI_BARRIER(MPI_COMM_WORLD,ierr)
  
      do iFrequencyChunk = 1,nFrequencyChunk           ! omega-loop start
         
@@ -143,7 +145,7 @@ program  SGTpsv
         
         enddo               ! l-loop end        
         
-        call cpu_time(start_time)
+        call cpu_time(end_time)
         
         
         print *, "l-dependent (with LChunk):", i, my_rank, lmaxPredefined(i), end_time-start_time 

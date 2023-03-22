@@ -13,7 +13,9 @@ module parameters
   integer, allocatable :: iFrequencyArray(:), lChunk(:,:), lmaxPredefined(:)
   integer :: iFrequencyChunk,nFrequencyChunk
   integer :: iAngularOrderChunk,nAngularOrderChunk
-
+  integer, allocatable :: iThetaChunck(:,:)
+  integer :: nThetaLength, iThetaMinLocal, iThetaMaxLocal
+  
   real(kind(0d0)) :: tlen 
   real(kind(0d0)) :: rmin_, rmax_, rdelta_ 
   real(kind(0d0)) :: r0min, r0max, r0delta  !!! JUST FOR ONE DEPTH FOR THIS MOMENT !!
