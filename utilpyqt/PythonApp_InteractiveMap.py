@@ -19,7 +19,7 @@ from obspy.clients.fdsn import Client
 from obspy import UTCDateTime
 from geopy.geocoders import Nominatim
 
-from DataProcessor_Fonctions import get_depth_color, get_periodogram # Load the function "plot_events" provided in tp_obsp
+from DataProcessor_Fonctions import get_depth_color, get_periodogram, plot_record_section # Load the function "plot_events" provided in tp_obsp
 
 from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar, QFrame, QCheckBox,QSpacerItem
 from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem,QTreeView,QAbstractItemView
@@ -78,6 +78,11 @@ class Window(QMainWindow):
         #-----------------------------------------------------------------------------------------------------
         self.map = L.map(self.mapWidget)
         self.map.setView([0, 0], 2)
+        
+        SW = (-90,-180)
+        NE = (90,180)
+        
+        self.map.setMaxBounds((SW,NE))
 
         Progress = 50
         splash_screen.progressUpdate(Progress)
@@ -928,9 +933,15 @@ class Window(QMainWindow):
         label = QLabel('My stations list')
         label.setAlignment(Qt.AlignCenter)
         
+        searchStationEdit = QLineEdit()
+        searchStationEdit.setStyleSheet("QLineEdit { color: #888888; } ")
+        searchStationEdit.setPlaceholderText("Search...")
+        searchStationEdit.textChanged.connect(self.updateListStationWidget)
+        
         # Créer un QVBoxLayout
         layout = QVBoxLayout()
         layout.addWidget(label)
+        layout.addWidget(searchStationEdit)
         layout.addWidget(self.listStation)
         
         # Appliquer le QVBoxLayout à la QDialog
@@ -1049,8 +1060,10 @@ class Window(QMainWindow):
         global stations
         stations = []
         for net, sta, lat, lon, elev in stationsEvent:
+            
             name = ".".join([net, sta])
             infos = "Name: %s<br/>Lat/Long: (%s, %s)<br/>Elevation: %s m" % (name, lat, lon, elev)
+            
             marker = L.marker([lat, lon], {
                 'color':"blue",
                 'fillColor':"#FF8C00",
@@ -1064,7 +1077,7 @@ class Window(QMainWindow):
             popup_html="<b>%s</b>" %infos
             
             marker.bindPopup(popup_html)
-            
+           
         self.showEventDialog()
         self.show()
         
@@ -1096,16 +1109,25 @@ class Window(QMainWindow):
         self.listEvent.setGeometry(100, 100, 200, 200)
         self.dialogEvent.setModal(False)
         self.dialogEvent.show()
-    
+  
     # Pour filtrer la recherche
+    
+    def updateListStationWidget(self, text):
+        for index in range(self.listStation.count()):
+            item = self.listStation.item(index)
+            if text.lower() in item.text().lower():
+                item.setHidden(False)
+            else:
+                item.setHidden(True)
+    
     def updateListEventWidget(self, text):
         for index in range(self.listEvent.count()):
             item = self.listEvent.item(index)
-        if text.lower() in item.text().lower():
-            item.setHidden(False)
-        else:
-            item.setHidden(True)
-    
+            if text.lower() in item.text().lower():
+                item.setHidden(False)
+            else:
+                item.setHidden(True)
+
 
     @pyqtSlot(QListWidgetItem)           
     def buildEventPopup(self,item):
@@ -1117,17 +1139,14 @@ class Window(QMainWindow):
         eqoMag = self.events_center[index].magnitudes[0].mag
         
         '''
-        selected_event = item.text()
-        print("Selected event :",selected_event)
-        for event_num, event in self.event_dict.items():
-            if event == selected_event:
-                print("selected event number: ",event_num)
-                break
+        global eqoMoment
+        eqoMoment = self.events_center[index].focal_mechanisms
         '''
         
         exPopup = EventPopup(item.text(),self)
         exPopup.setWindowTitle("Seismic event {} details".format(item.text()))
         exPopup.show()
+
         
 
     
@@ -1314,7 +1333,7 @@ class StationPopup(QDialog):
         #self.plot_seismic(name,channel,startTrace,endTrace)
         
     def _contentTab2(self):
-        
+        # Periodogram
         x = self.st[0].data
         sampling_rate = self.st[0].stats.sampling_rate
         
@@ -1332,6 +1351,7 @@ class StationPopup(QDialog):
 
         canvas = FigureCanvas(fig)
         canvas.draw()
+        self.Periodogram.layout.addWidget(canvas)
         
         # Creation de la figure
         '''
@@ -1361,6 +1381,7 @@ class StationPopup(QDialog):
         # SPECTROGRAM - A METTRE DANS LE FILTRAGE ET METTRE ICI LE SPECTRE DE FREQUENCE ??
         spectrogramLabel = QLabel("<b>Spectrogram</b>")
         self.Periodogram.layout.addWidget(spectrogramLabel)
+        self.st[0].spectrogram(log=True)
         
         '''
         separator = QFrame()
@@ -1393,6 +1414,10 @@ class StationPopup(QDialog):
         self.canvas_mean = FigureCanvas(self.figure_mean)
         self.Processing.layout.addWidget(self.canvas_mean)
         
+        self.download_mean = QPushButton("Download",self)
+        self.download_mean.setFixedWidth(150)
+        self.Processing.layout.addWidget(self.download_mean)
+        self.download_mean.clicked.connect(self.downloadMeanTrace)
         
         separator = QFrame()
         separator.setFrameShape(QFrame.HLine)
@@ -1449,6 +1474,7 @@ class StationPopup(QDialog):
         
         
         self.Processing.layout.addLayout(grid)
+        
 
         
         #Variable de classe pour stocker la valeur du filtre sélectionné
@@ -1467,6 +1493,11 @@ class StationPopup(QDialog):
         self.figure_filter = Figure(figsize=(6,4))
         self.canvas_filter = FigureCanvas(self.figure_filter)
         self.Processing.layout.addWidget(self.canvas_filter)
+        
+        self.download_filter = QPushButton("Download",self)
+        self.download_filter.setFixedWidth(150)
+        self.Processing.layout.addWidget(self.download_filter)
+        self.download_filter.clicked.connect(self.downloadFilteredTrace)
         
         
     # DETRENDING DATA    
@@ -1549,6 +1580,7 @@ class StationPopup(QDialog):
             pass
         
     def checkFieldsFilled_HP(self,highpassBox,freqMin_hp,freqMax_hp, buttonGroup):
+        
         if highpassBox.isChecked() and freqMin_hp.text() and freqMax_hp.text():
             freqmin = freqMin_hp.text()
             freqmax = freqMax_hp.text()
@@ -1579,6 +1611,11 @@ class StationPopup(QDialog):
         else:
             pass
     
+    def downloadMeanTrace(self):
+        self.st.write("trace_demean.mseed")
+        
+    def downloadFilteredTrace(self):
+        self.st.write('trace_filtered.mseed')
 
 class EventPopup(QDialog):
 
@@ -1615,6 +1652,7 @@ class EventPopup(QDialog):
         
 
         self._contentTab1()
+        self._contentTab2()
         
     def _contentTab1 (self):
         layout = QHBoxLayout(self)
@@ -1624,6 +1662,7 @@ class EventPopup(QDialog):
         self.ui_search.setPlaceholderText('Search...')
         
         self.tags_model = SearchProxyModel()
+        print(type(self.tags_model))
         self.tags_model.setSourceModel(QtGui.QStandardItemModel())
         self.tags_model.setDynamicSortFilter(True)
         self.tags_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
@@ -1639,7 +1678,7 @@ class EventPopup(QDialog):
         self.ui_tags.setModel(self.tags_model)
 
         # layout pour afficher le dictionnaire de station et la barre de recherche sur la gauche de la fenêtre
-        leftlayout = QVBoxLayout()
+        leftlayout = QVBoxLayout()                 
         leftlayout.addWidget(self.ui_search)
         leftlayout.addWidget(self.ui_tags)
         #self.setLayout(main_layout)
@@ -1671,6 +1710,8 @@ class EventPopup(QDialog):
         layout.addLayout(rightLayout)
         
         eqLabel = QLabel("<b>Earthquake information</b>")
+        eqLabel.setFont(QFont('Calibri',12))
+        eqLabel.setFixedWidth(500)
         rightLayout.addWidget(eqLabel)
         
         # EQ INFO
@@ -1696,8 +1737,10 @@ class EventPopup(QDialog):
         channelLayout = QHBoxLayout()
         rightLayout.addLayout(channelLayout)
         Channel = QLabel("<b>Channel: </b>")
+        Channel.setFixedWidth(50)
         channelLayout.addWidget(Channel)
         self.channelChoice = QLineEdit()
+        self.channelChoice.setFixedWidth(160)
         channelLayout.addWidget(self.channelChoice)
         self.channelChoice.setPlaceholderText("Enter a channel")
         self.channel = self.channelChoice.text()
@@ -1706,22 +1749,39 @@ class EventPopup(QDialog):
         locationLayout = QHBoxLayout()
         rightLayout.addLayout(locationLayout)
         Location = QLabel("<b>Location: </b>")
+        Location.setFixedWidth(50)
         locationLayout.addWidget(Location)
         self.locationChoice = QLineEdit()
+        self.locationChoice.setFixedWidth(160)
         locationLayout.addWidget(self.locationChoice)
         self.locationChoice.setPlaceholderText("Enter a location (ex. '00')")
         self.location = self.locationChoice.text()
+        
+        pushButton = QPushButton("Display the record section")
+        pushButton.setFixedWidth(160)
+        rightLayout.addWidget(pushButton)
+        pushButton.clicked.connect(self.get_waveforms)
+        
+        
+        # Separator
+        separatorLine = QFrame()
+        separatorLine.setFrameShape(QFrame.HLine)
+        separatorLine.setLineWidth(2)
+        rightLayout.addWidget(separatorLine)  
         
         # FOCAL MECHANISMS
         self.figure = Figure(figsize=(6,4))
         self.canvas = FigureCanvas(self.figure)
         rightLayout.addWidget(self.canvas)
         
-        
         self.Description.layout.addLayout(layout)
         
-        #eqContent = QVBoxLayout
         
+        # ACQUISITION DE LA DONNEE
+        #self.channelChoice.editingFinished.connect(self.get_waveforms)
+        
+    # ORGANISATION DE LA LISTE DE STATION
+    #--------------------------------------------------------------------------------------------------------
     def create_model(self,stations_tries):
         model = self.ui_tags.model().sourceModel()
         self.populate_tree(stations_tries, model.invisibleRootItem())
@@ -1731,6 +1791,7 @@ class EventPopup(QDialog):
     def populate_tree(self, children, parent):
         for child in sorted(children):
             node = QStandardItem(child)
+            node.setCheckable(True)
             parent.appendRow(node)
 
             if isinstance(children, dict):
@@ -1753,8 +1814,89 @@ class EventPopup(QDialog):
             self.ui_tags.expandAll()
         else:
             self.ui_tags.collapseAll()
-        
             
+    # ONGLET SUR LE PLOT RECORD SECTION
+    # ----------------------------------------------------------------------------------------------------         
+    def _contentTab2(self):
+        label = QLabel("<b>Plotting the record section</b>")
+        label.setFont(QFont('Calibri',12))
+        self.Section.layout.addWidget(label)
+        layout = QHBoxLayout()
+        self.Section.layout.addLayout(layout)
+        # Detrend
+        detrendLabel = QLabel("Detrend: ")
+        detrendChoice = QComboBox()
+        detrendChoice.addItems(["demean","linear","spline","simple","polynomial"])
+        layout.addWidget(detrendLabel)
+        layout.addWidget(detrendChoice)
+        # Remove response
+        layout2 = QHBoxLayout()
+        self.Section.layout.addLayout(layout2)
+        removeResponseLabel = QLabel("Remove instrumental response: ")
+        removeResponseChoice = QCheckBox()
+        layout2.addWidget(removeResponseLabel)
+        layout2.addWidget(removeResponseChoice)
+        self.Section.layout.addLayout(layout2)
+        
+        # Normaliza
+        layout4 = QHBoxLayout()
+        self.Section.layout.addLayout(layout4)
+        normalizeLabel = QLabel("Normalize: ")
+        normalizeChoice = QCheckBox()
+        layout4.addWidget(normalizeLabel)
+        layout4.addWidget(normalizeChoice)
+        #self.Section.layout.addLayout(layout4)
+        
+        self.figure = Figure(figsize=(8,6))
+        self.canvas = FigureCanvas(self.figure)
+        self.Section.layout.addWidget(self.canvas)
+        
+
+    def get_waveforms(self):
+        client = Client('RESIF')
+        start = UTCDateTime('2011-03-11T05:46:23')
+        
+        self.st = client.get_waveforms(
+            network = "G",
+            station = "*",
+            location = "00",
+            channel = "LHZ",
+            starttime = start,
+            endtime = start + 14400,
+            attach_response = True, 
+            )
+        
+        self.st.detrend('linear')
+        self.st.remove_response(output='VEL',water_level=10)
+        self.st.filter('bandpass', freqmin=0.005, freqmax=0.01)
+        self.st.normalize()
+        
+        #self.st.plot(fig=self.figure_record_section)
+        minlg =-180
+        maxlg =180
+        minlat = -90
+        maxlat=90
+        
+        inventory = client.get_stations(network="G")
+        stations = []
+        for net in inventory:
+            for sta in net:
+                if minlat <= sta.latitude <= maxlat and minlg <= sta.longitude <= maxlg:
+                    stations.append(
+                        [net.code, sta.code, sta.latitude, sta.longitude, sta.elevation]
+                        )
+                    print(net.code, sta.code, sta.latitude, sta.longitude, sta.elevation)
+        
+        name = 'record_section_ev_%s.png' % str(start)[:10]
+        
+        self.figure_record_section = plot_record_section(self.st, stations, eqo.latitude, eqo.longitude, outfile=name)
+        self.canvas_record_section = FigureCanvas(self.figure_record_section)
+        self.Section.layout.addWidget(self.canvas_record_section)    
+        
+        self.download_section = QPushButton("Download",self)
+        self.download_section.setFixedWidth(150)
+        self.Section.layout.addWidget(self.download_section)
+        #self.download_filter.clicked.connect(self.downloadFilteredTrace)
         
             
   
