@@ -84,9 +84,9 @@ subroutine caldvecphi0_withoutplm( l,theta,plmlocal,bvec,bvecdt,bvecdp)
   yinverse = 1.d0/dsin(theta)
   xl2 = dble(l) * dble(l+1)
 
-  ! m = 0
+  
 
-  m=0
+  !m=0
     
   coef = dsqrt( dble(2*l+1)*quarterpiinverse )
   plmdt = plmlocal(1)
@@ -109,9 +109,9 @@ subroutine caldvecphi0_withoutplm( l,theta,plmlocal,bvec,bvecdt,bvecdp)
   bvecdp(3,0) = dcmplx(0.d0)
     
 
-  ! m = 1
+
   
-  m=1
+  !m=1
 
   fact = xl2  
   coef = dsqrt( dble(2*l+1)*quarterpiinverse / fact )
@@ -141,9 +141,7 @@ subroutine caldvecphi0_withoutplm( l,theta,plmlocal,bvec,bvecdt,bvecdp)
   bvecdp(3,1) = dcmplx(- yinverse *plmlocal(1)*coef)
   bvecdp(3,-1) = -dconjg( bvecdp(3,1) )
 
-  ! m = 2
-  
-  m=2
+  !m=2
   
   fact = dble((l-1)*l*(l+1)*(l+2))
   coef = dsqrt( dble(2*l+1)*quarterpiinverse / fact )
@@ -196,8 +194,6 @@ subroutine caldvecphi0_withoutplm_sinnonzero( l,theta,plmlocal,bvec,bvecdt,bvecd
   xl2 = dble(l) * dble(l+1)
 
   ! m = 0
-
-  m=0
     
   coef = dsqrt( dble(2*l+1)*quarterpiinverse )
   plmdt = plmlocal(1)
@@ -221,8 +217,6 @@ subroutine caldvecphi0_withoutplm_sinnonzero( l,theta,plmlocal,bvec,bvecdt,bvecd
     
 
   ! m = 1
-  
-  m=1
 
   fact = xl2  
   coef = dsqrt( dble(2*l+1)*quarterpiinverse / fact )
@@ -253,8 +247,6 @@ subroutine caldvecphi0_withoutplm_sinnonzero( l,theta,plmlocal,bvec,bvecdt,bvecd
   bvecdp(3,-1) = -dconjg( bvecdp(3,1) )
 
   ! m = 2
-  
-  m=2
   
   fact = dble((l-1)*l*(l+1)*(l+2))
   coef = dsqrt( dble(2*l+1)*quarterpiinverse / fact )
