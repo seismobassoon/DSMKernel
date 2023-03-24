@@ -166,6 +166,8 @@ class Window(QMainWindow):
             self.maxLatEventChoice.setValue(max_lat)
             self.minLonEventChoice.setValue(min_lng)
             self.maxLonEventChoice.setValue(max_lng)
+            
+
 
         self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
         #map.on('draw:created', function (event)
@@ -182,7 +184,29 @@ class Window(QMainWindow):
         menuBar = self.menuBar()
         
         # Creating menus using a QMenu object
-        fileMenu = QMenu("&About", self)      
+        fileMenu = QMenu("&About", self)     
+        self.setStyleSheet("""
+                               QMenuBar {
+                                   background-color: white; 
+                                   color: dimgray; 
+                                   font-family: Calibri; 
+                                   font-size: 18px;
+                                   width: 125px;
+                                   spacing: 10px;
+
+                               }
+                               QMenuBar::item {
+                                   height: 40px;
+                                               
+                               }
+                               
+                               QMenuBar::item:selected {
+                                   background-color: beige; 
+                                   color: red;
+
+                               }
+                               
+                               """)
         menuBar.addMenu(fileMenu)
         fileMenu.addAction(self.aboutAction)
         
@@ -1073,8 +1097,8 @@ class Window(QMainWindow):
             infos = "Name: %s<br/>Lat/Long: (%s, %s)<br/>Elevation: %s m" % (name, lat, lon, elev)
             
             marker = L.marker([lat, lon], {
-                'color':"blue",
-                'fillColor':"#FF8C00",
+                'color':'green',
+                'fillColor':'"#FF8C00"',
                 'fillOpacity':0.3,
 
             })
@@ -1200,7 +1224,7 @@ class StationPopup(QDialog):
         
 
         self._contentTab1()
-        #self._contentTab2()
+        self._contentTab2()
         self._contentTab3()
         
         
@@ -1262,6 +1286,7 @@ class StationPopup(QDialog):
         # Les seuls champs à remplir pour afficher la trace sont le channel, le starttime et le endtime
         # Les autres sont "globaux" donc déjà avec une valeur.
         self.channelChoice.editingFinished.connect(self.plot_seismic)
+        
         self.startTrace.editingFinished.connect(self.plot_seismic)
         self.endTrace.editingFinished.connect(self.plot_seismic)
 
@@ -1327,8 +1352,9 @@ class StationPopup(QDialog):
             except Exception:
                 error_message = QMessageBox(QMessageBox.Critical, "No data found","Please, check the parameter filled!",QMessageBox.Ok)
                 error_message.exec()
+           
+            self.get_periodogram()
             
-            #self._contentTab2()
             
   
     
@@ -1341,14 +1367,18 @@ class StationPopup(QDialog):
         #self.plot_seismic(name,channel,startTrace,endTrace)
         
     def _contentTab2(self):
-        # Periodogram
+        self.figure_periodogram = Figure(figsize=(6,4))
+        self.canvas_periodogram = FigureCanvas(self.figure_periodogram)
+        self.Periodogram.layout.addWidget(self.canvas_periodogram)
+        
+        
+    def get_periodogram(self):
         x = self.st[0].data
         sampling_rate = self.st[0].stats.sampling_rate
         
         # Print the sampling rate on the window
         samplingLabel = QLabel("Sampling rate: {}".format(sampling_rate))
         self.Periodogram.layout.addWidget(samplingLabel)
-        
         
         freqs,psd = get_periodogram(x, sampling_rate, show = False)
         fig = Figure(figsize=(6, 4), dpi=100)
@@ -1357,9 +1387,9 @@ class StationPopup(QDialog):
         ax.set_xlabel('Frequency (Hz)')
         ax.set_ylabel('Power spectral density (dB/Hz)')
 
-        canvas = FigureCanvas(fig)
-        canvas.draw()
-        self.Periodogram.layout.addWidget(canvas)
+        self.canvas_periodogram = FigureCanvas(fig)
+        self.canvas_periodogram.draw()
+        self.Periodogram.layout.addWidget(self.canvas_periodogram)
         
         # Creation de la figure
         '''
@@ -1856,11 +1886,17 @@ class EventPopup(QDialog):
         layout4.addWidget(normalizeChoice)
         #self.Section.layout.addLayout(layout4)
         
+        okButton = QPushButton("Ok")
+        okButton.setFixedWidth(150)
+        okButton.clicked.connect(self.get_waveforms)
+        self.Section.layout.addWidget(okButton)
+        
+        
         separatorLine = QFrame()
         separatorLine.setFrameShadow(QFrame.Sunken)
         separatorLine.setFrameShape(QFrame.HLine)
         separatorLine.setLineWidth(2)
-        self.Section.addWidget(separatorLine)
+        self.Section.layout.addWidget(separatorLine)
         
         self.figure = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.figure)
