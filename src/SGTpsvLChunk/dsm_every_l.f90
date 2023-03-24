@@ -60,6 +60,10 @@ subroutine whoDoesWhatDSM
   lChunk(1,nAngularOrderChunk) = (nAngularOrderChunk-1)*reasonableLwidth
   lChunk(2,nAngularOrderChunk) = maxlmax
 
+  print *, "my_rank =", my_rank
+  print *, lChunk(1,:)
+  print *, lChunk(2,:)
+
   if(imin.eq.0) then
      lmaxPredefined(0) = 0
   endif
