@@ -74,7 +74,7 @@ subroutine whoDoesWhatDSM
   ! Here I organise itheta arrays for each rank in order to precompute plm for reasonableLwidth
 
   nThetaLength = theta_n/nproc + 1
-  jobsOfnThetaLengthMinusOne = nThetaLength*nproc - nThetaLength
+  jobsOfnThetaLengthMinusOne = nThetaLength*nproc - theta_n
   jobsOfnThetaLength = nproc - jobsOfnThetaLengthMinusOne
   if(my_rank.lt.jobsOfnThetaLength) then
      iThetaMinLocal = (my_rank-1) * nThetaLength +1

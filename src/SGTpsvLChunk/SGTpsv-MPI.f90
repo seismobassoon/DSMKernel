@@ -51,7 +51,7 @@ program  SGTpsv
      if(my_rank.eq.0) then
         print *, "MPIed PLM compulation time", end_time-start_time, "for l=", lChunk(1,iAngularOrderChunk), lChunk(2,iAngularOrderChunk)
      endif
-     
+     stop
      call cpu_time(start_time)
      do l = lChunk(1,iAngularOrderChunk), lChunk(2,iAngularOrderChunk)
         call computeDVECforlChunkLocal
