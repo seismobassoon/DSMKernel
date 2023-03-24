@@ -7,6 +7,7 @@ subroutine whoDoesWhatDSM
   implicit none
   real(kind(0d0)) :: omegaLocal,frequencyLocal
   real(kind(0d0)) :: reasonableLwidthInReal
+  integer :: jobsOfnThetaLengthMinusOne, jobsOfnThetaLength
   integer :: reasonableLwidth
 
   allocate(lmaxPredefined(imin:imax))
@@ -71,19 +72,19 @@ subroutine whoDoesWhatDSM
 
 
   ! Here I organise itheta arrays for each rank in order to precompute plm for reasonableLwidth
-  if(nproc.ne.1) then
-     nThetaLength = theta_n/(nproc-1) 
+
+  nThetaLength = theta_n/nproc + 1
+  jobsOfnThetaLengthMinusOne = nThetaLength*nproc - nThetaLength
+  jobsOfnThetaLength = nproc - jobsOfnThetaLengthMinusOne
+  if(my_rank.lt.jobsOfnThetaLength) then
+     iThetaMinLocal = (my_rank-1) * nThetaLength +1
+     iThetaMaxLocal = my_rank * nThetaLength
   else
-     nThetaLength = 1
-  endif
-  iThetaMinLocal = my_rank*nThetaLength+1
-  iThetaMaxLocal = min0((my_rank+1)*nThetaLength, theta_n)
-  
-  if(nThetaLength*(nproc-1).eq.theta_n) then
-     if(my_rank.eq.nproc-2) iThetaMaxLocal = iThetaMaxLocal -1
-     if(my_rank.eq.nproc-1) iThetaMaxLocal = iThetaMinLocal
+     iThetaMinLocal = jobsOfnThetaLength*nThetaLength + (my_rank-jobsOfnThetaLength) * (nThetaLength-1) +1
+     iThetaMaxLocal = jobsOfnThetaLength*nThetaLength + (my_rank-jobsOfnThetaLength+1) * (nThetaLength-1) +1
   endif
   
+ 
   print *, "itheta=",iThetaMinLocal,iThetaMaxLocal
   
   
