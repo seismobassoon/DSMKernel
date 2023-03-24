@@ -81,7 +81,7 @@ subroutine whoDoesWhatDSM
      iThetaMaxLocal = my_rank * nThetaLength
   else
      iThetaMinLocal = jobsOfnThetaLength*nThetaLength + (my_rank-jobsOfnThetaLength) * (nThetaLength-1) +1
-     iThetaMaxLocal = jobsOfnThetaLength*nThetaLength + (my_rank-jobsOfnThetaLength+1) * (nThetaLength-1) +1
+     iThetaMaxLocal = jobsOfnThetaLength*nThetaLength + (my_rank-jobsOfnThetaLength+1) * (nThetaLength-1) 
   endif
   
  
@@ -201,6 +201,7 @@ subroutine computeDVECforlChunkLocal
   dvec0=dcmplx(0.d0)
   dvecdt0=dcmplx(0.d0)
   dvecdp0=dcmplx(0.d0)
+  print *, my_rank, l
 
   call caldvecphi0_withoutplm(l,theta_radian(1),plmGlobalTranspose(0:3,1,l),dvec0(1:3,-2:2,1),dvecdt0(1:3,-2:2,1),dvecdp0(1:3,-2:2,1)) ! itheta = 1 can have theta = 0 
   call caldvecphi0_withoutplm(l,theta_radian(theta_n),plmGlobalTranspose(0:3,theta_n,l),dvec0(1:3,-2:2,theta_n),dvecdt0(1:3,-2:2,theta_n),dvecdp0(1:3,-2:2,theta_n)) ! itheta = theta_n can have theta=pi
