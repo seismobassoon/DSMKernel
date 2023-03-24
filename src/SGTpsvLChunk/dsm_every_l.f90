@@ -59,8 +59,9 @@ subroutine whoDoesWhatDSM
   
   lChunk(1,nAngularOrderChunk) = (nAngularOrderChunk-1)*reasonableLwidth
   lChunk(2,nAngularOrderChunk) = maxlmax
-
-  !print *, "my_rank =", my_rank
+  
+  print *, "theta_n=", theta_n
+  print *, "my_rank =", my_rank
   !print *, lChunk(1,:)
   !print *, lChunk(2,:)
 

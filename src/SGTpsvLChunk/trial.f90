@@ -94,7 +94,6 @@ subroutine caldvecphi0_withoutplm( l,theta,plmlocal,bvec,bvecdt,bvecdp)
   bvec(1,0)  = coef * plmlocal(0) 
   bvec(2,0) = coef * plmdt
   bvec(3,0) = dcmplx(0.d0)
-
      
      
   ! calculate derivatives
@@ -109,7 +108,7 @@ subroutine caldvecphi0_withoutplm( l,theta,plmlocal,bvec,bvecdt,bvecdp)
   bvecdp(3,0) = dcmplx(0.d0)
     
 
-
+  if(l.eq.0) return
   
   !m=1
 
@@ -141,6 +140,9 @@ subroutine caldvecphi0_withoutplm( l,theta,plmlocal,bvec,bvecdt,bvecdp)
   bvecdp(3,1) = dcmplx(- yinverse *plmlocal(1)*coef)
   bvecdp(3,-1) = -dconjg( bvecdp(3,1) )
 
+
+  if(l.eq.1) return
+  
   !m=2
   
   fact = dble((l-1)*l*(l+1)*(l+2))
