@@ -127,44 +127,51 @@ class Window(QMainWindow):
         time.sleep(2)
         
         # SELECT COORDINATES MANUALLY
-        #-------------------------------------------------
-     
-        def coords(self,x,coord_lat,coord_lng):
-            lat,lng = x['latlng']['lat'],x['latlng']['lng']
-            #print(lat,lng)
-            coord_lat.append(lat)
-            coord_lng.append(lng)
-            print(coord_lat)
-            print(coord_lng)
-          
-            global minlat 
-            minlat= min(coord_lat)
-            global maxlat
-            maxlat=max(coord_lat)
-            global minlng
-            minlng=min(coord_lng)
-            global maxlng
-            maxlng=max(coord_lng)
-            # ADD LATITUDE/LONGITUDE VALUES TO BOTH TOOLBARS
-            print(minlat,maxlat,minlng,maxlng)
-            self.minLatChoice.setValue(minlat)
-            self.maxLatChoice.setValue(maxlat)
-            self.minLonChoice.setValue(minlng)
-            self.maxLonChoice.setValue(maxlng)
-            
-            self.minLatEventChoice.setValue(minlat)
-            self.maxLatEventChoice.setValue(maxlat)
-            self.minLonEventChoice.setValue(minlng)
-            self.maxLonEventChoice.setValue(maxlng)
-            
+        #-------------------------------------------------  
        
         coord_lat=[]
         coord_lng=[]
+
+        def coords(self, x, coord_lat, coord_lng):
+            latlngs = x["layer"]["_latlngs"]
+            
+            latitudes = []
+            longitudes = []
+            
+            for key1, value1 in latlngs.items():
+                for key2, value2 in value1.items():
+                    latitude = value2.get('lat')
+                    if latitude is not None:
+                        latitudes.append(latitude)
+                
+            for key1, value1 in latlngs.items():
+                for key2, value2 in value1.items():
+                    longitude = value2.get('lng')
+                    if longitude is not None:
+                        longitudes.append(longitude)
+                        
+
+            min_lat = min(latitudes)
+            max_lat = max(latitudes)
+            min_lng = min(longitudes)
+            max_lng = max(longitudes)
+            print(min_lat, max_lat, min_lng, max_lng)
+            # ADD LATITUDE/LONGITUDE VALUES TO BOTH TOOLBARS
+            self.minLatChoice.setValue(min_lat)
+            self.maxLatChoice.setValue(max_lat)
+            self.minLonChoice.setValue(min_lng)
+            self.maxLonChoice.setValue(max_lng)
         
+            self.minLatEventChoice.setValue(min_lat)
+            self.maxLatEventChoice.setValue(max_lat)
+            self.minLonEventChoice.setValue(min_lng)
+            self.maxLonEventChoice.setValue(max_lng)
+
         self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
         #map.on('draw:created', function (event)
-        self.map.clicked.connect(lambda x: coords(self,x,coord_lat,coord_lng))
-        
+        #self.map.clicked.connect(lambda x: coords(self,x,coord_lat,coord_lng))
+        self.map.drawCreated.connect(lambda x: coords(self,x,coord_lat,coord_lng))
+  
     
 
 
@@ -739,6 +746,7 @@ class Window(QMainWindow):
     def showMainToolBar(self):
 
         self.map.addControl(self.drawControl)
+        
         self.eventToolBar.setVisible(False)
         self.mainToolBar.setVisible(not self.mainToolBar.isVisible())
         
@@ -1765,6 +1773,7 @@ class EventPopup(QDialog):
         
         # Separator
         separatorLine = QFrame()
+        separatorLine.setFrameShadow(QFrame.Sunken)
         separatorLine.setFrameShape(QFrame.HLine)
         separatorLine.setLineWidth(2)
         rightLayout.addWidget(separatorLine)  
@@ -1846,6 +1855,12 @@ class EventPopup(QDialog):
         layout4.addWidget(normalizeLabel)
         layout4.addWidget(normalizeChoice)
         #self.Section.layout.addLayout(layout4)
+        
+        separatorLine = QFrame()
+        separatorLine.setFrameShadow(QFrame.Sunken)
+        separatorLine.setFrameShape(QFrame.HLine)
+        separatorLine.setLineWidth(2)
+        self.Section.addWidget(separatorLine)
         
         self.figure = Figure(figsize=(8,6))
         self.canvas = FigureCanvas(self.figure)
