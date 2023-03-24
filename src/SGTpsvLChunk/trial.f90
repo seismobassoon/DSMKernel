@@ -168,7 +168,7 @@ subroutine caldvecphi0_withoutplm( l,theta,plmlocal,bvec,bvecdt,bvecdp)
   bvecdp(1,-2) = dconjg( bvecdp(1,2) )
   bvecdp(2,2) = dcmplx( 0.d0,2.d0 ) * plmdt * coef 
   bvecdp(2,-2) = dconjg( bvecdp(2,2) )
-  bvecdp(3,2) = dcmplx(- 4.d0 * yinverse *plm(1,m)*coef)
+  bvecdp(3,2) = dcmplx(- 4.d0 * yinverse *plmlocal(2)*coef)
   bvecdp(3,-2) = dconjg( bvecdp(3,2) )
     
   return
@@ -273,7 +273,7 @@ subroutine caldvecphi0_withoutplm_sinnonzero( l,theta,plmlocal,bvec,bvecdt,bvecd
   bvecdp(1,-2) = dconjg( bvecdp(1,2) )
   bvecdp(2,2) = dcmplx( 0.d0,2.d0 ) * plmdt * coef 
   bvecdp(2,-2) = dconjg( bvecdp(2,2) )
-  bvecdp(3,2) = dcmplx(- 4.d0 * yinverse *plm(1,m)*coef)
+  bvecdp(3,2) = dcmplx(- 4.d0 * yinverse *plmlocal(2)*coef)
   bvecdp(3,-2) = dconjg( bvecdp(3,2) )
     
   return
