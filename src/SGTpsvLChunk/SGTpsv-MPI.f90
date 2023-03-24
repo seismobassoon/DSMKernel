@@ -82,7 +82,7 @@ program  SGTpsv
         
         call cpu_time(start_time)
         call calcoef( nzone,omega,qmu,qkappa,coef1,coef2,coef )
-        plm = 0.d0
+ 
         mtmp = isp(spn) + int(spo)
         if ( spo.eq.int(spo) ) mtmp = mtmp - 1
         call calabnum( omega,omegai,rmax, rrho(1,spn),vpv(1,spn),vph(1,spn),vsv(1,spn),vsh(1,spn),eta(1,spn),ra(mtmp),r0(ir0),coef1(spn),coef2(spn),anum(1,1,1),bnum(1,1,1) )
