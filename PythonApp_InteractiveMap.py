@@ -78,6 +78,11 @@ class Window(QMainWindow):
         #-----------------------------------------------------------------------------------------------------
         self.map = L.map(self.mapWidget)
         self.map.setView([0, 0], 2)
+        
+        SW = (-90,-180)
+        NE = (90,180)
+        
+        self.map.setMaxBounds((SW,NE))
 
         Progress = 50
         splash_screen.progressUpdate(Progress)
@@ -122,44 +127,53 @@ class Window(QMainWindow):
         time.sleep(2)
         
         # SELECT COORDINATES MANUALLY
-        #-------------------------------------------------
-     
-        def coords(self,x,coord_lat,coord_lng):
-            lat,lng = x['latlng']['lat'],x['latlng']['lng']
-            #print(lat,lng)
-            coord_lat.append(lat)
-            coord_lng.append(lng)
-            print(coord_lat)
-            print(coord_lng)
-          
-            global minlat 
-            minlat= min(coord_lat)
-            global maxlat
-            maxlat=max(coord_lat)
-            global minlng
-            minlng=min(coord_lng)
-            global maxlng
-            maxlng=max(coord_lng)
-            # ADD LATITUDE/LONGITUDE VALUES TO BOTH TOOLBARS
-            print(minlat,maxlat,minlng,maxlng)
-            self.minLatChoice.setValue(minlat)
-            self.maxLatChoice.setValue(maxlat)
-            self.minLonChoice.setValue(minlng)
-            self.maxLonChoice.setValue(maxlng)
-            
-            self.minLatEventChoice.setValue(minlat)
-            self.maxLatEventChoice.setValue(maxlat)
-            self.minLonEventChoice.setValue(minlng)
-            self.maxLonEventChoice.setValue(maxlng)
-            
+        #-------------------------------------------------  
        
         coord_lat=[]
         coord_lng=[]
+
+        def coords(self, x, coord_lat, coord_lng):
+            latlngs = x["layer"]["_latlngs"]
+            
+            latitudes = []
+            longitudes = []
+            
+            for key1, value1 in latlngs.items():
+                for key2, value2 in value1.items():
+                    latitude = value2.get('lat')
+                    if latitude is not None:
+                        latitudes.append(latitude)
+                
+            for key1, value1 in latlngs.items():
+                for key2, value2 in value1.items():
+                    longitude = value2.get('lng')
+                    if longitude is not None:
+                        longitudes.append(longitude)
+                        
+
+            min_lat = min(latitudes)
+            max_lat = max(latitudes)
+            min_lng = min(longitudes)
+            max_lng = max(longitudes)
+            print(min_lat, max_lat, min_lng, max_lng)
+            # ADD LATITUDE/LONGITUDE VALUES TO BOTH TOOLBARS
+            self.minLatChoice.setValue(min_lat)
+            self.maxLatChoice.setValue(max_lat)
+            self.minLonChoice.setValue(min_lng)
+            self.maxLonChoice.setValue(max_lng)
         
+            self.minLatEventChoice.setValue(min_lat)
+            self.maxLatEventChoice.setValue(max_lat)
+            self.minLonEventChoice.setValue(min_lng)
+            self.maxLonEventChoice.setValue(max_lng)
+            
+
+
         self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
         #map.on('draw:created', function (event)
-        self.map.clicked.connect(lambda x: coords(self,x,coord_lat,coord_lng))
-        
+        #self.map.clicked.connect(lambda x: coords(self,x,coord_lat,coord_lng))
+        self.map.drawCreated.connect(lambda x: coords(self,x,coord_lat,coord_lng))
+  
     
 
 
@@ -734,6 +748,7 @@ class Window(QMainWindow):
     def showMainToolBar(self):
 
         self.map.addControl(self.drawControl)
+        
         self.eventToolBar.setVisible(False)
         self.mainToolBar.setVisible(not self.mainToolBar.isVisible())
         
@@ -928,8 +943,9 @@ class Window(QMainWindow):
         label = QLabel('My stations list')
         label.setAlignment(Qt.AlignCenter)
         
-        searchStationEdit = QLineEdit("Search...")
+        searchStationEdit = QLineEdit()
         searchStationEdit.setStyleSheet("QLineEdit { color: #888888; } ")
+        searchStationEdit.setPlaceholderText("Search...")
         searchStationEdit.textChanged.connect(self.updateListStationWidget)
         
         # Créer un QVBoxLayout
@@ -1054,8 +1070,10 @@ class Window(QMainWindow):
         global stations
         stations = []
         for net, sta, lat, lon, elev in stationsEvent:
+            
             name = ".".join([net, sta])
             infos = "Name: %s<br/>Lat/Long: (%s, %s)<br/>Elevation: %s m" % (name, lat, lon, elev)
+            
             marker = L.marker([lat, lon], {
                 'color':"blue",
                 'fillColor':"#FF8C00",
@@ -1069,7 +1087,7 @@ class Window(QMainWindow):
             popup_html="<b>%s</b>" %infos
             
             marker.bindPopup(popup_html)
-            
+           
         self.showEventDialog()
         self.show()
         
@@ -1131,12 +1149,8 @@ class Window(QMainWindow):
         eqoMag = self.events_center[index].magnitudes[0].mag
         
         '''
-        selected_event = item.text()
-        print("Selected event :",selected_event)
-        for event_num, event in self.event_dict.items():
-            if event == selected_event:
-                print("selected event number: ",event_num)
-                break
+        global eqoMoment
+        eqoMoment = self.events_center[index].focal_mechanisms
         '''
         
         exPopup = EventPopup(item.text(),self)
@@ -1658,6 +1672,7 @@ class EventPopup(QDialog):
         self.ui_search.setPlaceholderText('Search...')
         
         self.tags_model = SearchProxyModel()
+        print(type(self.tags_model))
         self.tags_model.setSourceModel(QtGui.QStandardItemModel())
         self.tags_model.setDynamicSortFilter(True)
         self.tags_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
@@ -1673,7 +1688,7 @@ class EventPopup(QDialog):
         self.ui_tags.setModel(self.tags_model)
 
         # layout pour afficher le dictionnaire de station et la barre de recherche sur la gauche de la fenêtre
-        leftlayout = QVBoxLayout()
+        leftlayout = QVBoxLayout()                 
         leftlayout.addWidget(self.ui_search)
         leftlayout.addWidget(self.ui_tags)
         #self.setLayout(main_layout)
@@ -1706,6 +1721,7 @@ class EventPopup(QDialog):
         
         eqLabel = QLabel("<b>Earthquake information</b>")
         eqLabel.setFont(QFont('Calibri',12))
+        eqLabel.setFixedWidth(500)
         rightLayout.addWidget(eqLabel)
         
         # EQ INFO
@@ -1731,8 +1747,10 @@ class EventPopup(QDialog):
         channelLayout = QHBoxLayout()
         rightLayout.addLayout(channelLayout)
         Channel = QLabel("<b>Channel: </b>")
+        Channel.setFixedWidth(50)
         channelLayout.addWidget(Channel)
         self.channelChoice = QLineEdit()
+        self.channelChoice.setFixedWidth(160)
         channelLayout.addWidget(self.channelChoice)
         self.channelChoice.setPlaceholderText("Enter a channel")
         self.channel = self.channelChoice.text()
@@ -1741,14 +1759,23 @@ class EventPopup(QDialog):
         locationLayout = QHBoxLayout()
         rightLayout.addLayout(locationLayout)
         Location = QLabel("<b>Location: </b>")
+        Location.setFixedWidth(50)
         locationLayout.addWidget(Location)
         self.locationChoice = QLineEdit()
+        self.locationChoice.setFixedWidth(160)
         locationLayout.addWidget(self.locationChoice)
         self.locationChoice.setPlaceholderText("Enter a location (ex. '00')")
         self.location = self.locationChoice.text()
         
+        pushButton = QPushButton("Display the record section")
+        pushButton.setFixedWidth(160)
+        rightLayout.addWidget(pushButton)
+        pushButton.clicked.connect(self.get_waveforms)
+        
+        
         # Separator
         separatorLine = QFrame()
+        separatorLine.setFrameShadow(QFrame.Sunken)
         separatorLine.setFrameShape(QFrame.HLine)
         separatorLine.setLineWidth(2)
         rightLayout.addWidget(separatorLine)  
@@ -1760,8 +1787,9 @@ class EventPopup(QDialog):
         
         self.Description.layout.addLayout(layout)
         
+        
         # ACQUISITION DE LA DONNEE
-        self.channelChoice.editingFinished.connect(self.get_waveforms)
+        #self.channelChoice.editingFinished.connect(self.get_waveforms)
         
     # ORGANISATION DE LA LISTE DE STATION
     #--------------------------------------------------------------------------------------------------------
@@ -1829,13 +1857,17 @@ class EventPopup(QDialog):
         layout4.addWidget(normalizeLabel)
         layout4.addWidget(normalizeChoice)
         #self.Section.layout.addLayout(layout4)
-        '''
-        self.separatorLine = QFrame()
-        self.separatorLine.setFrameShape(QFrame.HLine)
-        self.separatorLine.setLineWidth(2)
         
-        self.Section.layout.addWidget(self.separatorLine)
-        '''
+        separatorLine = QFrame()
+        separatorLine.setFrameShadow(QFrame.Sunken)
+        separatorLine.setFrameShape(QFrame.HLine)
+        separatorLine.setLineWidth(2)
+        self.Section.layout.addWidget(separatorLine)
+        
+        self.figure = Figure(figsize=(8,6))
+        self.canvas = FigureCanvas(self.figure)
+        self.Section.layout.addWidget(self.canvas)
+        
 
     def get_waveforms(self):
         client = Client('RESIF')
@@ -1877,6 +1909,11 @@ class EventPopup(QDialog):
         self.figure_record_section = plot_record_section(self.st, stations, eqo.latitude, eqo.longitude, outfile=name)
         self.canvas_record_section = FigureCanvas(self.figure_record_section)
         self.Section.layout.addWidget(self.canvas_record_section)    
+        
+        self.download_section = QPushButton("Download",self)
+        self.download_section.setFixedWidth(150)
+        self.Section.layout.addWidget(self.download_section)
+        #self.download_filter.clicked.connect(self.downloadFilteredTrace)
         
             
   
