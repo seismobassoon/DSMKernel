@@ -60,9 +60,9 @@ subroutine whoDoesWhatDSM
   lChunk(1,nAngularOrderChunk) = (nAngularOrderChunk-1)*reasonableLwidth
   lChunk(2,nAngularOrderChunk) = maxlmax
 
-  print *, "my_rank =", my_rank
-  print *, lChunk(1,:)
-  print *, lChunk(2,:)
+  !print *, "my_rank =", my_rank
+  !print *, lChunk(1,:)
+  !print *, lChunk(2,:)
 
   if(imin.eq.0) then
      lmaxPredefined(0) = 0
@@ -70,9 +70,19 @@ subroutine whoDoesWhatDSM
 
 
   ! Here I organise itheta arrays for each rank in order to precompute plm for reasonableLwidth
-  nThetaLength = theta_n/nproc + 1
+  if(nproc.ne.1) then
+     nThetaLength = theta_n/(nproc-1) 
+  else
+     nThetaLength = 1
+  endif
   iThetaMinLocal = my_rank*nThetaLength+1
   iThetaMaxLocal = min0((my_rank+1)*nThetaLength, theta_n)
+  
+  if(nThetaLength*(nproc-1).eq.theta_n) then
+     if(my_rank.eq.nproc-2) iThetaMaxLocal = iThetaMaxLocal -1
+     if(my_rank.eq.nproc-1) iThetaMaxLocal = iThetaMinLocal
+  endif
+  
   print *, "itheta=",iThetaMinLocal,iThetaMaxLocal
   
   
