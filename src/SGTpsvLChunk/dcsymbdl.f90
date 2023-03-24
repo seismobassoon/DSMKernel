@@ -83,8 +83,7 @@ subroutine dcsymbdl0(a,m,n,nn,eps,z,w,l,li,lj,ier)
 	z(j) = - a(nk+m*j)
 	w(j) =	 a(nk+m*j) * piv
 	a(nk+m*j) = w(j)
-        
-	nki = nkk + m * (j-1)
+        nki = nkk + m * (j-1)
 	do i=2,j
            a(nki+i) = a(nki+i) + w(j) * z(i)
         enddo

@@ -89,7 +89,6 @@ subroutine computePLMforlChunkLocal
   implicit none
   real(kind(0d0)) :: plmtmp(1:3,0:3),x
   real(kind(0d0)) :: plmLocal(0:3,lChunk(1,iAngularOrderChunk):lChunk(2,iAngularOrderChunk),iThetaMinLocal:iThetaMaxLocal)
-  integer :: itheta
   
   
   ! if it is the first lChunk (starting with l=0) then we start without no pb
@@ -181,9 +180,9 @@ subroutine computeDVECforlChunkLocal
   use parameters
   implicit none
   
-  dvec0=cmplx(0.d0)
-  dvecdt0=cmplx(0.d0)
-  dvecdp0=cmplx(0.d0)
+  dvec0=dcmplx(0.d0)
+  dvecdt0=dcmplx(0.d0)
+  dvecdp0=dcmplx(0.d0)
 
   call caldvecphi0_withoutplm(l,theta_radian(1),plmGlobalTranspose(0:3,1,l),dvec0(1:3,-2:2,1),dvecdt0(1:3,-2:2,1),dvecdp0(1:3,-2:2,1)) ! itheta = 1 can have theta = 0 
   call caldvecphi0_withoutplm(l,theta_radian(theta_n),plmGlobalTranspose(0:3,theta_n,l),dvec0(1:3,-2:2,theta_n),dvecdt0(1:3,-2:2,theta_n),dvecdp0(1:3,-2:2,theta_n)) ! itheta = theta_n can have theta=pi

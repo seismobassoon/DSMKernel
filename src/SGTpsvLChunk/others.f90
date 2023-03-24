@@ -188,8 +188,8 @@ subroutine locallyCartesianDerivatives (u,udr,udt,udp,uder,r,theta)
 
   if((theta.eq.0.d0).or.(theta.eq.pi)) then
      uder(1,1) = udr(1)
-     uder(2,2) = u(1)/cmplx(r)
-     uder(3,3) = u(1)/cmplx(r)     
+     uder(2,2) = u(1)/dcmplx(r)
+     uder(3,3) = u(1)/dcmplx(r)     
      return
   endif
 
@@ -201,16 +201,16 @@ subroutine locallyCartesianDerivatives (u,udr,udt,udp,uder,r,theta)
   ! 1,2,3: r,theta,phi; , denotes the partial derivatives
 
   uder(1,1) = udr(1)
-  uder(1,2) = (udt(1)-u(2))/cmplx(r)
-  uder(1,3) = (udp(1)/cmplx(thetasin)-u(3))/cmplx(r)
+  uder(1,2) = (udt(1)-u(2))/dcmplx(r)
+  uder(1,3) = (udp(1)/dcmplx(thetasin)-u(3))/dcmplx(r)
 
   uder(2,1) = udr(2)
-  uder(2,2) = (udt(2)+u(1))/cmplx(r)
-  uder(2,3) = (udp(2)/cmplx(thetasin)-u(3)*cmplx(thetacot))/cmplx(r)
+  uder(2,2) = (udt(2)+u(1))/dcmplx(r)
+  uder(2,3) = (udp(2)/dcmplx(thetasin)-u(3)*dcmplx(thetacot))/dcmplx(r)
 
   uder(3,1) = udr(3)
-  uder(3,2) = udt(3)/cmplx(r)
-  uder(3,3) = (udp(3)/cmplx(thetasin)+u(1)+u(2)*cmplx(thetacot))/cmplx(r)
+  uder(3,2) = udt(3)/dcmplx(r)
+  uder(3,3) = (udp(3)/dcmplx(thetasin)+u(1)+u(2)*dcmplx(thetacot))/dcmplx(r)
 
   return
 end subroutine locallyCartesianDerivatives
@@ -586,8 +586,8 @@ subroutine calstg_for_stackpoints(r,nzone,vrmin,vrmax,rrho,vpv,vph,vsv,vsh,eta,q
   do izone = 1, nzone
      if((r.gt.vrmin(izone)).and.(r.le.vrmax(izone))) then
         
-        coef1 = cmplx(qmu(izone))
-        coef2 = cmplx(qkappa(izone))
+        coef1 = dcmplx(qmu(izone))
+        coef2 = dcmplx(qkappa(izone))
         trho = 0.d0
         tvpv = 0.d0
         tvph = 0.d0
