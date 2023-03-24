@@ -53,8 +53,11 @@ program  SGTpsv
      endif
      
      call cpu_time(start_time)
-     call computeDVECforlChunkLocal
+     do l = lChunk(1,iAngularOrderChunk), lChunk(2,iAngularOrderChunk)
+        call computeDVECforlChunkLocal
+     enddo
      call cpu_time(end_time)
+     
      
       if(my_rank.eq.0) then
         print *, "MPIed DEVEC compulation time", end_time-start_time, "for l=", lChunk(1,iAngularOrderChunk), lChunk(2,iAngularOrderChunk)
