@@ -156,7 +156,7 @@ subroutine computePLMforlChunkLocal
 
   call MPI_ALLGATHER(plmLocal,4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
        MPI_DOUBLE_PRECISION, &
-       plmGlobal,
+       plmGlobal, &
        4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
        MPI_DOUBLE_PRECISION, MPI_COMM_WORLD,ierr)
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
