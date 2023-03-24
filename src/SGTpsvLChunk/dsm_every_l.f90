@@ -73,6 +73,7 @@ subroutine whoDoesWhatDSM
   nThetaLength = theta_n/nproc + 1
   iThetaMinLocal = my_rank*nThetaLength+1
   iThetaMaxLocal = min0((my_rank+1)*nThetaLength, theta_n)
+  print *, "itheta=",iThetaMinLocal,iThetaMaxLocal
   
   
 
