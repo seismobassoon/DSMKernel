@@ -56,11 +56,6 @@ class Window(QMainWindow):
                            QMainWindow {
                                background: 'white';
                                 }
-                           
-                           QToolBar {
-                               transition: height 0.5s ease;
-                               }
-                           
                            """)
 
         self.resize(1000, 800)
@@ -103,7 +98,56 @@ class Window(QMainWindow):
         
         # ADD DRAWINGS
         #-----------------------------------------------------------------------------------------------------
-        self.drawControl = L.control.draw()
+        earthquake_draw_style = {
+            'draw': {
+                'position':'topleft',
+                'marker' : False,
+                'circlemarker': False,
+                'polygon': False,
+                'polyline': False,
+                'rectangle': {
+                    'shapeOptions': {
+                        'color': 'red',
+                        'fillOpacity':0.3
+                        }
+                    },
+                
+                'toolbar': {
+                    'buttons': {
+                        'rectangle': {
+                            'text':'salut'
+                        }
+                    }}
+                
+            },
+            'edit': {
+                'featureGroup': None,
+                'selectedPathOptions': {
+                    'maintainColor': True,
+                    'color': 'red'
+                    }
+                }
+        }
+        
+        stations_draw_style = {
+            'draw': {
+                'position':'bottomleft',
+                'marker': False,
+                'circlemarker': False,
+                'polygon': False,
+                'polyline': False,
+                'rectangle': True,
+            },
+            'shapeOptions': {
+                'fillColor': 'blue',
+                'color': 'red',
+                'fillOpacity':0.5
+                }
+            
+            }
+        self.drawControl = L.control.draw(options=earthquake_draw_style)
+        self.drawControl2 = L.control.draw(options=stations_draw_style)
+        
         #self.map.addControl(self.drawControl)
         satellite_layer.addTo(self.map)
         self.layersControl=L.control.layers(layers).addTo(self.map)
@@ -170,13 +214,11 @@ class Window(QMainWindow):
 
 
         self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
-        #map.on('draw:created', function (event)
-        #self.map.clicked.connect(lambda x: coords(self,x,coord_lat,coord_lng))
-        self.map.drawCreated.connect(lambda x: coords(self,x,coord_lat,coord_lng))
-  
+        self.map.drawCreated.connect(lambda x: coords(self,x,coord_lat,coord_lng) if x.featureGroup == self.drawControl.featureGroup else None)
     
 
-
+        self.drawControl2.featureGroup.toGeoJSON(lambda x: print(x))
+        #self.map.drawCreated.connect(lambda x:print("salut !"))
 
     # DEF MENU BAR
     #-----------------------------------------------
@@ -230,6 +272,11 @@ class Window(QMainWindow):
         self.settings = QSettings("MyQtApp", "App1")
         # Using a title
         self.mainToolBar = QToolBar("Toolbar",self)
+        self.mainToolBar.setStyleSheet("""
+                                       QToolBar {
+                                           transition: height 0.5s ease;
+                                           }
+                                       """)
     
         screen_width = QDesktopWidget().screenGeometry().width()
         toolbar_width = int(screen_width*0.1)
@@ -268,6 +315,19 @@ class Window(QMainWindow):
         self.clientChoice.setFixedWidth(150)
     
         self.clientChoice.addItems(["AUSPASS","BRG","EIDA","EMSC","ETH","GEOFON","GEONET","GFZ","ICGC","IESDMC","INGV","IPGP","IRIS","IRISPH5","ISC","KNMI","KOERI","LMU","NCEDC","NIEP","NOA","ODC","RASPISHAKE","RESIF","RESIFPH5","SCEDC","UIB-NORSAR","USGS","USP"])
+        self.clientChoice.setStyleSheet("""
+                                        QComboBox {
+                                            font-family: calibri;
+                                            }
+                                        
+                                        
+                                        QComboBox QAbstractItemView {
+                                            border: 2px;
+                                            selection-background-color: lightgray;
+
+                                        }
+                                        """)
+        
         # ESSAYER DE CHOISIR TOUS LES CLIENTS
         
         
@@ -281,9 +341,13 @@ class Window(QMainWindow):
         self.mainToolBar.addWidget(self.dateLabel)
         self.from_Date=QLabel("From: ")
         self.to_Date=QLabel("To: ")
+        self.from_Date.setStyleSheet("font-family: calibri;")
+        self.to_Date.setStyleSheet("font-family: calibri;")
         
         self.dateStartChoice = QDateTimeEdit(self,calendarPopup=True)
         self.dateEndChoice = QDateTimeEdit(self,calendarPopup=True)
+        self.dateStartChoice.setStyleSheet("font-family: calibri;")
+        self.dateEndChoice.setStyleSheet("font-family: calibri;")
         
         self.mainToolBar.addWidget(self.from_Date)
         self.mainToolBar.addWidget(self.dateStartChoice)
@@ -301,7 +365,11 @@ class Window(QMainWindow):
         layoutCoor2=QLabel("Maximum latitude: ")
         layoutCoor3=QLabel("Minimum longitude: ")
         layoutCoor4=QLabel("Maximum longitude: ")
-       
+        layoutCoor1.setStyleSheet('font-family: calibri;')
+        layoutCoor2.setStyleSheet('font-family: calibri;')
+        layoutCoor3.setStyleSheet('font-family: calibri;')
+        layoutCoor4.setStyleSheet('font-family: calibri;')
+        
         self.minLatChoice = QDoubleSpinBox()
         self.maxLatChoice = QDoubleSpinBox()
         self.minLonChoice = QDoubleSpinBox()
@@ -335,6 +403,7 @@ class Window(QMainWindow):
         self.mainToolBar.addWidget(self.locChoice)
         self.locChoice.setMaxLength(5)
         self.locChoice.setText("*")
+        self.locChoice.setStyleSheet('font-family: calibri;')
         self.locChoice.setPlaceholderText("Enter the location")
                 
         # SEPARATING----------------------------------------------
@@ -350,7 +419,9 @@ class Window(QMainWindow):
         
         self.magChoice = QSlider()
         self.magValue = QDoubleSpinBox()
+        self.magChoice.setStyleSheet('font-family: calibri;')
         self.magValue.setValue(5)
+        self.magValue.setStyleSheet('font-family: calibri;')
         #self.magValue.setFixedWidth(25)
         
         self.magChoice.setRange(0,100)
@@ -413,6 +484,7 @@ class Window(QMainWindow):
         
         self.mainToolBar.addWidget(self.networkLabel)
         self.networkChoice = QComboBox(self)
+        self.networkChoice.setStyleSheet('font-family: calibri;')
         self.mainToolBar.addWidget(self.networkChoice)
         self.clientChoice.currentIndexChanged.connect(self.updateNetworkChoice)
         
@@ -520,7 +592,6 @@ class Window(QMainWindow):
             
     # TOOLBAR OF THE EVENT SECTION -----------------------------------------------------------------------------------        
     def _createToolBars2(self):
-        
         
         # TOOLBAR SET UP
         self.eventToolBar = QToolBar("Toolbar",self)
@@ -704,34 +775,42 @@ class Window(QMainWindow):
         # Creating actions using the second constructor
         self.networkLabel = QLabel(self)
         self.networkLabel.setText("<b>Network</b>")
+        self.networkLabel.setStyleSheet("font-family: bold;")
         self.networkLabel.setAlignment(Qt.AlignCenter)
         
         self.magLabel = QLabel(self)
         self.magLabel.setText("<b>Magnitude constraints</b>")
+        self.magLabel.setStyleSheet("font-family: bold;")
         self.magLabel.setAlignment(Qt.AlignCenter)
         
         self.magEventLabel = QLabel(self)
         self.magEventLabel.setText("<b>Magnitude constraints</b>")
+        self.magEventLabel.setStyleSheet("font-family: bold;")
         self.magEventLabel.setAlignment(Qt.AlignCenter)
         
         self.dateLabel = QLabel(self)
         self.dateLabel.setText("<b>Date</b>")
+        self.dateLabel.setStyleSheet("font-family: bold;")
         self.dateLabel.setAlignment(Qt.AlignCenter)
         
         self.dateEventLabel = QLabel(self)
         self.dateEventLabel.setText("<b>Date</b>")
+        self.dateEventLabel.setStyleSheet("font-family: bold;")
         self.dateEventLabel.setAlignment(Qt.AlignCenter)
         
         self.locLabel = QLabel(self)
         self.locLabel.setText("<b>Location</b>")
+        self.locLabel.setStyleSheet("font-family: bold;")
         self.locLabel.setAlignment(Qt.AlignCenter)
         
         self.coorLabel = QLabel(self)
         self.coorLabel.setText("<b>Coordinates</b>")
+        self.coorLabel.setStyleSheet("font-family: bold;")
         self.coorLabel.setAlignment(Qt.AlignCenter)
         
         self.coorEventLabel = QLabel(self)
         self.coorEventLabel.setText("<b>Coordinates</b>")
+        self.coorEventLabel.setStyleSheet("font-family: bold;")
         self.coorEventLabel.setAlignment(Qt.AlignCenter)
         
         #self.searchAction = QAction("&Search...",self)
@@ -770,6 +849,8 @@ class Window(QMainWindow):
     def showMainToolBar(self):
 
         self.map.addControl(self.drawControl)
+        self.map.addControl(self.drawControl2)
+        
         
         self.eventToolBar.setVisible(False)
         self.mainToolBar.setVisible(not self.mainToolBar.isVisible())
@@ -777,6 +858,7 @@ class Window(QMainWindow):
     def showSecondToolBar(self):
 
         self.map.addControl(self.drawControl)
+        self.map.addControl(self.drawControl2)
         self.mainToolBar.setVisible(False)
         self.eventToolBar.setVisible(not self.eventToolBar.isVisible())
     
