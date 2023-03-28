@@ -170,12 +170,13 @@ subroutine computePLMforlChunkLocal
   endif
 
 
-
+  print *, "I'm ok for", my_rank
   call MPI_ALLGATHER(plmLocal,4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
        MPI_DOUBLE_PRECISION, &
        plmGlobal, &
        4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
        MPI_DOUBLE_PRECISION, MPI_COMM_WORLD,ierr)
+  print *, "I'm ok for---", my_rank,ithetaMinLocal,ithetaMaxLocal
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   
   allocate(plmGlobalTranspose(0:3,1:theta_n,lChunk(1,iAngularOrderChunk):lChunk(2,iAngularOrderChunk)))
@@ -201,7 +202,7 @@ subroutine computeDVECforlChunkLocal
   dvec0=dcmplx(0.d0)
   dvecdt0=dcmplx(0.d0)
   dvecdp0=dcmplx(0.d0)
-  print *, my_rank, l
+  print *, "my_rank, l at computeDVECforlChunkLocal", my_rank, l
 
   call caldvecphi0_withoutplm(l,theta_radian(1),plmGlobalTranspose(0:3,1,l),dvec0(1:3,-2:2,1),dvecdt0(1:3,-2:2,1),dvecdp0(1:3,-2:2,1)) ! itheta = 1 can have theta = 0 
   call caldvecphi0_withoutplm(l,theta_radian(theta_n),plmGlobalTranspose(0:3,theta_n,l),dvec0(1:3,-2:2,theta_n),dvecdt0(1:3,-2:2,theta_n),dvecdp0(1:3,-2:2,theta_n)) ! itheta = theta_n can have theta=pi
