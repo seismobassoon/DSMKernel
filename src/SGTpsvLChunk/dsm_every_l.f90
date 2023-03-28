@@ -131,6 +131,7 @@ subroutine computePLMforlChunkLocal
               call calplm_l_small(l,m,x,plmtmp(1:3,0:3))
            enddo
            plmLocal(0:3,l,itheta)=plmtmp(1,0:3)
+           if(my_rank.eq.1) print *, plmLocal
         enddo
         do l=5, lChunk(2,1)
            do m = 0, 3
@@ -170,8 +171,8 @@ subroutine computePLMforlChunkLocal
   endif
 
 
-  print *, "I'm ok for", my_rank, plmLocal(1:3,100,ithetaMinLocal+1)
-  call MPI_ALLGATHER(plmLocal,4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
+  print *, "I'm ok for", my_rank, plmLocal(0:3,100,ithetaMinLocal+1)
+  call MPI_ALLGATHERV(plmLocal,4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
        MPI_DOUBLE_PRECISION, &
        plmGlobal, &
        4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
