@@ -11,20 +11,20 @@ Created on Fri Feb  3 16:35:46 2023
 @author: Lorraine Delaroque
 """
 
-import sys, time
-
-import io
+import sys, time, os
 import pytz
-
+import numpy as np
 
 from obspy.clients.fdsn import Client
+from obspy import UTCDateTime
+from geopy.geocoders import Nominatim
 
-from DataProcessor_Fonctions import get_depth_color # Load the function "plot_events" provided in tp_obsp
+from DataProcessor_Fonctions import get_depth_color, get_periodogram, plot_record_section # Load the function "plot_events" provided in tp_obsp
 
-from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar, QFrame, QCheckBox
-from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem
-from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget,QSlider,QListWidget
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox,QHBoxLayout,QDesktopWidget
+from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar, QFrame, QCheckBox,QSpacerItem
+from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem,QTreeView,QAbstractItemView
+from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget,QSlider,QListWidget, QRadioButton, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox,QHBoxLayout,QDesktopWidget,QButtonGroup
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -33,7 +33,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from pyqtlet import L, MapWidget 
 
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import Qt, QSettings, QTimer, pyqtSlot
+from PyQt5.QtGui import QPixmap, QStandardItemModel, QFont, QStandardItem
+from PyQt5.QtCore import Qt, QSettings, QTimer, pyqtSlot, pyqtSignal
 
 class Window(QMainWindow):
     
@@ -50,8 +51,17 @@ class Window(QMainWindow):
         time.sleep(2)
         
         self.setWindowIcon(QtGui.QIcon('logo.jpg'))
-        self.setWindowTitle("Geodpy Project - Python Menus & Toolbars")
-        self.setStyleSheet("QMainWindow {background: 'white';}")
+        self.setWindowTitle("Geodpy Project - Python application for scientific research")
+        self.setStyleSheet("""
+                           QMainWindow {
+                               background: 'white';
+                                }
+                           
+                           QToolBar {
+                               transition: height 0.5s ease;
+                               }
+                           
+                           """)
 
         self.resize(1000, 800)
         self.mapWidget = MapWidget()
@@ -69,6 +79,11 @@ class Window(QMainWindow):
         self.map = L.map(self.mapWidget)
         self.map.setView([0, 0], 2)
         
+        SW = (-90,-180)
+        NE = (90,180)
+        
+        self.map.setMaxBounds((SW,NE))
+
         Progress = 50
         splash_screen.progressUpdate(Progress)
         time.sleep(2)
@@ -82,14 +97,15 @@ class Window(QMainWindow):
         stamen_terrain_layer = L.tileLayer('http://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.png')
         stamen_toner_layer = L.tileLayer('http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png')
         stamen_water_layer = L.tileLayer('http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.png')
+        satellite_layer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}')
 
-        layers = {'OpenStreetMap':osm_layer,'Stamen Terrain':stamen_terrain_layer,'Stamen Toner':stamen_toner_layer,'Stamen Water Color':stamen_water_layer}
+        layers = {'OpenStreetMap':osm_layer,'Stamen Terrain':stamen_terrain_layer,'Stamen Toner':stamen_toner_layer,'Stamen Water Color':stamen_water_layer,'Satellite':satellite_layer}
         
         # ADD DRAWINGS
         #-----------------------------------------------------------------------------------------------------
         self.drawControl = L.control.draw()
-        self.map.addControl(self.drawControl)
-        
+        #self.map.addControl(self.drawControl)
+        satellite_layer.addTo(self.map)
         self.layersControl=L.control.layers(layers).addTo(self.map)
         
         Progress = 75
@@ -97,11 +113,13 @@ class Window(QMainWindow):
         time.sleep(2)
         
         
+        
         # CONTENT
         #----------------------------------------------------------------------------------------------------
         self._createActions()
         self._createMenuBar()
         self._createToolBars()
+        self._createToolBars2()
         self._connectActions()
         
         Progress = 100
@@ -109,37 +127,54 @@ class Window(QMainWindow):
         time.sleep(2)
         
         # SELECT COORDINATES MANUALLY
-        #-------------------------------------------------
-     
-        def coords(self,x,coord_lat,coord_lng):
-            lat,lng = x['latlng']['lat'],x['latlng']['lng']
-            #print(lat,lng)
-            coord_lat.append(lat)
-            coord_lng.append(lng)
-            print(coord_lat)
-            print(coord_lng)
-          
-            global minlat 
-            minlat= min(coord_lat)
-            global maxlat
-            maxlat=max(coord_lat)
-            global minlng
-            minlng=min(coord_lng)
-            global maxlng
-            maxlng=max(coord_lng)
-            print(minlat,maxlat,minlng,maxlng)
-            self.minLatChoice.setValue(minlat)
-            self.maxLatChoice.setValue(maxlat)
-            self.minLonChoice.setValue(minlng)
-            self.maxLonChoice.setValue(maxlng)
-            
+        #-------------------------------------------------  
        
         coord_lat=[]
         coord_lng=[]
+
+        def coords(self, x, coord_lat, coord_lng):
+            latlngs = x["layer"]["_latlngs"]
+            
+            latitudes = []
+            longitudes = []
+            
+            for key1, value1 in latlngs.items():
+                for key2, value2 in value1.items():
+                    latitude = value2.get('lat')
+                    if latitude is not None:
+                        latitudes.append(latitude)
+                
+            for key1, value1 in latlngs.items():
+                for key2, value2 in value1.items():
+                    longitude = value2.get('lng')
+                    if longitude is not None:
+                        longitudes.append(longitude)
+                        
+
+            min_lat = min(latitudes)
+            max_lat = max(latitudes)
+            min_lng = min(longitudes)
+            max_lng = max(longitudes)
+            print(min_lat, max_lat, min_lng, max_lng)
+            # ADD LATITUDE/LONGITUDE VALUES TO BOTH TOOLBARS
+            self.minLatChoice.setValue(min_lat)
+            self.maxLatChoice.setValue(max_lat)
+            self.minLonChoice.setValue(min_lng)
+            self.maxLonChoice.setValue(max_lng)
         
+            self.minLatEventChoice.setValue(min_lat)
+            self.maxLatEventChoice.setValue(max_lat)
+            self.minLonEventChoice.setValue(min_lng)
+            self.maxLonEventChoice.setValue(max_lng)
+            
+
+
         self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
         #map.on('draw:created', function (event)
-        self.map.clicked.connect(lambda x: coords(self,x,coord_lat,coord_lng))
+        #self.map.clicked.connect(lambda x: coords(self,x,coord_lat,coord_lng))
+        self.map.drawCreated.connect(lambda x: coords(self,x,coord_lat,coord_lng))
+  
+    
 
 
 
@@ -157,6 +192,12 @@ class Window(QMainWindow):
         helpMenu = menuBar.addMenu("&Help")
         helpMenu.addAction(self.helpContentAction)
         
+        searchStation = menuBar.addMenu("&Search by station")
+        searchStation.addAction(self.searchStationAction)
+        
+        searchEvent = menuBar.addMenu("&Search by event")
+        searchEvent.addAction(self.searchEventAction)
+        
         exitMenu = menuBar.addMenu("&Exit")
         exitMenu.addAction(self.exitAction)
                 
@@ -170,24 +211,32 @@ class Window(QMainWindow):
     
         screen_width = QDesktopWidget().screenGeometry().width()
         toolbar_width = int(screen_width*0.1)
-        self.mainToolBar.setFixedWidth(toolbar_width)
-  
+        self.mainToolBar.setFixedWidth(toolbar_width) 
         
-        self.mainToolBar.setStyleSheet("background-color: #f2f2f2; padding: 4px;")
+        self.mainToolBar.setStyleSheet("background-color: white; padding: 3px;")
         self.addToolBar(Qt.RightToolBarArea,self.mainToolBar)
         self.mainToolBar.setMovable(False)
         
-        # Adding a toggle button in order to hide or not the toolbar
-        """
-        self.hideButton=QPushButton('Hide Toolbar',self)
-        self.hideButton.clicked.connect(self.toggleToolbar)
-        """
-        #self.mainToolBar.addWidget(self.hideButton)
         
         # Using a QToolBar object and a toolbar area
         self.addToolBar(Qt.RightToolBarArea, self.mainToolBar)
         
+        # TITLE
+        #-------------------------------------------------------------------------------------------
+        title = QLabel("<b>Search by station</b>")
+        title.setFont(QFont('Calibri',13))
         
+        #verticalSpacer = QSpacerItem(20,20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        #self.mainToolBar.addWidget(verticalSpacer)
+        
+        self.mainToolBar.addWidget(title)
+        self.separatorLine = QFrame()
+        self.separatorLine.setFrameShape(QFrame.HLine)
+        self.separatorLine.setLineWidth(2)
+        self.mainToolBar.addWidget(self.separatorLine)
+        
+        blank = QLabel("")
+        self.mainToolBar.addWidget(blank)
         # ADDING THE TOOLS IN THE TOOL BAR
         #----------------------------------------------------
         # CLIENT ACTION
@@ -200,29 +249,28 @@ class Window(QMainWindow):
         # ESSAYER DE CHOISIR TOUS LES CLIENTS
         
         
-        
         # SEPARATING----------------------------------------------
         separator = QAction(self)
         separator.setSeparator(True)  
         self.mainToolBar.addAction(separator)    
         
+        
         # DATE ACTION
         self.mainToolBar.addWidget(self.dateLabel)
-        layout1=QLabel("From: ")
-        layout2=QLabel("To: ")
+        self.from_Date=QLabel("From: ")
+        self.to_Date=QLabel("To: ")
         
         self.dateStartChoice = QDateTimeEdit(self,calendarPopup=True)
         self.dateEndChoice = QDateTimeEdit(self,calendarPopup=True)
         
-        self.mainToolBar.addWidget(layout1)
+        self.mainToolBar.addWidget(self.from_Date)
         self.mainToolBar.addWidget(self.dateStartChoice)
-        self.mainToolBar.addWidget(layout2)
+        self.mainToolBar.addWidget(self.to_Date)
         self.mainToolBar.addWidget(self.dateEndChoice)
 
                 
         # SEPARATING----------------------------------------------
-        separator = QAction(self)
-        separator.setSeparator(True)  
+
         self.mainToolBar.addAction(separator)    
         
         # COORDINATES ACTION
@@ -256,8 +304,7 @@ class Window(QMainWindow):
         self.maxLonChoice.setMaximum(180)
                 
         # SEPARATING----------------------------------------------
-        separator = QAction(self)
-        separator.setSeparator(True)  
+
         self.mainToolBar.addAction(separator)    
         
         # LOCATION ACTION
@@ -269,52 +316,60 @@ class Window(QMainWindow):
         self.locChoice.setPlaceholderText("Enter the location")
                 
         # SEPARATING----------------------------------------------
-        separator = QAction(self)
-        separator.setSeparator(True)  
+ 
         self.mainToolBar.addAction(separator)    
         
         # MAGNITUDE ACTION
             
         self.mainToolBar.addWidget(self.magLabel)
-        '''
-        self.magChoice = QSlider()
-        
-        layout = QHBoxLayout()
-        self.mag = QLabel()
-        self.magChoice = QSlider()
-        
-        # Placement du QSlider à côté du QLabel
-        layout.addWidget(self.magChoice)
-        layout.addWidget(self.mag)
    
-        def show(self):
-            self.magLabel.setText(str(self.magChoice.value()))
         
-        '''
-        '''
-        # Customization of the QSlider
         layoutMag = QHBoxLayout()
         
-        self.magChoice.setRange(0,10)
-        self.magChoice.setSingleStep(0.1)
-        self.magChoice.setTickPosition(QSlider.TicksAbove)
-        self.magChoice.setTickInterval(1)
-        self.magChoice.setValue(4)
-        self.magChoice.setOrientation(1)
-        self.magChoice.setFixedWidth(125)
+        self.magChoice = QSlider()
+        self.magValue = QDoubleSpinBox()
+        self.magValue.setValue(5)
+        #self.magValue.setFixedWidth(25)
         
-        label = QLabel("0")
+        self.magChoice.setRange(0,100)
+        self.magChoice.setSingleStep(1)
+        self.magChoice.setTickPosition(QSlider.TicksAbove)
+        self.magChoice.setTickInterval(10)
+        self.magChoice.setValue(50)
+        self.magChoice.setOrientation(1)
+        #self.magChoice.setFixedWidth(125)
+        self.magChoice.setStyleSheet("""
+                                     QSlider {
+                                         border-radius: 10px;
+                                    }
+                                     QSlider::groove:horizontal {
+                                         height: 5px;
+                                         background: #000;
+                                    }
+                                     QSlider::handle:horizontal {
+                                         background: #f00;
+                                         width: 16px;
+                                         height: 16px;
+                                         margin: -6px 0;
+                                         border-radius: 8px;
+                                    }
+                                     QSlider::sub-page:horizontal {
+                                         background: #f90; 
+                                    }
+                                    """)
+        
+        #label = QLabel("0")
         layoutMag.addWidget(self.magChoice)
-        layoutMag.addWidget(label)
+        layoutMag.addWidget(self.magValue)
         
         widget = QWidget()
         widget.setLayout(layoutMag)
         self.mainToolBar.addWidget(widget)
         
-        def update_mag_value(value):
-            label.setText(str(value))
+        
             
-        self.magChoice.valueChanged.connect(update_mag_value)
+        self.magChoice.valueChanged.connect(self.update_mag_value)
+        self.magValue.valueChanged.connect(self.update_mag_slider)
       
         
         
@@ -324,12 +379,11 @@ class Window(QMainWindow):
         self.mainToolBar.addWidget(self.magChoice)
         self.magChoice.setMinimum(0)
         self.magChoice.setMaximum(10)
-       
+        '''
         
         
         # SEPARATING----------------------------------------------
-        separator = QAction(self)
-        separator.setSeparator(True)  
+
         self.mainToolBar.addAction(separator)    
         
         # NETWORK ACTION
@@ -342,8 +396,7 @@ class Window(QMainWindow):
         
         
         # SEPARATING----------------------------------------------
-        separator = QAction(self)
-        separator.setSeparator(True)  
+
         self.mainToolBar.addAction(separator)
         
         # SEARCH ACTION ------------------------------------------
@@ -363,6 +416,14 @@ class Window(QMainWindow):
                 """)
         self.mainToolBar.addWidget(self.searchButton)
         self.searchButton.clicked.connect(self.startSearch)
+        self.mainToolBar.setVisible(False)
+        
+    
+    def update_mag_value(self,value):
+        self.magValue.setValue(float(value)/10)
+        
+    def update_mag_slider(self,value):
+        self.magChoice.setValue(int(value*10))
     
         
     def toggleToolbar(self):
@@ -434,15 +495,189 @@ class Window(QMainWindow):
             self.networkChoice.addItems(["3F","GT","IU","MI","NC","NT","UL","XC","XG","XU","XZ","Y3","YV","Z7","ZZ"])
         elif selectedValue == "USC":
             self.networkChoice.addItems([""])
+            
+    # TOOLBAR OF THE EVENT SECTION -----------------------------------------------------------------------------------        
+    def _createToolBars2(self):
+        
+        
+        # TOOLBAR SET UP
+        self.eventToolBar = QToolBar("Toolbar",self)
     
+        screen_width = QDesktopWidget().screenGeometry().width()
+        toolbar_width = int(screen_width*0.1)
+        self.eventToolBar.setFixedWidth(toolbar_width)
+        
+        self.eventToolBar.setStyleSheet("background-color: white; padding: 3px;")
+        self.addToolBar(Qt.RightToolBarArea,self.eventToolBar)
+        self.eventToolBar.setMovable(False)
+        self.eventToolBar.setVisible(False)
+        
+        
+        # TITLE
+        #-------------------------------------------------------------------------------------------
+        title = QLabel("<b>Search by event</b>")
+        title.setFont(QFont('Calibri',13))
+        
+        #verticalSpacer = QSpacerItem(20,20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        #self.mainToolBar.addWidget(verticalSpacer)
+        
+        self.eventToolBar.addWidget(title)
+        self.separatorLine = QFrame()
+        self.separatorLine.setFrameShape(QFrame.HLine)
+        self.separatorLine.setLineWidth(2)
+        self.eventToolBar.addWidget(self.separatorLine)
+        
+        blank = QLabel("")
+        self.eventToolBar.addWidget(blank)
+        
+        # CLIENT SELECTION
+        self.eventToolBar.addWidget(self.clientEventLabel)
+        self.clientEventChoice = QComboBox(self)
+        self.eventToolBar.addWidget(self.clientEventChoice)
+        self.clientEventChoice.setFixedWidth(150)
+    
+        self.clientEventChoice.addItems(["AUSPASS","BRG","EIDA","EMSC","ETH","GEOFON","GEONET","GFZ","ICGC","IESDMC","INGV","IPGP","IRIS","IRISPH5","ISC","KNMI","KOERI","LMU","NCEDC","NIEP","NOA","ODC","RASPISHAKE","RESIF","RESIFPH5","SCEDC","UIB-NORSAR","USGS","USP"])
+     
+        # SEPARATING
+        separator = QAction(self)
+        separator.setSeparator(True)  
+        self.eventToolBar.addAction(separator)    
+        
+        # DATE OF THE EVENT
+        self.eventToolBar.addWidget(self.dateEventLabel)
+        self.from_eventDate = QLabel("From: ")
+        self.to_eventDate = QLabel("To: ")
+        
+        self.dateStartEventChoice = QDateTimeEdit(self,calendarPopup=True)
+        self.dateEndEventChoice = QDateTimeEdit(self,calendarPopup=True)
+        
+        self.eventToolBar.addWidget(self.from_eventDate)
+        self.eventToolBar.addWidget(self.dateStartEventChoice)
+        self.eventToolBar.addWidget(self.to_eventDate)
+        self.eventToolBar.addWidget(self.dateEndEventChoice)
+        
+        self.eventToolBar.addAction(separator)
+        
+        # COORDINATES OF THE EVENT
+        self.eventToolBar.addWidget(self.coorEventLabel)
+        layoutCoor1=QLabel("Minimum latitude: ")
+        layoutCoor2=QLabel("Maximum latitude: ")
+        layoutCoor3=QLabel("Minimum longitude: ")
+        layoutCoor4=QLabel("Maximum longitude: ")
+       
+        self.minLatEventChoice = QDoubleSpinBox()
+        self.maxLatEventChoice = QDoubleSpinBox()
+        self.minLonEventChoice = QDoubleSpinBox()
+        self.maxLonEventChoice = QDoubleSpinBox()
+        
+        self.eventToolBar.addWidget(layoutCoor1)
+        self.eventToolBar.addWidget(self.minLatEventChoice)
+        self.eventToolBar.addWidget(layoutCoor2)
+        self.eventToolBar.addWidget(self.maxLatEventChoice)
+        self.eventToolBar.addWidget(layoutCoor3)
+        self.eventToolBar.addWidget(self.minLonEventChoice)
+        self.eventToolBar.addWidget(layoutCoor4)
+        self.eventToolBar.addWidget(self.maxLonEventChoice)
+        
+        self.minLatEventChoice.setMinimum(-90)
+        self.minLatEventChoice.setMaximum(90)
+        self.maxLatEventChoice.setMinimum(-90)
+        self.maxLatEventChoice.setMaximum(90)
+        self.minLonEventChoice.setMinimum(-180)
+        self.minLonEventChoice.setMaximum(180)
+        self.maxLonEventChoice.setMinimum(-180)
+        self.maxLonEventChoice.setMaximum(180)
+        
+        self.eventToolBar.addAction(separator)
+        
+        # MAGITUDE MINIMUM
+        
+        self.eventToolBar.addWidget(self.magEventLabel)
+        layoutMag = QHBoxLayout()
+        self.magEventChoice = QSlider()
+        self.magEventValue = QDoubleSpinBox()
+        self.magEventValue.setValue(5)
+        #self.magValue.setFixedWidth(25)
+        
+        self.magEventChoice.setRange(0,100)
+        self.magEventChoice.setSingleStep(1)
+        self.magEventChoice.setTickPosition(QSlider.TicksAbove)
+        self.magEventChoice.setTickInterval(10)
+        self.magEventChoice.setValue(50)
+        self.magEventChoice.setOrientation(1)
+        
+        self.magEventChoice.setStyleSheet("""
+                                     QSlider {
+                                         border-radius: 10px;
+                                    }
+                                     QSlider::groove:horizontal {
+                                         height: 5px;
+                                         background: #000;
+                                    }
+                                     QSlider::handle:horizontal {
+                                         background: #f00;
+                                         width: 16px;
+                                         height: 16px;
+                                         margin: -6px 0;
+                                         border-radius: 8px;
+                                    }
+                                     QSlider::sub-page:horizontal {
+                                         background: #f90; 
+                                    }
+                                    """)
 
+        layoutMag.addWidget(self.magEventChoice)
+        layoutMag.addWidget(self.magEventValue)
+        
+        widget = QWidget()
+        widget.setLayout(layoutMag)
+        self.eventToolBar.addWidget(widget)
+        
+        self.magEventChoice.valueChanged.connect(self.update_magEvent_value)
+        self.magEventValue.valueChanged.connect(self.update_magEvent_slider)
 
+        self.eventToolBar.addWidget(self.magEventChoice)
+        
+        # SEARCH ACTION
+        
+        
+        self.searchEventButton = QPushButton("Search")
+        self.searchEventButton.setStyleSheet("""
+                background-color: #CD5C5C;
+                border: none;
+                border-radius: 5px;
+                color: white;
+                padding: 10px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin-top: 10px;
+                cursor: pointer;
+                """)
+        self.eventToolBar.addWidget(self.searchEventButton)
+        self.searchEventButton.setDefault(True)
+        self.searchEventButton.clicked.connect(self.startEventSearch)
+        
+    def update_magEvent_value(self,value):
+        self.magEventValue.setValue(float(value)/10)
+        
+    def update_magEvent_slider(self,value):
+        self.magEventChoice.setValue(int(value*10))
+       
+
+    # CREATE ACTION FOR BOTH TOOLBARS
     def _createActions(self):
         # Creating action using the first constructor
         self.clientLabel = QLabel(self)
         self.clientLabel.setText("<b>Client</b>")
         self.clientLabel.setStyleSheet("font-family: bold;")
-        self.clientLabel.setAlignment(Qt.AlignLeft)
+        self.clientLabel.setAlignment(Qt.AlignCenter)
+        
+        self.clientEventLabel = QLabel(self)
+        self.clientEventLabel.setText("<b>Client</b>")
+        self.clientEventLabel.setStyleSheet("font-family: bold;")
+        self.clientEventLabel.setAlignment(Qt.AlignCenter)
         
         # Creating actions using the second constructor
         self.networkLabel = QLabel(self)
@@ -450,12 +685,20 @@ class Window(QMainWindow):
         self.networkLabel.setAlignment(Qt.AlignCenter)
         
         self.magLabel = QLabel(self)
-        self.magLabel.setText("<b>Magnitude min</b>")
+        self.magLabel.setText("<b>Magnitude constraints</b>")
         self.magLabel.setAlignment(Qt.AlignCenter)
+        
+        self.magEventLabel = QLabel(self)
+        self.magEventLabel.setText("<b>Magnitude constraints</b>")
+        self.magEventLabel.setAlignment(Qt.AlignCenter)
         
         self.dateLabel = QLabel(self)
         self.dateLabel.setText("<b>Date</b>")
         self.dateLabel.setAlignment(Qt.AlignCenter)
+        
+        self.dateEventLabel = QLabel(self)
+        self.dateEventLabel.setText("<b>Date</b>")
+        self.dateEventLabel.setAlignment(Qt.AlignCenter)
         
         self.locLabel = QLabel(self)
         self.locLabel.setText("<b>Location</b>")
@@ -465,20 +708,55 @@ class Window(QMainWindow):
         self.coorLabel.setText("<b>Coordinates</b>")
         self.coorLabel.setAlignment(Qt.AlignCenter)
         
+        self.coorEventLabel = QLabel(self)
+        self.coorEventLabel.setText("<b>Coordinates</b>")
+        self.coorEventLabel.setAlignment(Qt.AlignCenter)
+        
         #self.searchAction = QAction("&Search...",self)
         
         self.exitAction = QAction("&Exit", self)
         self.helpContentAction = QAction("&Help Content", self)
         self.aboutAction = QAction("&About", self)
         
+        self.searchStationAction = QAction("Search by station",self)
+        self.searchStationAction.triggered.connect(self.showMainToolBar)
+        
+        self.searchEventAction = QAction("Search by event",self)
+        self.searchEventAction.triggered.connect(self.showSecondToolBar)
+        
 
     def about(self):
         # Logic for showing an about dialog content goes here...
-        self.centralWidget.setText("<b>About</b> clicked")
+        msg = QMessageBox()
+        msg.setWindowTitle("About the project")
+        msg.resize(500,500)
+        
+        with open('about.txt','r',encoding='utf-8') as f:
+            message = f.read()
+            
+        msg.setText(message)
+        msg.setIcon(QMessageBox.Information)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.setDefaultButton(QMessageBox.Ok)
+        msg.exec_()
+        
         
     def helpContent(self):
         # Logic for launching help goes here...
-        self.centralWidget.setText("<b>Help > Help Content</b> clicked")
+        QMessageBox.aboutQt(self)
+        
+    def showMainToolBar(self):
+
+        self.map.addControl(self.drawControl)
+        
+        self.eventToolBar.setVisible(False)
+        self.mainToolBar.setVisible(not self.mainToolBar.isVisible())
+        
+    def showSecondToolBar(self):
+
+        self.map.addControl(self.drawControl)
+        self.mainToolBar.setVisible(False)
+        self.eventToolBar.setVisible(not self.eventToolBar.isVisible())
     
     # CONNECTING ACTIONS
     #-------------------------------------------------------------------
@@ -501,6 +779,8 @@ class Window(QMainWindow):
                 #if not self.networkChoice.text():
                     #self.locChoice.setStyleSheet(style)
         else:
+            
+
             # RESET OF THE INITIAL STYLE PARAMETERS
             style = "border: 1px solid black;"
             self.locChoice.setStyleSheet(style)
@@ -518,6 +798,7 @@ class Window(QMainWindow):
             global start,end
             start = UTCStartTime
             end = UTCEndTime
+            
 
             #start = UTCDateTime(self.dateStartChoice)
             #end = UTCDateTime(self.dateEndChoice)
@@ -537,7 +818,7 @@ class Window(QMainWindow):
             location = self.locChoice.text()
             
             # MAGNITUDE INITIALIZATION (convert QDoubleSpinBox to int)
-            valueMagMin = self.magChoice.value()
+            valueMagMin = self.magValue.value()
             intMag = int(valueMagMin)
             
             # CLIENT INITIALIZATION (convert QComboBox to str)
@@ -581,8 +862,18 @@ class Window(QMainWindow):
             comments='ISC'
             origin=[0, 0]
             
+            if 'eventsGroup' in locals():
+                print("eventsGroup existe!")
+                eventsGroup.clearLayers()
+    
+            if 'markerGroup' in locals():
+                print("markersGroup existe!")
+                markerGroup.clearLayers()
+            
+            eventsGroup = L.featureGroup()
             # plot_events_stations(self,events_center, stations, origin=[0, 0], zoom=2, color="blue",comments="ISC")
             for event in events_center:
+                print(events_center)
                 for origin, magnitude in zip(event.origins, event.magnitudes):
                     lat, lon, depth, mag = (
                         origin.latitude,
@@ -591,22 +882,28 @@ class Window(QMainWindow):
                         magnitude.mag,
                     )
                     infos = "Lat/Long: (%s %s)<br/>Depth: %s m<br/>Magnitude: %s<br/>Comment: %s" % (lat, lon, depth, mag, comments)
-                    self.events = L.circleMarker([lat, lon], {
+                    events = L.circleMarker([lat, lon], {
                         'radius':50 * 2 ** (mag) / 2 ** 10,
                         #tooltip=infos,
                         'color':get_depth_color(depth),
                         #fill=True,
                         'fillColor':"#FF8C00"
                     })
-                    self.map.addLayer(self.events)
+                    
+                    
+                    #self.map.addLayer(self.events)
+                    eventsGroup.addLayer(events)
                     popup_html = "<em> %s </em>" % infos
-                    self.events.bindPopup(popup_html)
+                    events.bindPopup(popup_html)
+                    
                     
             #self.update_map()
-            
+            self.map.addLayer(eventsGroup)
 
             self.listStation = QListWidget()    
-            self.listStation.itemDoubleClicked.connect(self.buildExamplePopup)
+            self.listStation.itemDoubleClicked.connect(self.buildStationPopup)
+            
+            markersGroup= L.featureGroup()
 
             for net, sta, lat, lon, elev in stations:
                 self.name = ".".join([net, sta])
@@ -627,27 +924,34 @@ class Window(QMainWindow):
 
                 })
                 
-                self.map.addLayer(self.marker)
-              
+                #self.map.addLayer(self.marker)
+                
                 popup_html="<b>%s</b>" %self.infos
                 
                 self.marker.bindPopup(popup_html)
+                markersGroup.addLayer(self.marker)
                 #js = "{marker}.on('click',{function})".format(marker=self.marker, function=self.on_marker_clicked)
-                
-            self.showDialog()
+            self.map.addLayer(markersGroup)    
+            self.showStationDialog()
             self.show()
                 
 
             
     
-    def showDialog(self):
+    def showStationDialog(self):
         self.dialog = QDialog()
         label = QLabel('My stations list')
         label.setAlignment(Qt.AlignCenter)
         
+        searchStationEdit = QLineEdit()
+        searchStationEdit.setStyleSheet("QLineEdit { color: #888888; } ")
+        searchStationEdit.setPlaceholderText("Search...")
+        searchStationEdit.textChanged.connect(self.updateListStationWidget)
+        
         # Créer un QVBoxLayout
         layout = QVBoxLayout()
         layout.addWidget(label)
+        layout.addWidget(searchStationEdit)
         layout.addWidget(self.listStation)
         
         # Appliquer le QVBoxLayout à la QDialog
@@ -659,17 +963,204 @@ class Window(QMainWindow):
         self.dialog.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.listStation.setGeometry(100, 100, 200, 200)
         self.dialog.setModal(False)
-        self.dialog.exec_()
+        self.dialog.show()
     
 
     @pyqtSlot(QListWidgetItem)           
-    def buildExamplePopup(self,item):
-        exPopup = ExamplePopup(item.text(),self)
+    def buildStationPopup(self,item):
+        exPopup = StationPopup(item.text(),self)
         exPopup.setWindowTitle("Seismic station {} details".format(item.text()))
         exPopup.show()
+            
+        
+    # START SEARCH EVENT SECTION
+    #--------------------------------------------------------------------------------------
+    def startEventSearch(self):
+        localStartTime = self.dateStartEventChoice.dateTime()
+        pyStartTime = localStartTime.toPyDateTime()
+        UTCStartTime = pyStartTime.astimezone(pytz.UTC)
+        
+        localEndTime = self.dateEndEventChoice.dateTime()
+        pyEndTime = localEndTime.toPyDateTime()
+        UTCEndTime = pyEndTime.astimezone(pytz.UTC)
+        
+        global startEvent,endEvent
+        startEvent = UTCStartTime
+        endEvent = UTCEndTime
+
+        #start = UTCDateTime(self.dateStartChoice)
+        #end = UTCDateTime(self.dateEndChoice)
+        
+        # COORDINATES INITIALIZATION (convert QDoubleSpinBox to int)
+        valueMinLat = self.minLatEventChoice.value()
+        intMinLat = int(valueMinLat)
+        valueMaxLat = self.maxLatEventChoice.value()
+        intMaxLat = int(valueMaxLat)
+        valueMinLon = self.minLonEventChoice.value()
+        intMinLon = int(valueMinLon)
+        valueMaxLon = self.maxLonEventChoice.value()
+        intMaxLon = int(valueMaxLon)
+        
+        # CLIENT INITIALIZATION (convert QComboBox to str)
+        client_select = str(self.clientEventChoice.currentText())
+        
+        # MAGNITUDE INITIALIZATION (convert QDoubleSpinBox to int)
+        valueMagMin = self.magEventValue.value()
+        intMag = int(valueMagMin)
+        
+        self.events_center = Client(client_select).get_events(    
+            minlatitude = intMinLat,
+            maxlatitude = intMaxLat,
+            minlongitude = intMinLon,
+            maxlongitude = intMaxLon,
+            
+            minmagnitude = intMag,
+            starttime=startEvent,
+            endtime=endEvent,
+        )
+        print("\nFound %s event(s) from %s Data Center:\n" % (len(self.events_center),client_select))
+        print(self.events_center)
+ 
+        
+        global clientEvent
+        clientEvent = Client(client_select)
+        inventoryEvent = clientEvent.get_stations(network="*", level="channel")
+        
+        
+        # DISPLAYING THE STATION 
+        global stationsEvent
+        stationsEvent = []
+        for net in inventoryEvent:  # in fact this loop is only necessary for multiple networks
+            for sta in net:
+                stationsEvent.append(
+                    [net.code, sta.code, sta.latitude, sta.longitude, sta.elevation]
+                )
+        comments='ISC'
+        origin=[0, 0]
+        
+        
+        
+        self.listEvent = QListWidget(self)    
+        self.listEvent.itemDoubleClicked.connect(self.buildEventPopup)
+        
+        for event in self.events_center:
+            for origin, magnitude in zip(event.origins, event.magnitudes):
+                
+                lat, lon, depth, mag = (
+                    origin.latitude,
+                    origin.longitude,
+                    origin.depth,
+                    magnitude.mag,
+                )
+                infos = "Lat/Long: (%s %s)<br/>Depth: %s m<br/>Magnitude: %s<br/>Comment: %s" % (lat, lon, depth, mag, comments)
+                
+                self.nameEvent = "Mw %.2f, (%.2f,%.2f), depth. %.2f m" % (mag,lat,lon,depth)
+                QListWidgetItem(self.nameEvent,self.listEvent)
+               
+
+                events = L.circleMarker([lat, lon], {
+                    'radius':50 * 2 ** (mag) / 2 ** 10,
+                    'color':get_depth_color(depth),
+                    'fillColor':"#FF8C00"
+                })
+                self.map.addLayer(events)
+                popup_html = "<em> %s </em>" % infos
+                events.bindPopup(popup_html)
+        
+        global stations
+        stations = []
+        for net, sta, lat, lon, elev in stationsEvent:
+            
+            name = ".".join([net, sta])
+            infos = "Name: %s<br/>Lat/Long: (%s, %s)<br/>Elevation: %s m" % (name, lat, lon, elev)
+            
+            marker = L.marker([lat, lon], {
+                'color':"blue",
+                'fillColor':"#FF8C00",
+                'fillOpacity':0.3,
+
+            })
+            
+            self.map.addLayer(marker)
+            stations.append([net,sta])
+          
+            popup_html="<b>%s</b>" %infos
+            
+            marker.bindPopup(popup_html)
+           
+        self.showEventDialog()
+        self.show()
+        
+
+    def showEventDialog(self):
+        self.dialogEvent = QDialog()
+        label = QLabel('<b>My events list</b>')
+        label.setAlignment(Qt.AlignCenter)
+        
+        # Search event by name
+        searchEventEdit = QLineEdit()
+        searchEventEdit.setPlaceholderText('Search...')
+        searchEventEdit.setStyleSheet("QLineEdit { color: #888888; } ")
+        searchEventEdit.textChanged.connect(self.updateListEventWidget)
+        
+        # Créer un QVBoxLayout
+        layout = QVBoxLayout()
+        layout.addWidget(searchEventEdit)
+        layout.addWidget(label)
+        layout.addWidget(self.listEvent)
+        
+        # Appliquer le QVBoxLayout à la QDialog
+        self.dialogEvent.setLayout(layout)
+        
+        # Centrer la QDialog
+        self.dialogEvent.setGeometry(500, 500, 400, 400)
+        self.dialogEvent.setWindowTitle('Seismic events list')
+        self.dialogEvent.setWindowIcon(QtGui.QIcon('logo.jpg'))
+        self.listEvent.setGeometry(100, 100, 200, 200)
+        self.dialogEvent.setModal(False)
+        self.dialogEvent.show()
+  
+    # Pour filtrer la recherche
+    
+    def updateListStationWidget(self, text):
+        for index in range(self.listStation.count()):
+            item = self.listStation.item(index)
+            if text.lower() in item.text().lower():
+                item.setHidden(False)
+            else:
+                item.setHidden(True)
+    
+    def updateListEventWidget(self, text):
+        for index in range(self.listEvent.count()):
+            item = self.listEvent.item(index)
+            if text.lower() in item.text().lower():
+                item.setHidden(False)
+            else:
+                item.setHidden(True)
 
 
-class ExamplePopup(QDialog):
+    @pyqtSlot(QListWidgetItem)           
+    def buildEventPopup(self,item):
+        # Recupération de la position de l'élément séléctionné dans la liste
+        index = self.listEvent.row(item)
+        
+        global eqo, eqoMag
+        eqo = self.events_center[index].origins[0]
+        eqoMag = self.events_center[index].magnitudes[0].mag
+        
+        '''
+        global eqoMoment
+        eqoMoment = self.events_center[index].focal_mechanisms
+        '''
+        
+        exPopup = EventPopup(item.text(),self)
+        exPopup.setWindowTitle("Seismic event {} details".format(item.text()))
+        exPopup.show()
+
+        
+
+    
+class StationPopup(QDialog):
 
     def __init__(self, name,parent=None):
         super().__init__(parent)
@@ -707,13 +1198,16 @@ class ExamplePopup(QDialog):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
         
+        self.name = name
+        
 
-        self._contentTab1(name)
+        self._contentTab1()
+        #self._contentTab2()
         self._contentTab3()
         
         
-    def _contentTab1(self,name):
-        sectionName = QLabel("<b>Name:</b> {}".format(name))
+    def _contentTab1(self):
+        sectionName = QLabel("<b>Name:</b> {}".format(self.name))
         self.Description.layout.addWidget(sectionName)
         
         # FAIRE UN TRUC ICI POUR ARRANGER L'AFFICHAGE
@@ -721,7 +1215,7 @@ class ExamplePopup(QDialog):
         # DESCRIPTION INFORMATION
         for i in stations:
             nameStation = i[0] + "." + i[1]
-            if nameStation==name:
+            if nameStation==self.name:
                 latStation = i[2]
                 lonStation = i[3]
                 elevStation = i[4]
@@ -739,12 +1233,12 @@ class ExamplePopup(QDialog):
         self.Description.layout.addWidget(separator)
         
         # CHANNEL INITIALIZATION
-        Channel = QLabel("<b> Channel </b>")
+        Channel = QLabel("<b>Channel: </b>")
         self.Description.layout.addWidget(Channel)
-        channelChoice = QLineEdit()
-        self.Description.layout.addWidget(channelChoice)
-        channelChoice.setPlaceholderText("Enter a channel")
-        channel = channelChoice.text()
+        self.channelChoice = QLineEdit()
+        self.Description.layout.addWidget(self.channelChoice)
+        self.channelChoice.setPlaceholderText("Enter a channel")
+        self.channel = self.channelChoice.text()
         
         # SEPARATOR
         self.Description.layout.addWidget(separator)
@@ -752,53 +1246,674 @@ class ExamplePopup(QDialog):
         # DATE INITIALIZATION
         date = QLabel("Period of the seismic trace")
         self.Description.layout.addWidget(date)
-        dateMin = start
-        dateMax = end
         
         layoutTime = QHBoxLayout()
-        startTrace = QDateTimeEdit()
-        endTrace = QDateTimeEdit()
-        layoutTime.addWidget(startTrace)
-        layoutTime.addWidget(endTrace)
+        self.startTrace = QDateTimeEdit()
+        self.endTrace = QDateTimeEdit()
+        # Boundaries
+        #self.startTrace.setMinimumDateTime(start)
+        self.startTrace.setDateTime(start)
+        ##self.endTrace.setMaximumDateTime(end)
+        self.endTrace.setDateTime(end)
+        # Add widgets to tab
+        layoutTime.addWidget(self.startTrace)
+        layoutTime.addWidget(self.endTrace)
         self.Description.layout.addLayout(layoutTime)
         
+        # Connecter les signaux pour détecter les changements dans les champs
+        # Les seuls champs à remplir pour afficher la trace sont le channel, le starttime et le endtime
+        # Les autres sont "globaux" donc déjà avec une valeur.
+        self.channelChoice.editingFinished.connect(self.plot_seismic)
+        self.startTrace.editingFinished.connect(self.plot_seismic)
+        self.endTrace.editingFinished.connect(self.plot_seismic)
+
         # Création d'un widget pour afficher la graphique de la trace sismique
-        self.figure = Figure()
+        self.figure = Figure(figsize=(6,4))
         self.canvas = FigureCanvas(self.figure)
         self.Description.layout.addWidget(self.canvas)
         
+        # DOWNLOAD DATA
+        self.download_button = QPushButton("Download",self)
+        self.download_button.setFixedWidth(150)
+        self.Description.layout.addWidget(self.download_button)
+        self.Description.layout.setAlignment(Qt.AlignCenter)
+    
+        
+                
         
         
         # FAIRE EN SORTE QUE CA AFFICHE 
-        def plot_seismic(self,name,channel,start,end):
-            st = client.get_waveforms(
-                network = network_select,
-                station = name,
-                location = location,
-                channel = channel,
-                starttime = start,
-                endtime = end,
-                attach_response = True,
-            )
-            st.write('trace.mseed')
-            self.figure.clear()
-            st.plot(fig=self.figure)
-            self.canvas.draw()
+    def plot_seismic(self):
+            
+        if (self.channelChoice.text() and self.startTrace.dateTime() and self.endTrace.dateTime()):
+            try:
+                # Convert QDateTime value to UTCDateTime
+                localStartTime = self.startTrace.dateTime()
+                pyStartTime = localStartTime.toPyDateTime()
+                UTCStartTime = pyStartTime.astimezone(pytz.UTC)
+                
+                localEndTime = self.endTrace.dateTime()
+                pyEndTime = localEndTime.toPyDateTime()
+                UTCEndTime = pyEndTime.astimezone(pytz.UTC)
+                '''
+                start = UTCDateTime(UTCStartTime)
+                end = UTCDateTime(UTCEndTime)
+                '''
+                start = UTCDateTime("2018-02-12T03:08:02")
+                self.nameStation = self.name.split('.')[1]
+    
+                
+                self.st = client.get_waveforms(
+                    network = network_select,
+                    station = self.nameStation,
+                    location = location,
+                    channel = self.channelChoice.text(),
+                    #starttime = UTCStartTime,
+                    #endtime = UTCEndTime,
+                    starttime = start,
+                    endtime = start + 90,
+                    attach_response = True,
+                )
+                
+                self.figure.clear()
+                self.st.plot(fig=self.figure)
+    
+                self.canvas.draw()
+                
+                # Faire une copie de la trace pour conserver l'original dans le "processing"
+                self.original_st = self.st.copy()
+    
+                
+                self.download_button.clicked.connect(self.download_data)
+                
+            except Exception:
+                error_message = QMessageBox(QMessageBox.Critical, "No data found","Please, check the parameter filled!",QMessageBox.Ok)
+                error_message.exec()
+            
+            #self._contentTab2()
+            
+  
+    
+    def download_data(self):
+        # ESSAYER DE TROUVER UNE ALTERNATIVE POUR LE CHANNEL BH* OU BH?
+        self.st.write('./{}_{}.mseed'.format(network_select,self.nameStation))
             
             
         # si la valeur change, plotter la trace
         #self.plot_seismic(name,channel,startTrace,endTrace)
         
+    def _contentTab2(self):
+        # Periodogram
+        x = self.st[0].data
+        sampling_rate = self.st[0].stats.sampling_rate
+        
+        # Print the sampling rate on the window
+        samplingLabel = QLabel("Sampling rate: {}".format(sampling_rate))
+        self.Periodogram.layout.addWidget(samplingLabel)
         
         
+        freqs,psd = get_periodogram(x, sampling_rate, show = False)
+        fig = Figure(figsize=(6, 4), dpi=100)
+        ax = fig.add_subplot(111)
+        ax.semilogx(freqs, 10 * np.log10(psd))
+        ax.set_xlabel('Frequency (Hz)')
+        ax.set_ylabel('Power spectral density (dB/Hz)')
+
+        canvas = FigureCanvas(fig)
+        canvas.draw()
+        self.Periodogram.layout.addWidget(canvas)
         
-    def _contentTab3(self):
-        instrumental_response = QCheckBox("Remove instrumental response")
-        self.Processing.layout.addWidget(instrumental_response)
+        # Creation de la figure
+        '''
+        st = obspy.read("vendee4.6.mseed")
+        x = st[0].data
+        sampling_rate = st[0].stats.sampling_rate
+
+        # Calculate the spectrum
+        freqs, psd = get_periodogram(x, sampling_rate,show=False)
+
+        # Create Matplotlib figure and canvas
+        fig = Figure(figsize=(5, 4), dpi=100)
+        ax = fig.add_subplot(111)
+        ax.semilogx(freqs, 10 * np.log10(psd))
+        ax.set_xlabel('Frequency (Hz)')
+        ax.set_ylabel('Power spectral density (dB/Hz)')
+
+        canvas = FigureCanvas(fig)
+        '''
+        #self.figure_spectrum.clear()
         
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        self.Description.layout.addWidget(separator)
+        
+        # SPECTROGRAM - A METTRE DANS LE FILTRAGE ET METTRE ICI LE SPECTRE DE FREQUENCE ??
+        spectrogramLabel = QLabel("<b>Spectrogram</b>")
+        self.Periodogram.layout.addWidget(spectrogramLabel)
+        self.st[0].spectrogram(log=True)
+        
+        '''
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        self.Periodogram.layout.addWidget(separator)
+        '''
         
         
 
+    def _contentTab3(self):
+        instrumental_response = QCheckBox("Remove instrumental response")
+        self.Processing.layout.addWidget(instrumental_response)
+        instrumental_response.stateChanged.connect(self.instrument_response_checkbox)
+        '''
+        inventory[0].plot_response(min_freq=1e-4,outfile='response.png')
+        figLabel = QLabel(self)
+        pixmap = QPixmap('response.png')
+        figLabel.setixmap(pixmap)
+        self.Processing.layout.addWidget(figLabel)
+        os.remove('response.png')
+        '''
+        
+
+        remove_mean = QCheckBox("Remove the mean")
+        self.Processing.layout.addWidget(remove_mean)
+        remove_mean.stateChanged.connect(self.detrend_checkbox)
+        
+        self.figure_mean = Figure(figsize=(6,4))
+        self.canvas_mean = FigureCanvas(self.figure_mean)
+        self.Processing.layout.addWidget(self.canvas_mean)
+        
+        self.download_mean = QPushButton("Download",self)
+        self.download_mean.setFixedWidth(150)
+        self.Processing.layout.addWidget(self.download_mean)
+        self.download_mean.clicked.connect(self.downloadMeanTrace)
+        
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        self.Processing.layout.addWidget(separator)
+        
+        grid = QGridLayout()
+        
+        filteringLabel = QLabel("<b>Filtering</b>")
+        self.Processing.layout.addWidget(filteringLabel)
+        
+        buttonGroup = QButtonGroup()
+        lowpassBox = QRadioButton("lowpass")
+        bandpassBox = QRadioButton("bandpass")
+        highpassBox= QRadioButton("highpass")
+        
+        # Creation du groupe de buttons
+        buttonGroup.addButton(lowpassBox)
+        buttonGroup.addButton(bandpassBox)
+        buttonGroup.addButton(highpassBox)
+        
+        # Choose the filter
+        grid.addWidget(lowpassBox,0,0)
+        grid.addWidget(bandpassBox,1,0)
+        grid.addWidget(highpassBox,2,0)
+        
+        # Choose the fequency range of the LOWPASS
+        freqMin_lp = QLineEdit()
+        freqMax_lp = QLineEdit()
+        freqMin_lp.setPlaceholderText("Min freq")
+        freqMax_lp.setPlaceholderText("Max freq")
+        
+        # Choose the fequency range of the BANDPASS
+        freqMin_bp = QLineEdit()
+        freqMax_bp = QLineEdit()
+        freqMin_bp.setPlaceholderText("Min freq")
+        freqMax_bp.setPlaceholderText("Max freq")
+        
+        # Choose the fequency range of the HIGHPASS
+        freqMin_hp = QLineEdit()
+        freqMax_hp = QLineEdit()
+        freqMin_hp.setPlaceholderText("Min freq")
+        freqMax_hp.setPlaceholderText("Max freq")
+        
+        # Add minimal frequency
+        grid.addWidget(freqMin_lp,0,1)
+        grid.addWidget(freqMin_bp,1,1)
+        grid.addWidget(freqMin_hp,2,1)
+        
+        # Add maximal frequency
+        grid.addWidget(freqMax_lp,0,2)
+        grid.addWidget(freqMax_bp,1,2)
+        grid.addWidget(freqMax_hp,2,2)
+        
+        
+        self.Processing.layout.addLayout(grid)
+        
+
+        
+        #Variable de classe pour stocker la valeur du filtre sélectionné
+        self.filterSelected=None
+        freqMin_bp.textChanged.connect(lambda: self.checkFieldsFilled_BP(bandpassBox,freqMin_bp,freqMax_bp,buttonGroup))
+        freqMax_bp.textChanged.connect(lambda: self.checkFieldsFilled_BP(bandpassBox,freqMin_bp,freqMax_bp,buttonGroup))
+        
+        freqMin_lp.textChanged.connect(lambda: self.checkFieldsFilled_LP(lowpassBox,freqMin_lp,freqMax_lp,buttonGroup))
+        freqMax_lp.textChanged.connect(lambda: self.checkFieldsFilled_LP(lowpassBox,freqMin_lp,freqMax_lp,buttonGroup))
+        
+        freqMin_hp.textChanged.connect(lambda: self.checkFieldsFilled_HP(highpassBox,freqMin_hp,freqMax_hp,buttonGroup))
+        freqMax_hp.textChanged.connect(lambda: self.checkFieldsFilled_HP(highpassBox,freqMin_hp,freqMax_hp,buttonGroup))
+        
+        
+        
+        self.figure_filter = Figure(figsize=(6,4))
+        self.canvas_filter = FigureCanvas(self.figure_filter)
+        self.Processing.layout.addWidget(self.canvas_filter)
+        
+        self.download_filter = QPushButton("Download",self)
+        self.download_filter.setFixedWidth(150)
+        self.Processing.layout.addWidget(self.download_filter)
+        self.download_filter.clicked.connect(self.downloadFilteredTrace)
+        
+        
+    # DETRENDING DATA    
+    def detrend_checkbox(self,state):
+        if state == 2 and hasattr(self,'st'):
+            self.st.detrend("demean")
+        else:
+            pass
+        
+    def instrument_response_checkbox(self,state):
+        if state == 2 and hasattr(self,'st'):
+            self.st.remove_response(output="VEL")
+            #self.figure_mean.clear()
+            self.st.plot(fig=self.figure_mean)
+            
+        else:
+            pass
+            
+    def checkFieldsFilled_BP(self,bandpassBox,freqMin_bp,freqMax_bp, buttonGroup):
+        if bandpassBox.isChecked() and freqMin_bp.text() and freqMax_bp.text() and hasattr(self,'st'):
+            freqmin = freqMin_bp.text()
+            freqmax = freqMax_bp.text()
+            
+            def convert_freqmin(freqmin):
+                try:
+                    freqmin_bp = int(freqmin)
+                except ValueError:
+                    freqmin_bp = float(freqmin)
+                return freqmin_bp
+            
+            def convert_freqmax(freqmax):
+                try:
+                    freqmax_bp = int(freqmax)
+                except ValueError:
+                    freqmax_bp = float(freqmax)
+                return freqmax_bp
+            
+            freqmin_bp = convert_freqmin(freqmin)
+            freqmax_bp = convert_freqmax(freqmax)
+                    
+
+            
+            #if self.filterSelected is not None:
+            self.st.filter("bandpass",freqmin=freqmin_bp,freqmax=freqmax_bp)
+            self.figure.clear()
+            self.st.plot(fig=self.figure_filter)
+            
+        else:
+            pass
+        
+    def checkFieldsFilled_LP(self,lowpassBox,freqMin_lp,freqMax_lp, buttonGroup):
+        if lowpassBox.isChecked() and freqMin_lp.text() and freqMax_lp.text():
+            freqmin = freqMin_lp.text()
+            freqmax = freqMax_lp.text()
+            
+            def convert_freqmin(freqmin):
+                try:
+                    freqmin_lp = int(freqmin)
+                except ValueError:
+                    freqmin_lp = float(freqmin)
+                return freqmin_lp
+            
+            def convert_freqmax(freqmax):
+                try:
+                    freqmax_lp = int(freqmax)
+                except ValueError:
+                    freqmax_lp = float(freqmax)
+                return freqmax_lp
+            
+            freqmin_lp = convert_freqmin(freqmin)
+            freqmax_lp = convert_freqmax(freqmax)
+                    
+
+            
+            #if self.filterSelected is not None:
+            self.st.filter("lowpass",freqmin=freqmin_lp,freqmax=freqmax_lp)
+            self.st.plot(fig=self.figure_filter)
+            
+        else:
+            pass
+        
+    def checkFieldsFilled_HP(self,highpassBox,freqMin_hp,freqMax_hp, buttonGroup):
+        
+        if highpassBox.isChecked() and freqMin_hp.text() and freqMax_hp.text():
+            freqmin = freqMin_hp.text()
+            freqmax = freqMax_hp.text()
+            
+            def convert_freqmin(freqmin):
+                try:
+                    freqmin_hp = int(freqmin)
+                except ValueError:
+                    freqmin_hp = float(freqmin)
+                return freqmin_hp
+            
+            def convert_freqmax(freqmax):
+                try:
+                    freqmax_hp = int(freqmax)
+                except ValueError:
+                    freqmax_hp = float(freqmax)
+                return freqmax_hp
+            
+            freqmin_hp = convert_freqmin(freqmin)
+            freqmax_hp = convert_freqmax(freqmax)
+                    
+
+            
+            #if self.filterSelected is not None:
+            self.st.filter("highpass",freqmin=freqmin_hp,freqmax=freqmax_hp)
+            self.st.plot(fig=self.figure_filter)
+            
+        else:
+            pass
+    
+    def downloadMeanTrace(self):
+        self.st.write("trace_demean.mseed")
+        
+    def downloadFilteredTrace(self):
+        self.st.write('trace_filtered.mseed')
+
+class EventPopup(QDialog):
+
+    def __init__(self, name,parent=None):
+        super().__init__(parent)
+        self.setWindowIcon(QtGui.QIcon('logo.jpg'))
+        self.resize(900,700)
+        
+        # TAB DESCRIPTION/PERIODOGRAM/PROCESSING
+        self.tabs = QTabWidget()
+        self.Description = QWidget()
+        self.Section = QWidget()
+        
+        #ADD WIDGET & CONTENT AT EVERY TAB
+        self.tabs.addTab(self.Description,"Description")
+        self.tabs.addTab(self.Section,"Record section")
+        
+        # Ajouter des layouts à chaque onglet
+        self.Description.layout = QVBoxLayout()
+        self.Section.layout = QVBoxLayout()
+        
+        # Ajouter des widgets à chaque layout d'onglet
+        self.Description.layout.addWidget(QWidget())
+        self.Section.layout.addWidget(QWidget())
+
+        # Définir les layouts pour chaque onglet
+        self.Description.setLayout(self.Description.layout)
+        self.Section.setLayout(self.Section.layout)
+
+        # Ajouter le widget QTabWidget à la fenêtre MyDialog
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.tabs)
+        self.setLayout(self.layout)
+        
+
+        self._contentTab1()
+        self._contentTab2()
+        
+    def _contentTab1 (self):
+        layout = QHBoxLayout(self)
+        
+        # Les stations peuvent être nombreuses... Outil qui permet de les rechercher plus rapidement.
+        self.ui_search = QLineEdit()
+        self.ui_search.setPlaceholderText('Search...')
+        
+        self.tags_model = SearchProxyModel()
+        print(type(self.tags_model))
+        self.tags_model.setSourceModel(QtGui.QStandardItemModel())
+        self.tags_model.setDynamicSortFilter(True)
+        self.tags_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
+        # Création de la liste exaustive des stations sismiques à choisir pour réaliser la "record section"
+        self.ui_tags = QTreeView()
+        self.ui_tags.setSortingEnabled(True)
+        self.ui_tags.sortByColumn(0, QtCore.Qt.AscendingOrder)
+        self.ui_tags.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.ui_tags.setHeaderHidden(True)
+        self.ui_tags.setRootIsDecorated(True)
+        self.ui_tags.setUniformRowHeights(True)
+        self.ui_tags.setModel(self.tags_model)
+
+        # layout pour afficher le dictionnaire de station et la barre de recherche sur la gauche de la fenêtre
+        leftlayout = QVBoxLayout()                 
+        leftlayout.addWidget(self.ui_search)
+        leftlayout.addWidget(self.ui_tags)
+        #self.setLayout(main_layout)
+        layout.addLayout(leftlayout)
+
+        # Pour convertir la liste de stations en dictionnaire
+        stations_tries = {}
+        for station in stations:
+            if station[0] not in stations_tries:
+                stations_tries[station[0]] = []
+            stations_tries[station[0]].append(station[1])
+
+        # signals
+        self.ui_tags.doubleClicked.connect(self.tag_double_clicked)
+        self.ui_search.textChanged.connect(self.search_text_changed)
+
+        # init
+        self.create_model(stations_tries)
+        
+        
+        # Separation of the window into two parts
+        separator = QFrame(self)
+        separator.setFrameShape(QFrame.VLine)
+        separator.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(separator) 
+        
+        # RIGHT PART
+        rightLayout = QVBoxLayout()
+        layout.addLayout(rightLayout)
+        
+        eqLabel = QLabel("<b>Earthquake information</b>")
+        eqLabel.setFont(QFont('Calibri',12))
+        eqLabel.setFixedWidth(500)
+        rightLayout.addWidget(eqLabel)
+        
+        # EQ INFO
+        '''
+        geolocator = Nominatim(user_agent='my_application')
+        location = geolocator.reverse(f"{eqo.latitude},{eqo.longitude}")
+        locationCountry = location.raw['address']['country']
+        eqoCountry = QLabel("Country: {}".format(locationCountry))
+        '''
+        eqoMagLabel = QLabel("eqo.mag: {}".format(eqoMag))
+        eqoLatLabel = QLabel("eqo.latitude: {}".format(eqo.latitude))
+        eqoLonLabel = QLabel("eqo.longitude: {}".format(eqo.longitude))
+        eqoDepthLabel = QLabel("eqo.depth: {}".format(eqo.depth))
+        eqoStartLabel = QLabel("eqo.start: {}".format(eqo.time))
+        #rightLayout.addWidget(eqoCountry)
+        rightLayout.addWidget(eqoMagLabel)
+        rightLayout.addWidget(eqoLatLabel)
+        rightLayout.addWidget(eqoLonLabel)
+        rightLayout.addWidget(eqoDepthLabel)
+        rightLayout.addWidget(eqoStartLabel)
+        
+        # CHANNEL INITIALIZATION
+        channelLayout = QHBoxLayout()
+        rightLayout.addLayout(channelLayout)
+        Channel = QLabel("<b>Channel: </b>")
+        Channel.setFixedWidth(50)
+        channelLayout.addWidget(Channel)
+        self.channelChoice = QLineEdit()
+        self.channelChoice.setFixedWidth(160)
+        channelLayout.addWidget(self.channelChoice)
+        self.channelChoice.setPlaceholderText("Enter a channel")
+        self.channel = self.channelChoice.text()
+        
+        # LOCATION INITIALIZATION
+        locationLayout = QHBoxLayout()
+        rightLayout.addLayout(locationLayout)
+        Location = QLabel("<b>Location: </b>")
+        Location.setFixedWidth(50)
+        locationLayout.addWidget(Location)
+        self.locationChoice = QLineEdit()
+        self.locationChoice.setFixedWidth(160)
+        locationLayout.addWidget(self.locationChoice)
+        self.locationChoice.setPlaceholderText("Enter a location (ex. '00')")
+        self.location = self.locationChoice.text()
+        
+        pushButton = QPushButton("Display the record section")
+        pushButton.setFixedWidth(160)
+        rightLayout.addWidget(pushButton)
+        pushButton.clicked.connect(self.get_waveforms)
+        
+        
+        # Separator
+        separatorLine = QFrame()
+        separatorLine.setFrameShadow(QFrame.Sunken)
+        separatorLine.setFrameShape(QFrame.HLine)
+        separatorLine.setLineWidth(2)
+        rightLayout.addWidget(separatorLine)  
+        
+        # FOCAL MECHANISMS
+        self.figure = Figure(figsize=(6,4))
+        self.canvas = FigureCanvas(self.figure)
+        rightLayout.addWidget(self.canvas)
+        
+        self.Description.layout.addLayout(layout)
+        
+        
+        # ACQUISITION DE LA DONNEE
+        #self.channelChoice.editingFinished.connect(self.get_waveforms)
+        
+    # ORGANISATION DE LA LISTE DE STATION
+    #--------------------------------------------------------------------------------------------------------
+    def create_model(self,stations_tries):
+        model = self.ui_tags.model().sourceModel()
+        self.populate_tree(stations_tries, model.invisibleRootItem())
+        self.ui_tags.sortByColumn(0, QtCore.Qt.AscendingOrder)
+
+
+    def populate_tree(self, children, parent):
+        for child in sorted(children):
+            node = QStandardItem(child)
+            node.setCheckable(True)
+            parent.appendRow(node)
+
+            if isinstance(children, dict):
+                self.populate_tree(children[child], node)
+
+
+    def tag_double_clicked(self, index):
+        text = index.data(role=QtCore.Qt.DisplayRole)
+        print([text])
+        self.clickedTag.emit([text])
+
+
+    def search_text_changed(self, text):
+        regExp = QtCore.QRegExp(self.ui_search.text(), QtCore.Qt.CaseInsensitive, QtCore.QRegExp.FixedString)
+
+        self.tags_model.text = self.ui_search.text().lower()
+        self.tags_model.setFilterRegExp(regExp)
+
+        if len(self.ui_search.text()) >= 1 and self.tags_model.rowCount() > 0:
+            self.ui_tags.expandAll()
+        else:
+            self.ui_tags.collapseAll()
+            
+    # ONGLET SUR LE PLOT RECORD SECTION
+    # ----------------------------------------------------------------------------------------------------         
+    def _contentTab2(self):
+        label = QLabel("<b>Plotting the record section</b>")
+        label.setFont(QFont('Calibri',12))
+        self.Section.layout.addWidget(label)
+        layout = QHBoxLayout()
+        self.Section.layout.addLayout(layout)
+        # Detrend
+        detrendLabel = QLabel("Detrend: ")
+        detrendChoice = QComboBox()
+        detrendChoice.addItems(["demean","linear","spline","simple","polynomial"])
+        layout.addWidget(detrendLabel)
+        layout.addWidget(detrendChoice)
+        # Remove response
+        layout2 = QHBoxLayout()
+        self.Section.layout.addLayout(layout2)
+        removeResponseLabel = QLabel("Remove instrumental response: ")
+        removeResponseChoice = QCheckBox()
+        layout2.addWidget(removeResponseLabel)
+        layout2.addWidget(removeResponseChoice)
+        self.Section.layout.addLayout(layout2)
+        
+        # Normaliza
+        layout4 = QHBoxLayout()
+        self.Section.layout.addLayout(layout4)
+        normalizeLabel = QLabel("Normalize: ")
+        normalizeChoice = QCheckBox()
+        layout4.addWidget(normalizeLabel)
+        layout4.addWidget(normalizeChoice)
+        #self.Section.layout.addLayout(layout4)
+        
+        separatorLine = QFrame()
+        separatorLine.setFrameShadow(QFrame.Sunken)
+        separatorLine.setFrameShape(QFrame.HLine)
+        separatorLine.setLineWidth(2)
+        self.Section.layout.addWidget(separatorLine)
+        
+        self.figure = Figure(figsize=(8,6))
+        self.canvas = FigureCanvas(self.figure)
+        self.Section.layout.addWidget(self.canvas)
+        
+
+    def get_waveforms(self):
+        client = Client('RESIF')
+        start = UTCDateTime('2011-03-11T05:46:23')
+        
+        self.st = client.get_waveforms(
+            network = "G",
+            station = "*",
+            location = "00",
+            channel = "LHZ",
+            starttime = start,
+            endtime = start + 14400,
+            attach_response = True, 
+            )
+        
+        self.st.detrend('linear')
+        self.st.remove_response(output='VEL',water_level=10)
+        self.st.filter('bandpass', freqmin=0.005, freqmax=0.01)
+        self.st.normalize()
+        
+        #self.st.plot(fig=self.figure_record_section)
+        minlg =-180
+        maxlg =180
+        minlat = -90
+        maxlat=90
+        
+        inventory = client.get_stations(network="G")
+        stations = []
+        for net in inventory:
+            for sta in net:
+                if minlat <= sta.latitude <= maxlat and minlg <= sta.longitude <= maxlg:
+                    stations.append(
+                        [net.code, sta.code, sta.latitude, sta.longitude, sta.elevation]
+                        )
+                    print(net.code, sta.code, sta.latitude, sta.longitude, sta.elevation)
+        
+        name = 'record_section_ev_%s.png' % str(start)[:10]
+        
+        self.figure_record_section = plot_record_section(self.st, stations, eqo.latitude, eqo.longitude, outfile=name)
+        self.canvas_record_section = FigureCanvas(self.figure_record_section)
+        self.Section.layout.addWidget(self.canvas_record_section)    
+        
+        self.download_section = QPushButton("Download",self)
+        self.download_section.setFixedWidth(150)
+        self.Section.layout.addWidget(self.download_section)
+        #self.download_filter.clicked.connect(self.downloadFilteredTrace)
         
             
   
@@ -808,7 +1923,7 @@ class SplashScreen(QMainWindow):
         
         
         self.setWindowIcon(QtGui.QIcon('logo.jpg'))
-        self.setWindowTitle("Geodpy Project - Python Menus & Toolbars")
+        self.setWindowTitle("Geodpy Project - Python application for scientific research")
         self.setFixedSize(1000, 800)
         self.setStyleSheet("QMainWindow {background: 'white';}")
         self.central_widget = QWidget(self)
@@ -828,7 +1943,7 @@ class SplashScreen(QMainWindow):
         self.logo_pyqt.setAlignment(Qt.AlignCenter)
         
         
-        #•self.central_widget.setLayout(QVBoxLayout(self.central_widget))
+        #self.central_widget.setLayout(QVBoxLayout(self.central_widget))
         #self.central_widget.layout().addWidget(self.logo_label)
         
         chargement = QLabel("Loading...")
@@ -879,6 +1994,36 @@ class SplashScreen(QMainWindow):
         dx = int((screen_rect.width() - window_rect.width()) / 2)
         dy = int((screen_rect.height() - window_rect.height()) / 2)
         self.move(dx,dy)
+        
+        
+class SearchProxyModel(QtCore.QSortFilterProxyModel):
+    def __init__(self, parent=None):
+        super(SearchProxyModel, self).__init__(parent)
+        self.text = ''
+
+    # Recursive search
+    
+    def _accept_index(self, idx):
+        if idx.isValid():
+            text = idx.data(role=QtCore.Qt.DisplayRole).lower()
+            condition = text.find(self.text) >= 0
+
+            if condition:
+                return True
+            for childnum in range(idx.model().rowCount(parent=idx)):
+                if self._accept_index(idx.model().index(childnum, 0, parent=idx)):
+                    return True
+        return False
+
+    def filterAcceptsRow(self, sourceRow, sourceParent):
+        # Only first column in model for search
+        idx = self.sourceModel().index(sourceRow, 0, sourceParent)
+        return self._accept_index(idx)
+
+    def lessThan(self, left, right):
+        leftData = self.sourceModel().data(left)
+        rightData = self.sourceModel().data(right)
+        return leftData < rightData
 
         
 
@@ -889,7 +2034,5 @@ if __name__ == "__main__":
     app.processEvents()
     #app.aboutToQuit(saveSettings)
     win = Window()
-    #♣dia = MyDialog()
     win.show()
-    #dia.show()
     sys.exit(app.exec_())
