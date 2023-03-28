@@ -61,6 +61,7 @@ class Window(QMainWindow):
         self.resize(1000, 800)
         self.mapWidget = MapWidget()
         
+        
         Progress = 30
         splash_screen.progressUpdate(Progress)
         time.sleep(2)
@@ -122,10 +123,13 @@ class Window(QMainWindow):
             },
             'edit': {
                 'featureGroup': None,
-                'selectedPathOptions': {
-                    'maintainColor': True,
-                    'color': 'red'
+                'edit': {
+                    'selectedPathOptions': {
+                        'maintainColor': True,
+                        'color': 'red'
+                        }
                     }
+            
                 }
         }
         
@@ -162,6 +166,7 @@ class Window(QMainWindow):
         #----------------------------------------------------------------------------------------------------
         self._createActions()
         self._createMenuBar()
+        #self._sliderStationElevation()
         self._createToolBars()
         self._createToolBars2()
         self._connectActions()
@@ -210,11 +215,10 @@ class Window(QMainWindow):
             self.maxLatEventChoice.setValue(max_lat)
             self.minLonEventChoice.setValue(min_lng)
             self.maxLonEventChoice.setValue(max_lng)
-            
 
 
         self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
-        self.map.drawCreated.connect(lambda x: coords(self,x,coord_lat,coord_lng) if x.featureGroup == self.drawControl.featureGroup else None)
+        self.map.drawCreated.connect(lambda x: coords(self,x,coord_lat,coord_lng))
     
 
         self.drawControl2.featureGroup.toGeoJSON(lambda x: print(x))
@@ -264,6 +268,79 @@ class Window(QMainWindow):
         
         exitMenu = menuBar.addMenu("&Exit")
         exitMenu.addAction(self.exitAction)
+        
+    def _sliderStationElevation(self):
+        self.sliderElev = QSlider(Qt.Horizontal, self)
+        self.sliderElev.setRange(20,20)
+        self.sliderElev.setSingleStep(1)
+        self.sliderElev.setValue(0)
+        self.sliderElev.setTickPosition(QSlider.TicksBelow)
+        self.sliderElev.setTickInterval(1)
+        self.sliderElev.setFixedSize(500,30)
+        
+        self.sliderElev.setStyleSheet("""
+            QSlider {
+                border: none;
+                background-color: transparent;
+            }
+            QSlider::handle {
+                background-color: #0072BB;
+                border: none;
+                width: 16px;
+                height: 16px;
+                margin: -8px 0;
+                border-radius: 8px;
+            }
+            QSlider::groove:horizontal {
+                background-color: transparent;
+                height: 5px;
+                border-radius: 2px;
+            }
+            QSlider::sub-page:horizontal {
+                background-color: #0072BB;
+                border: none;
+                height: 5px;
+                border-radius: 2px;
+            }
+            QSlider::add-page:horizontal {
+                background-color: transparent;
+                border: none;
+                height: 5px;
+                border-radius: 2px;
+            }
+            QSlider::handle:horizontal {
+                background-color: #0072BB;
+                border: none;
+                width: 16px;
+                height: 16px;
+                margin: -8px 0;
+                border-radius: 8px;
+            }
+            QSlider::tick-mark:horizontal {
+                background-color: #0072BB;
+                border: none;
+                width: 2px;
+                height: 5px;
+            }
+        """)
+        
+        # Créer un layout vertical pour la carte et le slider
+        vbox = QVBoxLayout(self)
+        vbox.addWidget(self.map)
+
+        # Créer un layout horizontal pour le slider
+        slider_hbox = QHBoxLayout()
+        slider_hbox.addStretch(1)
+        slider_hbox.addWidget(self.sliderEvent)
+        slider_hbox.addStretch(1)
+        
+        # Créer un layout vertical pour centrer le slider
+        center_vbox = QVBoxLayout()
+        center_vbox.addStretch(1)
+        center_vbox.addLayout(slider_hbox)
+        center_vbox.addStretch(1)
+        
+        vbox.addLayout(center_vbox)
                 
         
         
@@ -319,7 +396,6 @@ class Window(QMainWindow):
                                         QComboBox {
                                             font-family: calibri;
                                             }
-                                        
                                         
                                         QComboBox QAbstractItemView {
                                             border: 2px;
