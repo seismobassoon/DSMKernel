@@ -170,7 +170,7 @@ subroutine computePLMforlChunkLocal
   endif
 
 
-  print *, "I'm ok for", my_rank
+  print *, "I'm ok for", my_rank, plmLocal(1:3,100,ithetaMinLocal+1)
   call MPI_ALLGATHER(plmLocal,4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
        MPI_DOUBLE_PRECISION, &
        plmGlobal, &
