@@ -91,8 +91,8 @@ subroutine whoDoesWhatDSM
   allocate(countIndex(0:nproc))
   countIndex(0)=0
   do iCount = 1,nproc
-     if(iCount.le.jobsOfThetaLength) countIndex(iCount)=countIndex(iCount-1)+4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*nThetaLength
-     if(iCount.gt.jobsOfThetaLength)  countIndex(iCount)=countIndex(iCount-1)+4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(nThetaLength-1)
+     if(iCount.le.jobsOfnThetaLength) countIndex(iCount)=countIndex(iCount-1)+4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*nThetaLength
+     if(iCount.gt.jobsOfnThetaLength)  countIndex(iCount)=countIndex(iCount-1)+4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(nThetaLength-1)
   enddo
   
 
