@@ -186,8 +186,7 @@ subroutine computePLMforlChunkLocal
   print *, my_rank, 4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), countIndex(my_rank+1)
   call MPI_ALLGATHERV(plmLocal,4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
        MPI_DOUBLE_PRECISION, &
-       plmGlobal, &
-       4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
+       plmGlobal, rcounts, &
        countIndex, &
        MPI_DOUBLE_PRECISION, MPI_COMM_WORLD,ierr)
   !print *, "I'm ok for---", my_rank,ithetaMinLocal,ithetaMaxLocal
