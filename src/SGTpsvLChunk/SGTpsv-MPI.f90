@@ -123,33 +123,40 @@ program  SGTpsv
         call cpu_time(start_time)
         
         
-     
-        !l=0
-        call dsm_l_0 
-        
-        !l=1
-        call dsm_l_1
-        
-        !l=2
-        
-        call dsm_l_2
-        
-        !l=3
-        
-        call dsm_l_3
-        
-        !l=4
-        
-        call dsm_l_4
-        
-        
-        !l>4
-        
-        do l=5,lmaxPredefined(i)    ! l-loop start
+        if(iAngularOrderChunk.eq.1) then
+           !l=0
+           call dsm_l_0 
            
-           call dsm_l_big
+           !l=1
+           call dsm_l_1
+           
+           !l=2
+           
+           call dsm_l_2
+           
+           !l=3
+           
+           call dsm_l_3
+           
+           !l=4
+           
+           call dsm_l_4
         
-        enddo               ! l-loop end        
+        
+           !l>4
+           
+           do l=5,lChunk(2,iAngularOrderChunk)   ! l-loop start
+              
+              call dsm_l_big
+              
+           enddo               ! l-loop end        
+
+
+        else
+           do l= lChunk(1,iAngularOrderChunk), lChunk(2,iAngularOrderChunk)
+              call dsm_l_big
+           enddo
+        endif
         
         call cpu_time(end_time)
         
