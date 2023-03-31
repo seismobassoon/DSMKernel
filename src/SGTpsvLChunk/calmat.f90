@@ -109,7 +109,7 @@ subroutine pinteg(snp,n,p,from,to,vnp,vra,con,pint)
   if ( snp.ge.vnp ) snp = 1
   pint = 0.d0
   x1 = from
-  100	continue
+100 continue
   if ( (vra(snp).le.x1).and.(vra(snp+1).gt.x1) ) then
      x2 = dmin1( to, vra(snp+1) )
   else

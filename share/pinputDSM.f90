@@ -15,7 +15,7 @@ subroutine pinputDatabaseFileMAX(DSMconfFile,outputDir,psvmodel,modelname,tlen,r
   integer, intent(out) :: imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch
   character(200) :: commandline
   character(200) :: tmpfile,tmpfile0
-  integer(4) :: istat
+  !integer(4) :: istat
   
   character(200) :: argv
   integer :: argc,iFind,numberLines,io,iLine
@@ -249,7 +249,7 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
   integer :: imin,imax,rsgtswitch,tsgtswitch,synnswitch,psgtswitch
   character(200) :: commandline
   character(200) :: tmpfile,tmpfile0
-  integer(4) :: istat
+  !integer(4) :: istat
   
   character(200) :: argv
   integer :: argc,iFind,numberLines,io,iLine
@@ -325,7 +325,7 @@ subroutine pinputDatabaseFile(DSMconfFile,outputDir,psvmodel,modelname,tlen,rmin
      dummy = 'mkdir -p '//trim(outputDir)
      call system(dummy)
   
-     outputDir=outputDir//modelname
+     outputDir=trim(outputDir)//trim(modelname)
      dummy = 'mkdir -p '//trim(outputDir)
      call system(dummy)
   endif
