@@ -9,7 +9,8 @@ subroutine whoDoesWhatDSM
   real(kind(0d0)) :: reasonableLwidthInReal
   integer :: jobsOfnThetaLengthMinusOne, jobsOfnThetaLength
   integer :: reasonableLwidth
-
+  integer :: iCount
+  
   allocate(lmaxPredefined(imin:imax))
   
   nFrequencyChunk = 0
@@ -83,10 +84,16 @@ subroutine whoDoesWhatDSM
      iThetaMinLocal = jobsOfnThetaLength*nThetaLength + (my_rank-jobsOfnThetaLength) * (nThetaLength-1) +1
      iThetaMaxLocal = jobsOfnThetaLength*nThetaLength + (my_rank-jobsOfnThetaLength+1) * (nThetaLength-1) 
   endif
-  
- 
-  !print *, "itheta=",iThetaMinLocal,iThetaMaxLocal
-  
+
+
+
+  ! compute countIndex
+  allocate(countIndex(0:nproc))
+  countIndex(0)=0
+  do iCount = 1,nproc
+     if(iCount.le.jobsOfThetaLength) countIndex(iCount)=countIndex(iCount-1)+4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*nThetaLength
+     if(iCount.gt.jobsOfThetaLength)  countIndex(iCount)=countIndex(iCount-1)+4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(nThetaLength-1)
+  enddo
   
 
   
@@ -128,14 +135,13 @@ subroutine computePLMforlChunkLocal
         plmtmp = 0.d0
         do l=0,4
            do m = 0, min0(l,3)
-              call calplm_l_small(l,m,x,plmtmp(1:3,0:3))
+              call calplm_l_small(l,m,x,plmtmp(1:3,m))
            enddo
            plmLocal(0:3,l,itheta)=plmtmp(1,0:3)
-           if(my_rank.eq.1) print *, plmLocal
         enddo
         do l=5, lChunk(2,1)
            do m = 0, 3
-              call calplm_l_big(l,m,x,plmtmp(1:3,0:3))
+              call calplm_l_big(l,m,x,plmtmp(1:3,m))
            enddo
            plmLocal(0:3,l,itheta)=plmtmp(1,0:3)
         enddo
@@ -159,7 +165,7 @@ subroutine computePLMforlChunkLocal
         
         do l= lChunk(1,iAngularOrderChunk), lChunk(2,iAngularOrderChunk)
            do m = 0, 3
-              call calplm_l_big(l,m,x,plmtmp(1:3,0:3))
+              call calplm_l_big(l,m,x,plmtmp(1:3,m))
            enddo
            plmLocal(0:3,l,itheta)=plmtmp(1,0:3)
         enddo
@@ -171,13 +177,15 @@ subroutine computePLMforlChunkLocal
   endif
 
 
-  print *, "I'm ok for", my_rank, plmLocal(0:3,100,ithetaMinLocal+1)
+  print *, "I'm ok for", my_rank, plmLocal(0:3,my_rank,ithetaMinLocal+1)
+
   call MPI_ALLGATHERV(plmLocal,4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
        MPI_DOUBLE_PRECISION, &
        plmGlobal, &
        4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
+       countIndex, &
        MPI_DOUBLE_PRECISION, MPI_COMM_WORLD,ierr)
-  print *, "I'm ok for---", my_rank,ithetaMinLocal,ithetaMaxLocal
+  !print *, "I'm ok for---", my_rank,ithetaMinLocal,ithetaMaxLocal
   call MPI_BARRIER(MPI_COMM_WORLD,ierr)
   
   allocate(plmGlobalTranspose(0:3,1:theta_n,lChunk(1,iAngularOrderChunk):lChunk(2,iAngularOrderChunk)))

@@ -129,7 +129,8 @@ module parameters
   ! for MPI
 
   integer :: nproc,my_rank,ierr
-    
+
+  integer, allocatable :: countIndex(:)
   !--------------------------------------------------------------------------
   
 
