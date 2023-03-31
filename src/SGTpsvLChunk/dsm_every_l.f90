@@ -89,10 +89,15 @@ subroutine whoDoesWhatDSM
 
   ! compute countIndex
   allocate(countIndex(0:nproc))
+  allocate(rcounts(1:nproc))
   countIndex(0)=0
   do iCount = 1,nproc
-     if(iCount.le.jobsOfnThetaLength) countIndex(iCount)=countIndex(iCount-1)+4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*nThetaLength
-     if(iCount.gt.jobsOfnThetaLength) countIndex(iCount)=countIndex(iCount-1)+4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(nThetaLength-1)
+     if(iCount.le.jobsOfnThetaLength) then
+        rcounts(iCount)=4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*nThetaLength
+     else
+        rcounts(iCount)=4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(nThetaLength-1)
+     endif
+     countIndex(iCount)=countIndex(iCount-1)+rcounts(iCount)
   enddo
   
 

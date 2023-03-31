@@ -130,7 +130,7 @@ module parameters
 
   integer :: nproc,my_rank,ierr
 
-  integer, allocatable :: countIndex(:)
+  integer, allocatable :: countIndex(:),rcounts(:)
   !--------------------------------------------------------------------------
   
 
