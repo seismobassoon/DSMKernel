@@ -92,7 +92,7 @@ subroutine whoDoesWhatDSM
   countIndex(0)=0
   do iCount = 1,nproc
      if(iCount.le.jobsOfnThetaLength) countIndex(iCount)=countIndex(iCount-1)+4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*nThetaLength
-     if(iCount.gt.jobsOfnThetaLength)  countIndex(iCount)=countIndex(iCount-1)+4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(nThetaLength-1)
+     if(iCount.gt.jobsOfnThetaLength) countIndex(iCount)=countIndex(iCount-1)+4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(nThetaLength-1)
   enddo
   
 
@@ -177,8 +177,8 @@ subroutine computePLMforlChunkLocal
   endif
 
 
-  print *, "I'm ok for", my_rank, plmLocal(0:3,my_rank,ithetaMinLocal+1)
-
+  !print *, "I'm ok for", my_rank, plmLocal(0:3,my_rank,ithetaMinLocal+1)
+  print *, my_rank, 4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1, countIndex(my_rank+1)
   call MPI_ALLGATHERV(plmLocal,4*(lChunk(2,iAngularOrderChunk)-lChunk(1,iAngularOrderChunk)+1)*(iThetaMaxLocal-iThetaMinLocal+1), &
        MPI_DOUBLE_PRECISION, &
        plmGlobal, &
