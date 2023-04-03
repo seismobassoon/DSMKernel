@@ -286,4 +286,23 @@ subroutine dsm_write_files
   !enddo        
 end subroutine dsm_write_files
 
+! precompute interpolation matrices + locally Cartesian
+
+subroutine computeJacobianFromCoefficientsToLocallyCartesian
+  use parameters
+  implicit none
+  complex(kind(0d0)) :: intermediateMatrix(1:3,0:1,1:r_n) ! first index for coeffs for DSM coeffs around the point, second for the order (displacement/strain)
+
+
+  ! makeInterpolateMatrix in others.f90
+
+  call makeInterpolateMatrix(r_n,r_(1:r_n),rrsta(1:3,1:r_n),intermediateMatrix(1:3,0:1,1:r_n)
+  
+  
+  
+  
+
+  return 
+end subroutine computeJacobianFromCoefficientsToLocallyCartesian
+
 

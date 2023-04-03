@@ -1045,6 +1045,61 @@ end subroutine cvecinit
 !
 
 
+subroutine makeInterpolateMatrix(r_n,rsta,rrsta,intermediateMatrix)
+  implicit none
+  integer :: r_n
+  integer :: ir_
+  real(kind(0d0)) :: rrsta(1:3,1:r_n),rsta(r_n),dh(3)
+  complex(kind(0d0)) :: a(3,3), b(3,3),intermediateMatrix(1:3,0:1,r_n)
+
+  a=dcmplx(0.d0)
+  dh=0.d0
+  intermediateMatrix=dcmplx(0.d0)
+  do ir_=1,r_n
+     do i=1,3
+        dh(i) = rrsta(i,ir_) - rsta(ir_)
+     enddo
+     do i=1,3
+        a(1,i) = dcmplx( 1.d0 )
+        a(2,i) = dcmplx( dh(i) )
+        a(3,i) = dcmplx( dh(i) * dh(i) / 2.d0 )
+     enddo
+     b=matinv3(a)
+     intermediateMatrix(1:3,0:1,ir_)=b(1:3,1:2)
+     
+  enddo
+     
+  return
+end subroutine makeInterpolateMatrix
+
+
+pure function matinv3(A) result(B)
+  !! Performs a direct calculation of the inverse of a 3×3 matrix.
+  complex(kind(0d0)), intent(in) :: A(3,3)   !! Matrix
+  complex(kind(0d0))   :: B(3,3)   !! Inverse matrix
+  complex(kind(0d0))             :: detinv
+
+  B=dcmplx(0.d0)
+
+  ! Calculate the inverse determinant of the matrix
+  detinv = 1/(A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2)&
+       - A(1,2)*A(2,1)*A(3,3) + A(1,2)*A(2,3)*A(3,1)&
+       + A(1,3)*A(2,1)*A(3,2) - A(1,3)*A(2,2)*A(3,1))
+  
+  ! Calculate the inverse of the matrix
+  B(1,1) = +detinv * (A(2,2)*A(3,3) - A(2,3)*A(3,2))
+  B(2,1) = -detinv * (A(2,1)*A(3,3) - A(2,3)*A(3,1))
+  B(3,1) = +detinv * (A(2,1)*A(3,2) - A(2,2)*A(3,1))
+  B(1,2) = -detinv * (A(1,2)*A(3,3) - A(1,3)*A(3,2))
+  B(2,2) = +detinv * (A(1,1)*A(3,3) - A(1,3)*A(3,1))
+  B(3,2) = -detinv * (A(1,1)*A(3,2) - A(1,2)*A(3,1))
+  B(1,3) = +detinv * (A(1,2)*A(2,3) - A(1,3)*A(2,2))
+  B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
+  B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
+end function matinv3
+  
+
+
 subroutine interpolate( ncomp,nderiv,rsta,rrsta,g,u )
 
   implicit none
@@ -1089,7 +1144,6 @@ subroutine interpolate( ncomp,nderiv,rsta,rrsta,g,u )
   enddo
 end subroutine interpolate
 
-!
 
 
 subroutine fillinpb( nderiv,b )
