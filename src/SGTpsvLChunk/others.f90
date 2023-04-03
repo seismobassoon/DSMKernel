@@ -1098,7 +1098,7 @@ subroutine  matinv3(A)
   B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
   B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
   return B
-end function matinv3
+end subroutine matinv3
   
 
 
