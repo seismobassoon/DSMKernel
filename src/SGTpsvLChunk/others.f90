@@ -1048,7 +1048,7 @@ end subroutine cvecinit
 subroutine makeInterpolateMatrix(r_n,rsta,rrsta,intermediateMatrix)
   implicit none
   integer :: r_n
-  integer :: ir_
+  integer :: ir_,i
   real(kind(0d0)) :: rrsta(1:3,1:r_n),rsta(r_n),dh(3)
   complex(kind(0d0)) :: a(3,3), b(3,3),intermediateMatrix(1:3,0:1,r_n)
 
@@ -1075,6 +1075,7 @@ end subroutine makeInterpolateMatrix
 
 pure function matinv3(A) result(B)
   !! Performs a direct calculation of the inverse of a 3×3 matrix.
+  implicit none
   complex(kind(0d0)), intent(in) :: A(3,3)   !! Matrix
   complex(kind(0d0))   :: B(3,3)   !! Inverse matrix
   complex(kind(0d0))             :: detinv
