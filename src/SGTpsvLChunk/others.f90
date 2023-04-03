@@ -1064,7 +1064,7 @@ subroutine makeInterpolateMatrix(r_n,rsta,rrsta,intermediateMatrix)
         a(2,i) = dcmplx( dh(i) )
         a(3,i) = dcmplx( dh(i) * dh(i) / 2.d0 )
      enddo
-     b=matinv3(a)
+     call matinv3(a,b)
      intermediateMatrix(1:3,0:1,ir_)=b(1:3,1:2)
      
   enddo
@@ -1073,7 +1073,7 @@ subroutine makeInterpolateMatrix(r_n,rsta,rrsta,intermediateMatrix)
 end subroutine makeInterpolateMatrix
 
 
-subroutine  matinv3(A) 
+subroutine  matinv3(A,B) 
   !! Performs a direct calculation of the inverse of a 3×3 matrix.
   implicit none
   complex(kind(0d0)), intent(in) :: A(3,3)   !! Matrix
@@ -1097,7 +1097,7 @@ subroutine  matinv3(A)
   B(1,3) = +detinv * (A(1,2)*A(2,3) - A(1,3)*A(2,2))
   B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
   B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
-  return B
+  return 
 end subroutine matinv3
   
 
