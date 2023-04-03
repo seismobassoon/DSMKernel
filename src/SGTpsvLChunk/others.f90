@@ -1073,7 +1073,7 @@ subroutine makeInterpolateMatrix(r_n,rsta,rrsta,intermediateMatrix)
 end subroutine makeInterpolateMatrix
 
 
-pure function matinv3(A) result(B)
+subroutine  matinv3(A) 
   !! Performs a direct calculation of the inverse of a 3×3 matrix.
   implicit none
   complex(kind(0d0)), intent(in) :: A(3,3)   !! Matrix
@@ -1097,6 +1097,7 @@ pure function matinv3(A) result(B)
   B(1,3) = +detinv * (A(1,2)*A(2,3) - A(1,3)*A(2,2))
   B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
   B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
+  return B
 end function matinv3
   
 
