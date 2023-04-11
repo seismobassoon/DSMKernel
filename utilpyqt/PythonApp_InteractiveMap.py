@@ -16,7 +16,7 @@ import pytz
 import numpy as np
 
 from obspy.clients.fdsn import Client
-from obspy import UTCDateTime
+from obspy import UTCDateTime, read
 from geopy.geocoders import Nominatim
 
 from DataProcessor_Fonctions import get_depth_color, get_periodogram, plot_record_section # Load the function "plot_events" provided in tp_obsp
@@ -24,7 +24,7 @@ from DataProcessor_Fonctions import get_depth_color, get_periodogram, plot_recor
 from PyQt5.QtWidgets import QMenu, QPushButton, QMessageBox, QDialog,QProgressBar, QFrame, QCheckBox,QSpacerItem
 from PyQt5.QtWidgets import QDateTimeEdit, QWidget,QVBoxLayout,QToolBar, QGridLayout,QListWidgetItem,QTreeView,QAbstractItemView
 from PyQt5.QtWidgets import QAction, QLineEdit, QDoubleSpinBox, QTabWidget,QSlider,QListWidget, QRadioButton, QSizePolicy
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox,QHBoxLayout,QDesktopWidget,QButtonGroup
+from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QComboBox,QHBoxLayout,QDesktopWidget,QButtonGroup,QFileDialog
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -33,7 +33,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from pyqtlet import L, MapWidget 
 
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtGui import QPixmap, QStandardItemModel, QFont, QStandardItem
+from PyQt5.QtGui import QPixmap, QStandardItemModel, QFont, QStandardItem, QCursor
 from PyQt5.QtCore import Qt, QSettings, QTimer, pyqtSlot, pyqtSignal
 
 class Window(QMainWindow):
@@ -582,8 +582,10 @@ class Window(QMainWindow):
                 display: inline-block;
                 font-size: 16px;
                 margin-top: 10px;
-                cursor: pointer;
                 """)
+        cursor = QCursor(Qt.PointingHandCursor)
+        self.searchButton.setCursor(cursor)
+        
         self.mainToolBar.addWidget(self.searchButton)
         self.searchButton.clicked.connect(self.startSearch)
         self.mainToolBar.setVisible(False)
@@ -827,6 +829,8 @@ class Window(QMainWindow):
         self.eventToolBar.addWidget(self.searchEventButton)
         self.searchEventButton.setDefault(True)
         self.searchEventButton.clicked.connect(self.startEventSearch)
+        cursor = QCursor(Qt.PointingHandCursor)
+        self.searchEventButton.setCursor(cursor)
         
     def update_magEvent_value(self,value):
         self.magEventValue.setValue(float(value)/10)
@@ -1518,8 +1522,13 @@ class StationPopup(QDialog):
     
     def download_data(self):
         # ESSAYER DE TROUVER UNE ALTERNATIVE POUR LE CHANNEL BH* OU BH?
-        self.st.write('./{}_{}.mseed'.format(network_select,self.nameStation))
-            
+        fname = QFileDialog.getSaveFileName(self, 'Save file', './{}_{}.mseed'.format(network_select,self.nameStation), "MiniSEED Files (*.mseed);;All Files (*)")
+        if fname[0]:
+            '''
+            self.url = f"{self.station_data[self.station_index]['net']}.{self.station_data[self.station_index]['sta']}.mseed"
+            st = read('https://examples.obspy.org/{}'.format(self.url))
+            '''
+            self.st.write(fname[0], format='MSEED')
             
         # si la valeur change, plotter la trace
         #self.plot_seismic(name,channel,startTrace,endTrace)
@@ -2113,13 +2122,14 @@ class SplashScreen(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        
+     
         self.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.setWindowTitle("Geodpy Project - Python application for scientific research")
         self.setFixedSize(1000, 800)
         self.setStyleSheet("QMainWindow {background: 'white';}")
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
+       
         
         # IPGP Logo
         self.logo_ipgp=QLabel(self)
