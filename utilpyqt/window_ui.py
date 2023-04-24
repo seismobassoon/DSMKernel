@@ -48,7 +48,7 @@ firebase_admin.initialize_app(cred, {
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.resize(1000, 600)
-        MainWindow.setWindowTitle("Geodpy Project - Python application for scientific research")
+        MainWindow.setWindowTitle("DSM Kernel Project - Python application for scientific research")
         
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -752,7 +752,8 @@ class Ui_MainWindow(object):
                     if self.min_lat.value() <= sta.latitude <= self.max_lat.value():
                         if self.min_lng.value() <= sta.longitude <= self.max_lng.value():
                             self.stations.append([net.code, sta.code, sta.latitude, sta.longitude, sta.elevation])
-                
+        
+               
                 '''
                 filename = "{}_{}.xml".format(net.code,sta.code)
                 station_inventory = read_inventory(network=net.code, station=sta.code,starttime=self.starttime,endtime=self.endtime)
@@ -766,6 +767,7 @@ class Ui_MainWindow(object):
                 os.remove(temporary_file)
                 '''
         print("Now, plotting the stations!")
+        print(self.stations) 
         self.plot_station()
         
     # %% PLOT STATIONS
@@ -877,7 +879,7 @@ class Ui_MainWindow(object):
                 font-size: 16px;
                 margin-top: 10px;
                 """)
-        stationXML_btn = QtWidgets.QPushButton("Download XML file\n of the current selection")
+        stationXML_btn = QtWidgets.QPushButton("Download XML files\n of the current selection")
         #stationXML_btn.clicked.connect(self.get_stationXML)
         stationXML_btn.clicked.connect(self.downlaod_checked_items)
         stationXML_btn.setCursor(QtCore.Qt.PointingHandCursor)
@@ -885,7 +887,7 @@ class Ui_MainWindow(object):
                                              QPushButton {
                                                  color: #959595;
                                                  border: 2px white;
-                                                 background-color: white;
+                                                 background-color: transparent;
                                                  font-family: calibri;
                                                  font-style: italic;
                                                  }
@@ -906,22 +908,9 @@ class Ui_MainWindow(object):
         self.station_list.setGeometry(100, 100, 200, 200)
         self.sta_dialog.setModal(False)
         self.sta_dialog.exec_()
-    '''
-    def get_stationXML(self):
         
-        directory = "stations"
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-            
-        for net in self.inventory:
-            for sta in net:
-                filename = '{}_{}.xml'.format(net.code,sta.code)
-                
-                file_path = os.path.join(directory, filename)
-                
-                station_inventory = read_inventory(network=net.code, station=sta.code, starttime=self.starttime, endtime=self.endtime, client="IRIS")
-                station_inventory.write(file_path, format="stationxml")
-    '''   
+        
+ 
     def create_model(self):
         model = self.ui_tags.model().sourceModel()
         self.populate_tree(self.stations_tries, model.invisibleRootItem())
@@ -938,7 +927,7 @@ class Ui_MainWindow(object):
                 self.populate_tree(children[child], node)
                 
     def downlaod_checked_items(self):
-        checked_items = {}
+        self.checked_items = {}
     
         source_model = self.tags_model.sourceModel()
     
@@ -949,7 +938,7 @@ class Ui_MainWindow(object):
             # Vérifier si le parent est coché
             if network_item.checkState() == QtCore.Qt.Checked:
                 network_name = network_item.text()
-                checked_items[network_name] = []
+                self.checked_items[network_name] = []
     
                 # Parcourir tous les enfants de l'élément parent
                 for station_row in range(network_item.rowCount()):
@@ -957,14 +946,15 @@ class Ui_MainWindow(object):
     
                     # Vérifier si l'enfant est coché
                     if station_item.checkState() == QtCore.Qt.Checked:
-                        checked_items[network_name].append(station_item.text())
-    
+                        self.checked_items[network_name].append(station_item.text())
+                        
+        #print(checked_items)
         # Créer les répertoires et télécharger les fichiers XML correspondants
         directory = "stations"
         if not os.path.exists(directory):
             os.makedirs(directory)
     
-        for parent_name, station_names in checked_items.items():
+        for parent_name, station_names in self.checked_items.items():
             parent_directory = os.path.join(directory, parent_name)
             if not os.path.exists(parent_directory):
                 os.makedirs(parent_directory)
@@ -978,7 +968,6 @@ class Ui_MainWindow(object):
                 station_inventory = read_inventory(network=net.code, station=sta.code, starttime=self.starttime, endtime=self.endtime, client="IRIS")
                 station_inventory.write(file_path, format="stationxml")
                     
-
     '''
     def remove_markers(self):
     # Get the percentage value from the QSpinBox
@@ -1024,6 +1013,30 @@ class Ui_MainWindow(object):
             
     # %% GET EVENTS & PLOTTING       
     def get_events(self):
+        # lIST STOCKANT TOUTES LES STATIONS GARDEES
+        self.checked_stations = {}
+    
+        source_model = self.tags_model.sourceModel()
+    
+        # Parcourir tous les éléments de la liste
+        for row in range(source_model.rowCount()):
+            network_item = source_model.item(row)
+    
+            # Vérifier si le parent est coché
+            if network_item.checkState() == QtCore.Qt.Checked:
+                network_name = network_item.text()
+                self.checked_stations[network_name] = []
+    
+                # Parcourir tous les enfants de l'élément parent
+                for station_row in range(network_item.rowCount()):
+                    station_item = network_item.child(station_row)
+    
+                    # Vérifier si l'enfant est coché
+                    if station_item.checkState() == QtCore.Qt.Checked:
+                        self.checked_stations[network_name].append(station_item.text())
+        print("Checked stations: ",self.checked_stations)
+        
+        # DEBUT DE LA FENETRE SUR LES STATONS
         self.sta_dialog.close()
         client = Client("IRIS")
         # CONVERT MANGITUDE
@@ -1194,6 +1207,7 @@ class Ui_MainWindow(object):
     '''
     # %%  RECORD SECTION  
     def record_section_dialog(self,item):
+        self.event_dialog.close()
         self.section_dialog = QtWidgets.QDialog()
         self.section_dialog.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.section_dialog.setWindowTitle("{}".format(item.text()))
@@ -1208,21 +1222,37 @@ class Ui_MainWindow(object):
         eq_lon = self.eqo.longitude
         eq_start = self.eqo.time
         
+        # Liste de stations selectionnées
+        self.stations_communes = []
+        for station in self.stations:
+            if station[0] in self.checked_stations and station[1] in self.checked_stations[station[0]]:
+                self.stations_communes.append(station)
+        print("Stations communes: ",self.stations_communes)
+        
+        #
+        network_set = {s[0] for s in self.stations_communes}
+        print("Network set : ",network_set)
+        stations_set = {s[1] for s in self.stations_communes}
+        print("Stations set : ", stations_set)
+        
         # GET SEISMIC TRACE
         client = Client("IRIS")
+        print("Getting seismic traces...")
         st = client.get_waveforms(
-            network = "*",
-            station = "*",
-            location = "*",
+            network = ",".join(network_set),
+            station = ",".join(stations_set),
+            location = "00",
             channel = str(self.channel_choice.currentText()),
             starttime = eq_start,
             endtime = eq_start + 14400,
             attach_response = True,
             )
-        
-        name = 'record_section_ev_%s.png' % str(self.starttime)[:10]
+        print("now plotting the seismic trace!")
+        #name = 'record_section_ev_%s.png' % str(self.starttime)
+        name = "essai.png"
+        st.plot();
 
-        self.figure_record_section = plot_record_section(st, self.stations, eq_lat, eq_lon, outfile=name)
+        self.figure_record_section = plot_record_section(st, self.stations_communes, eq_lat, eq_lon, outfile=name)
         self.canvas_record_section = FigureCanvas(self.figure_record_section)
         
         
