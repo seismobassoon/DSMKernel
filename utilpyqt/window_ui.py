@@ -16,15 +16,20 @@ from pyqtlet import L, MapWidget
 from PyQt5 import QtCore, QtGui, QtWidgets
 from superqt import QRangeSlider
 
+import obspy
 from obspy import read_inventory
 from obspy.clients.fdsn import Client
 from DataProcessor_Fonctions import get_depth_color, plot_record_section
 
 from firebase_admin import credentials, storage, auth
 
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
 import os, pytz, random
 
 from config import uid
+
+import lxml.etree
 
 import firebase_admin
 from firebase_admin import credentials
@@ -53,7 +58,6 @@ class Ui_MainWindow(object):
         self.gridLayout.setObjectName("gridLayout")
         self.icon_only_widget = QtWidgets.QWidget(self.centralwidget)
         self.icon_only_widget.setObjectName("icon_only_widget")
-        self.icon_only_widget.setHidden(False)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.icon_only_widget)
         self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_3.setSpacing(0)
@@ -97,8 +101,8 @@ class Ui_MainWindow(object):
         self.orders_btn_1 = QtWidgets.QPushButton(self.icon_only_widget)
         self.orders_btn_1.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(":/icon/icon/activity-feed-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon2.addPixmap(QtGui.QPixmap(":/icon/icon/activity-feed-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon2.addPixmap(QtGui.QPixmap(":/icon/icon/time-8-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap(":/icon/icon/time-8-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.orders_btn_1.setIcon(icon2)
         self.orders_btn_1.setIconSize(QtCore.QSize(20, 20))
         self.orders_btn_1.setCheckable(True)
@@ -108,8 +112,8 @@ class Ui_MainWindow(object):
         self.products_btn_1 = QtWidgets.QPushButton(self.icon_only_widget)
         self.products_btn_1.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(":/icon/icon/product-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon3.addPixmap(QtGui.QPixmap(":/icon/icon/product-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon3.addPixmap(QtGui.QPixmap(":/icon/icon/compass-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon3.addPixmap(QtGui.QPixmap(":/icon/icon/compass-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.products_btn_1.setIcon(icon3)
         self.products_btn_1.setIconSize(QtCore.QSize(20, 20))
         self.products_btn_1.setCheckable(True)
@@ -181,7 +185,7 @@ class Ui_MainWindow(object):
                                            """)
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap(":/icon/icon/dashboard-5-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon1.addPixmap(QtGui.QPixmap(":/icon/icon/dashboard-5-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon1.addPixmap(QtGui.QPixmap(":/icon/icon/compass-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
 
         self.mag_slider = QtWidgets.QSlider()
         
@@ -247,7 +251,7 @@ class Ui_MainWindow(object):
         
         time_icon = QtGui.QIcon()
         time_icon.addPixmap(QtGui.QPixmap(":/icon/icon/compass-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        time_icon.addPixmap(QtGui.QPixmap(":/icon/icon/dashboard-5-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        time_icon.addPixmap(QtGui.QPixmap(":/icon/icon/compass-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
 
         
         self.start_layout = QtWidgets.QHBoxLayout(self.full_menu_widget)
@@ -485,8 +489,9 @@ class Ui_MainWindow(object):
                 }}
         
         # ADD DRAWINGS
-        self.drawControl = L.control.draw(options=style)
-        self.map.addControl(self.drawControl)
+        self.drawEventControl = L.control.draw(options=style)
+        self.map.addControl(self.drawEventControl)
+        
         satellite_layer.addTo(self.map)
         self.layersControl=L.control.layers(layers).addTo(self.map)
         
@@ -524,7 +529,7 @@ class Ui_MainWindow(object):
             self.lng_min.setValue(min_lng)
             self.lng_max.setValue(max_lng)
         
-        self.drawControl.featureGroup.toGeoJSON(lambda x: print(x))
+        self.drawEventControl.featureGroup.toGeoJSON(lambda x: print(x))
         self.map.drawCreated.connect(lambda x: coords(self,x,coord_lat,coord_lng))
         # %% BOTTOM WINDOW
         
@@ -553,6 +558,7 @@ class Ui_MainWindow(object):
         self.elevation_slider.rangeChanged.connect(self.update_spinboxes)
         self.elev_min = QtWidgets.QSpinBox()
         self.elev_min.setMinimum(0)
+        self.elev_min.setValue(200)
         self.elev_min.valueChanged.connect(self.update_elevation_slider_min)
         self.elev_min.setStyleSheet("""
                                      QSpinBox {
@@ -570,6 +576,7 @@ class Ui_MainWindow(object):
         self.elev_min.setAlignment(QtCore.Qt.AlignRight)
         self.elev_max = QtWidgets.QSpinBox()
         self.elev_max.setMaximum(1000)
+        self.elev_max.setValue(800)
         self.elev_max.valueChanged.connect(self.update_elevation_slider_max)
         self.elev_max.setStyleSheet("""
                                      QSpinBox {
@@ -594,10 +601,23 @@ class Ui_MainWindow(object):
         max_lng_label = QtWidgets.QLabel("Lng max:")
         max_lng_label.setFixedWidth(50)
         
+        # COORDINATES FOR STATIONS
         self.min_lat = QtWidgets.QDoubleSpinBox()
+        self.min_lat.setValue(-90)
+        self.min_lat.setMinimum(-90)
+        self.min_lat.setMaximum(90)
         self.max_lat = QtWidgets.QDoubleSpinBox()
+        self.max_lat.setValue(90)
+        self.max_lat.setMinimum(-90)
+        self.max_lat.setMaximum(90)
         self.min_lng = QtWidgets.QDoubleSpinBox()
+        self.min_lng.setValue(-180)
+        self.min_lng.setMinimum(-180)
+        self.min_lng.setMaximum(180)
         self.max_lng = QtWidgets.QDoubleSpinBox()
+        self.max_lng.setValue(180)
+        self.max_lng.setMinimum(-180)
+        self.max_lng.setMaximum(180)
         self.min_lat.setStyleSheet("""
                                      QDoubleSpinBox {
                                          color: black;
@@ -702,8 +722,10 @@ class Ui_MainWindow(object):
     # %% GET STATION   
     def get_station(self):
         # CLIENT
-        client = Client("IRIS")
-        
+        try :
+            client = Client("IRIS")
+        except obspy.clients.fdsn.header.FDSNNoServiceException as e:
+            QtWidgets.QMessageBox.warning("Error", "Internet connection is required")
         # DATE TIME CONVERSION
 
         localStartTime = self.start_edit.dateTime()
@@ -718,16 +740,18 @@ class Ui_MainWindow(object):
         #network = "*"
         print("Inventory in process...")
         # INVENTORY
-        inventory = client.get_stations(network="IU", level='channel')
+        self.inventory = client.get_stations(network="*", level='channel')
 
         #bucket = storage_client.bucket()
      
         self.stations = []
         
-        for net in inventory:
+        for net in self.inventory:
             for sta in net:
-                if 0 <= sta.elevation <= 3000:
-                    self.stations.append([net.code, sta.code, sta.latitude, sta.longitude, sta.elevation])
+                if self.elev_min.value() <= sta.elevation <= self.elev_max.value():
+                    if self.min_lat.value() <= sta.latitude <= self.max_lat.value():
+                        if self.min_lng.value() <= sta.longitude <= self.max_lng.value():
+                            self.stations.append([net.code, sta.code, sta.latitude, sta.longitude, sta.elevation])
                 
                 '''
                 filename = "{}_{}.xml".format(net.code,sta.code)
@@ -853,18 +877,51 @@ class Ui_MainWindow(object):
                 font-size: 16px;
                 margin-top: 10px;
                 """)
+        stationXML_btn = QtWidgets.QPushButton("Download XML file\n of the current selection")
+        #stationXML_btn.clicked.connect(self.get_stationXML)
+        stationXML_btn.clicked.connect(self.downlaod_checked_items)
+        stationXML_btn.setCursor(QtCore.Qt.PointingHandCursor)
+        stationXML_btn.setStyleSheet("""
+                                             QPushButton {
+                                                 color: #959595;
+                                                 border: 2px white;
+                                                 background-color: white;
+                                                 font-family: calibri;
+                                                 font-style: italic;
+                                                 }
+                                             QPushButton:hover {
+                                                 text-decoration: underline;
+                                                 }
+
+                                             """)
         layout.addWidget(button)
+        layout.addWidget(stationXML_btn)
         # Appliquer le QVBoxLayout à la QDialog
         self.sta_dialog.setLayout(layout)
         
         # Centrer la QDialog
-        self.sta_dialog.setGeometry(500, 635, 400, 400)
+        self.sta_dialog.setGeometry(500, 645, 400, 400)
         self.sta_dialog.setWindowTitle('Seismic stations list')
         self.sta_dialog.setWindowIcon(QtGui.QIcon('logo.jpg'))
         self.station_list.setGeometry(100, 100, 200, 200)
         self.sta_dialog.setModal(False)
         self.sta_dialog.exec_()
+    '''
+    def get_stationXML(self):
         
+        directory = "stations"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+            
+        for net in self.inventory:
+            for sta in net:
+                filename = '{}_{}.xml'.format(net.code,sta.code)
+                
+                file_path = os.path.join(directory, filename)
+                
+                station_inventory = read_inventory(network=net.code, station=sta.code, starttime=self.starttime, endtime=self.endtime, client="IRIS")
+                station_inventory.write(file_path, format="stationxml")
+    '''   
     def create_model(self):
         model = self.ui_tags.model().sourceModel()
         self.populate_tree(self.stations_tries, model.invisibleRootItem())
@@ -879,6 +936,49 @@ class Ui_MainWindow(object):
 
             if isinstance(children, dict):
                 self.populate_tree(children[child], node)
+                
+    def downlaod_checked_items(self):
+        checked_items = {}
+    
+        source_model = self.tags_model.sourceModel()
+    
+        # Parcourir tous les éléments de la liste
+        for row in range(source_model.rowCount()):
+            network_item = source_model.item(row)
+    
+            # Vérifier si le parent est coché
+            if network_item.checkState() == QtCore.Qt.Checked:
+                network_name = network_item.text()
+                checked_items[network_name] = []
+    
+                # Parcourir tous les enfants de l'élément parent
+                for station_row in range(network_item.rowCount()):
+                    station_item = network_item.child(station_row)
+    
+                    # Vérifier si l'enfant est coché
+                    if station_item.checkState() == QtCore.Qt.Checked:
+                        checked_items[network_name].append(station_item.text())
+    
+        # Créer les répertoires et télécharger les fichiers XML correspondants
+        directory = "stations"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    
+        for parent_name, station_names in checked_items.items():
+            parent_directory = os.path.join(directory, parent_name)
+            if not os.path.exists(parent_directory):
+                os.makedirs(parent_directory)
+    
+            for station_name in station_names:
+                net = self.inventory.select(network=network_name)[0]
+                sta = net.select(station=station_name)[0]
+                filename = '{}_{}.xml'.format(net.code, sta.code)
+                file_path = os.path.join(parent_directory, filename)
+    
+                station_inventory = read_inventory(network=net.code, station=sta.code, starttime=self.starttime, endtime=self.endtime, client="IRIS")
+                station_inventory.write(file_path, format="stationxml")
+                    
+
     '''
     def remove_markers(self):
     # Get the percentage value from the QSpinBox
@@ -1004,9 +1104,11 @@ class Ui_MainWindow(object):
         searchEventEdit.setStyleSheet("QLineEdit { color: #888888; border: 1px solid #959595;border-radius: 5px;} ")
         searchEventEdit.textChanged.connect(self.updateListEventWidget)
         
+        self.error = QtWidgets.QLabel("Sélectionnez un élément de la liste")
+        
         # Next step : plot record section
         button = QtWidgets.QPushButton("Next step")
-        button.clicked.connect(self.get_events)
+        #button.clicked.connect(self.record_section_dialog)
         button.setCursor(QtCore.Qt.PointingHandCursor)
         button.setStyleSheet("""
                 background-color: #959595;
@@ -1024,11 +1126,16 @@ class Ui_MainWindow(object):
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(searchEventEdit)
         layout.addWidget(label)
+        layout.addWidget(self.error)
         layout.addWidget(self.event_list)
         layout.addWidget(button)
         
         # Appliquer le QVBoxLayout à la QDialog
         self.event_dialog.setLayout(layout)
+        
+        # ESSAI
+        self.event_list.itemSelectionChanged.connect(self.on_list_item_selection_changed)
+        button.clicked.connect(self.on_button_clicked)
         
         # Centrer la QDialog
         self.event_dialog.setGeometry(500, 635, 400, 400)
@@ -1037,6 +1144,29 @@ class Ui_MainWindow(object):
         self.event_list.setGeometry(100, 100, 200, 200)
         self.event_dialog.setModal(False)
         self.event_dialog.show()
+        
+    def on_list_item_selection_changed(self):
+        if self.event_list.currentItem() is not None:
+            self.error.setText("")
+        else:
+            self.error.setText("Sélectionnez d'abord un élément de la liste !")
+
+    #‼@QtCore.pyqtSlot(QtWidgets.QListWidgetItem)  
+    def on_button_clicked(self):
+        if self.event_list.currentItem() is not None:
+            # L'utilisateur a sélectionné un élément, faites quelque chose ici
+            #print("L'utilisateur a sélectionné :", self.event_list.currentItem().text())
+            item = self.event_list.currentItem()
+            index = self.event_list.row(item)
+            self.eqo = self.events_center[index].origins[0]
+            self.eqoMag = self.events_center[index].magnitudes[0].mag
+            
+            
+            self.record_section_dialog(item)
+        else:
+            # Afficher le message d'erreur
+            self.error.setText("Sélectionnez d'abord un élément de la liste !")
+            self.error.setStyleSheet("color: red")
   
 
     
@@ -1048,30 +1178,53 @@ class Ui_MainWindow(object):
             else:
                 item.setHidden(True)
                 
-                
+    '''           
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)           
     def buildEventPopup(self,item):
         # Recupération de la position de l'élément séléctionné dans la liste
         index = self.event_list.row(item)
         
         self.eqo = self.events_center[index].origins[0]
+        print("eqo : ",self.eqo)
         self.eqoMag = self.events_center[index].magnitudes[0].mag
         
-        exPopup = self.record_section_dialog()
+        exPopup = self.record_section_dialog(item)
         exPopup.setWindowTitle("Seismic event {} details".format(item.text()))
         exPopup.show()
-        
-    def record_section_dialog(self):
+    '''
+    # %%  RECORD SECTION  
+    def record_section_dialog(self,item):
         self.section_dialog = QtWidgets.QDialog()
         self.section_dialog.setWindowIcon(QtGui.QIcon('logo.jpg'))
+        self.section_dialog.setWindowTitle("{}".format(item.text()))
         self.section_dialog.resize(900,700)
         
         vbox = QtWidgets.QVBoxLayout()
-        title = QtWidgets.Qlabel()
+        title = QtWidgets.QLabel()
         title.setText("Record section")
         title.setAlignment(QtCore.Qt.AlignCenter)
         
-        record_section = plot_record_section(st, self.stations, eq_lat, eq_lon)
+        eq_lat = self.eqo.latitude
+        eq_lon = self.eqo.longitude
+        eq_start = self.eqo.time
+        
+        # GET SEISMIC TRACE
+        client = Client("IRIS")
+        st = client.get_waveforms(
+            network = "*",
+            station = "*",
+            location = "*",
+            channel = str(self.channel_choice.currentText()),
+            starttime = eq_start,
+            endtime = eq_start + 14400,
+            attach_response = True,
+            )
+        
+        name = 'record_section_ev_%s.png' % str(self.starttime)[:10]
+
+        self.figure_record_section = plot_record_section(st, self.stations, eq_lat, eq_lon, outfile=name)
+        self.canvas_record_section = FigureCanvas(self.figure_record_section)
+        
         
         
         download_btn = QtWidgets.QPushButton("Download this section")
@@ -1088,7 +1241,9 @@ class Ui_MainWindow(object):
                 font-size: 16px;
                 margin-top: 10px;
                 """)
-        
+        vbox.addWidget(title)
+        vbox.addWidget(self.canvas_record_section)    
+        vbox.addWidget(download_btn)
     
         
 import resource_rc
