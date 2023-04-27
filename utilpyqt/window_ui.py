@@ -1081,9 +1081,10 @@ class Ui_MainWindow(object):
                     origin.depth,
                     magnitude.mag,
                 )
-                infos = "Lat/Long: (%s %s)<br/>Depth: %s m<br/>Magnitude: %s<br/>Comment: %s" % (lat, lon, depth, mag, comments)
+                depth_km = depth / 1000
+                infos = "Lat/Long: (%s %s)<br/>Depth: %s m<br/>Magnitude: %s<br/>Comment: %s" % (lat, lon, depth_km, mag, comments)
                 
-                self.nameEvent = "Mw %.2f, (%.2f,%.2f), depth. %.2f m" % (mag,lat,lon,depth)
+                self.nameEvent = "Mw %.2f, (%.2f,%.2f), depth. %.2f km" % (mag,lat,lon,depth_km)
                 QtWidgets.QListWidgetItem(self.nameEvent,self.event_list)
                 
                 events = L.circleMarker([lat, lon], {
