@@ -740,8 +740,7 @@ class Ui_MainWindow(object):
         #network = "*"
         print("Inventory in process...")
         # INVENTORY
-        self.inventory = client.get_stations(network="*", level='channel')
-
+        self.inventory = client.get_stations(network="IU", level='channel', channel = self.channel_choice.currentText())
         #bucket = storage_client.bucket()
      
         self.stations = []
@@ -1215,7 +1214,7 @@ class Ui_MainWindow(object):
         
         vbox = QtWidgets.QVBoxLayout()
         title = QtWidgets.QLabel()
-        title.setText("Record section")
+        title.setText("<b>Record section</b>")
         title.setAlignment(QtCore.Qt.AlignCenter)
         
         eq_lat = self.eqo.latitude
@@ -1274,7 +1273,8 @@ class Ui_MainWindow(object):
         vbox.addWidget(title)
         vbox.addWidget(self.canvas_record_section)    
         vbox.addWidget(download_btn)
-    
+        self.section_dialog.setLayout(vbox)
+        self.section_dialog.exec_()
         
 import resource_rc
 
