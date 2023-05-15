@@ -19,7 +19,7 @@ from superqt import QRangeSlider
 import obspy
 from obspy import read_inventory
 from obspy.clients.fdsn import Client
-from DataProcessor_Fonctions import get_depth_color, plot_record_section
+from DataProcessor_Fonctions import get_depth_color, plot_record_section_degree
 
 from firebase_admin import credentials, storage, auth
 
@@ -375,15 +375,22 @@ class Ui_MainWindow(object):
         self.search_btn.setCheckable(True)
         self.search_btn.setAutoExclusive(True)
         self.search_btn.setStyleSheet("""
-                background-color: #959595;
-                border: none;
-                border-radius: 7px;
-                color: white;
-                padding: 10px;
-                text-align: center;
-                text-decoration: none;
-                font-size: 16px;
-                margin-top: 10px;
+                                      QPushButton {
+                                          
+                                          background-color: #959595;
+                                          border: none;
+                                          border-radius: 7px;
+                                          color: white;
+                                          padding: 10px;
+                                          text-align: center;
+                                          text-decoration: none;
+                                          font-size: 16px;
+                                          margin-top: 10px;
+                                      }
+                                      
+                                      QPushButton:hover {
+                                          background-color: #858585;
+                                      }
                 """)
         self.verticalLayout_4.addWidget(self.search_btn)
         
@@ -868,16 +875,22 @@ class Ui_MainWindow(object):
         button.clicked.connect(self.get_events)
         button.setCursor(QtCore.Qt.PointingHandCursor)
         button.setStyleSheet("""
-                background-color: #959595;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 10px;
-                text-align: center;
-                text-decoration: none;
-                font-size: 16px;
-                margin-top: 10px;
-                """)
+                             QPushButton {
+                                 background-color: #959595;
+                                 border: none;
+                                 border-radius: 5px;
+                                 color: white;
+                                 padding: 10px;
+                                 text-align: center;
+                                 text-decoration: none;
+                                 font-size: 16px;
+                                 margin-top: 10px;
+                             }
+                             
+                             QPushButton:hover {
+                                 background-color: #858585;
+                             }
+                                 """)
         stationXML_btn = QtWidgets.QPushButton("Download XML files\n of the current selection")
         #stationXML_btn.clicked.connect(self.get_stationXML)
         stationXML_btn.clicked.connect(self.downlaod_checked_items)
@@ -1124,15 +1137,21 @@ class Ui_MainWindow(object):
         #button.clicked.connect(self.record_section_dialog)
         button.setCursor(QtCore.Qt.PointingHandCursor)
         button.setStyleSheet("""
-                background-color: #959595;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 10px;
-                text-align: center;
-                text-decoration: none;
-                font-size: 16px;
-                margin-top: 10px;
+                             QPushButton {
+                                background-color: #959595;
+                                border: none;
+                                border-radius: 5px;
+                                color: white;
+                                padding: 10px;
+                                text-align: center;
+                                text-decoration: none;
+                                font-size: 16px;
+                                margin-top: 10px;
+                             }
+                             
+                            QPushButton:hover {
+                                background-color: #858585;
+                            }
                 """)
         
         # Créer un QVBoxLayout
@@ -1252,7 +1271,7 @@ class Ui_MainWindow(object):
         name = "essai.png"
         st.plot();
 
-        self.figure_record_section = plot_record_section(st, self.stations_communes, eq_lat, eq_lon, outfile=name)
+        self.figure_record_section = plot_record_section_degree(st, self.stations_communes, eq_lat, eq_lon, outfile=name)
         self.canvas_record_section = FigureCanvas(self.figure_record_section)
         
         
@@ -1261,16 +1280,21 @@ class Ui_MainWindow(object):
         #download_btn.clicked.connect(self.get_events)
         download_btn.setCursor(QtCore.Qt.PointingHandCursor)
         download_btn.setStyleSheet("""
-                background-color: #959595;
-                border: none;
-                border-radius: 5px;
-                color: white;
-                padding: 10px;
-                text-align: center;
-                text-decoration: none;
-                font-size: 16px;
-                margin-top: 10px;
-                """)
+                                   QPushButton {
+                                       background-color: #959595;
+                                       border: none;
+                                       border-radius: 5px;
+                                       color: white;
+                                       padding: 10px;
+                                       text-align: center;
+                                       text-decoration: none;
+                                       font-size: 16px;
+                                       margin-top: 10px;
+                                  }
+                                   QPushButton:hover {
+                                       background-color: rgb(86, 101, 115);
+                                   }
+                                       """)
         vbox.addWidget(title)
         vbox.addWidget(self.canvas_record_section)    
         vbox.addWidget(download_btn)
