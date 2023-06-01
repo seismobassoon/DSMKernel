@@ -1,6 +1,7 @@
 import math
 import time
 import webbrowser
+import numpy as np
 
 """
 Modified on Fri Feb  3 16:35:46 2023
@@ -29,8 +30,7 @@ try:
 except ModuleNotFoundError:
     print("\nobspy package required!")
     raise
-
-
+    
 
 
 def get_depth_color(depth):
@@ -80,7 +80,14 @@ def plot_record_section(
             if tr.stats.network == net and tr.stats.station == sta:
                 tr.stats.coordinates = {"latitude": lat, "longitude": lon}
                 # Work out the distances from the latitude and longitude:
-                tr.stats.distance = gps2dist_azimuth(lat, lon, eq_lat, eq_lon)[0]
+                # AJOUT
+                dist, _, back_azimuth = gps2dist_azimuth(lat, lon, eq_lat, eq_lon)
+                tr.stats.distance = dist
+                tr.stats.back_azimuth = back_azimuth
+                
+                
+                
+                #tr.stats.distance = gps2dist_azimuth(lat, lon, eq_lat, eq_lon)[0]
                 st2.append(tr)
 
     # Plot the section:
@@ -108,8 +115,43 @@ def plot_record_section(
         plt.show()
     return figure
 
+def plot_record_section_degree(
+    st, stations, eq_lat, eq_lon, size=(800, 600), show=True, outfile=None
+):
 
-def get_periodogram(x, fs=1, semilog=True, decibel=True, show=True, outfile=None):
+    if not st or not stations:
+        print("Station or stream empty.")
+        return
+
+    st2 = Stream()
+    ev_coord = (eq_lat,eq_lon)
+    #st.rotate(method='NE->RT', back_azimuth=90)
+    
+    for tr in st:
+        for net, sta, lat, lon, _ in stations:
+            # We keep traces with a corresponding station only:
+            if tr.stats.network == net and tr.stats.station == sta:
+                tr.stats.coordinates = {"latitude": lat, "longitude": lon}
+                # Work out the distances from the latitude and longitude:
+                #tr.stats.distance = gps2dist_azimuth(lat, lon, eq_lat, eq_lon)[0]
+                tr.stats.coordinates.latitude = lat
+                tr.stats.coordinates.longitude = lon
+                
+                '''
+                dist_km = gps2dist_azimuth(lat, lon, eq_lat, eq_lon)[0]
+                tr.stats.distance = kilometers2degrees(dist_km)
+                '''
+                st2.append(tr)
+
+    # Plot the section:
+    figure = plt.figure(figsize=(8,6))
+
+    st2.plot(outfile='recordsection1.png', type="section", dist_degree=True, ev_coord=ev_coord, linewidth=0.25, grid_linewidth=0.25, orientation='horizontal', fig=figure)
+
+ 
+    return figure
+
+def get_periodogram(x, fs=1, semilog=True, decibel=True, show=False, outfile=None):
     """Estimate power spectral density of a timeserie using a periodogram.
 
     :param x: timeserie values
@@ -125,7 +167,7 @@ def get_periodogram(x, fs=1, semilog=True, decibel=True, show=True, outfile=None
         return_onesided=True,
         scaling="density",  # where Pxx has units of V**2/Hz
     )
-
+    '''
     ylabel = "Power"
     if decibel:
         psd = [10 * math.log10(n / psd[0]) for n in psd]  # in dB
@@ -145,7 +187,9 @@ def get_periodogram(x, fs=1, semilog=True, decibel=True, show=True, outfile=None
         plt.savefig(outfile)
     elif show:
         plt.show()
-
+    '''
     return (freqs, psd)
+
+
 
 
