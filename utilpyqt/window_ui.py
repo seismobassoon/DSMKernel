@@ -48,7 +48,7 @@ firebase_admin.initialize_app(cred, {
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.resize(1000, 600)
-        MainWindow.setWindowTitle("DSM Kernel Project - Python application for scientific research")
+        MainWindow.setWindowTitle("DSM Kernel GUI Project - Python application for scientific research")
         
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -68,7 +68,7 @@ class Ui_MainWindow(object):
         self.logo_label_1.setMinimumSize(QtCore.QSize(50, 50))
         self.logo_label_1.setMaximumSize(QtCore.QSize(50, 50))
         self.logo_label_1.setText("")
-        self.logo_label_1.setPixmap(QtGui.QPixmap(":/icon/icon/gear-32.png"))
+        self.logo_label_1.setPixmap(QtGui.QPixmap("./icon/gear-32.png"))
         self.logo_label_1.setScaledContents(True)
         self.logo_label_1.setObjectName("logo_label_1")
         self.horizontalLayout_3.addWidget(self.logo_label_1)
@@ -79,8 +79,8 @@ class Ui_MainWindow(object):
         self.home_btn_1 = QtWidgets.QPushButton(self.icon_only_widget)
         self.home_btn_1.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/icon/icon/home-4-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon.addPixmap(QtGui.QPixmap(":/icon/icon/home-4-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon.addPixmap(QtGui.QPixmap("./icon/home-4-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("./icon/home-4-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.home_btn_1.setIcon(icon)
         self.home_btn_1.setIconSize(QtCore.QSize(20, 20))
         self.home_btn_1.setCheckable(True)
@@ -90,8 +90,8 @@ class Ui_MainWindow(object):
         self.dashborad_btn_1 = QtWidgets.QPushButton(self.icon_only_widget)
         self.dashborad_btn_1.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/icon/icon/dashboard-5-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon1.addPixmap(QtGui.QPixmap(":/icon/icon/dashboard-5-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon1.addPixmap(QtGui.QPixmap("./icon/time-8-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("./icon/time-8-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.dashborad_btn_1.setIcon(icon1)
         self.dashborad_btn_1.setIconSize(QtCore.QSize(20, 20))
         self.dashborad_btn_1.setCheckable(True)
@@ -101,8 +101,8 @@ class Ui_MainWindow(object):
         self.orders_btn_1 = QtWidgets.QPushButton(self.icon_only_widget)
         self.orders_btn_1.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(":/icon/icon/time-8-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon2.addPixmap(QtGui.QPixmap(":/icon/icon/time-8-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon2.addPixmap(QtGui.QPixmap("./icon/compass-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap("./icon/compass-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.orders_btn_1.setIcon(icon2)
         self.orders_btn_1.setIconSize(QtCore.QSize(20, 20))
         self.orders_btn_1.setCheckable(True)
@@ -112,8 +112,8 @@ class Ui_MainWindow(object):
         self.products_btn_1 = QtWidgets.QPushButton(self.icon_only_widget)
         self.products_btn_1.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(":/icon/icon/compass-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon3.addPixmap(QtGui.QPixmap(":/icon/icon/compass-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon3.addPixmap(QtGui.QPixmap("C:/users/Lenovo/Documents/premierProjet/icon/compass-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon3.addPixmap(QtGui.QPixmap("C:/users/Lenovo/Documents/premierProjet/icon/compass-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.products_btn_1.setIcon(icon3)
         self.products_btn_1.setIconSize(QtCore.QSize(20, 20))
         self.products_btn_1.setCheckable(True)
@@ -123,8 +123,8 @@ class Ui_MainWindow(object):
         self.customers_btn_1 = QtWidgets.QPushButton(self.icon_only_widget)
         self.customers_btn_1.setText("")
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(":/icon/icon/group-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon4.addPixmap(QtGui.QPixmap(":/icon/icon/group-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon4.addPixmap(QtGui.QPixmap("./icon/group-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon4.addPixmap(QtGui.QPixmap("./icon/group-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.customers_btn_1.setIcon(icon4)
         self.customers_btn_1.setIconSize(QtCore.QSize(20, 20))
         self.customers_btn_1.setCheckable(True)
@@ -137,7 +137,7 @@ class Ui_MainWindow(object):
         self.exit_btn_1 = QtWidgets.QPushButton(self.icon_only_widget)
         self.exit_btn_1.setText("")
         icon5 = QtGui.QIcon()
-        icon5.addPixmap(QtGui.QPixmap(":/icon/icon/close-window-64.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon5.addPixmap(QtGui.QPixmap("./icon/close-window-64.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.exit_btn_1.setIcon(icon5)
         self.exit_btn_1.setIconSize(QtCore.QSize(20, 20))
         self.exit_btn_1.setObjectName("exit_btn_1")
@@ -157,7 +157,7 @@ class Ui_MainWindow(object):
         self.logo_label_2.setMinimumSize(QtCore.QSize(40, 40))
         self.logo_label_2.setMaximumSize(QtCore.QSize(40, 40))
         self.logo_label_2.setText("")
-        self.logo_label_2.setPixmap(QtGui.QPixmap(":/icon/icon/gear-32.png"))
+        self.logo_label_2.setPixmap(QtGui.QPixmap("./icon/gear-32.png"))
         self.logo_label_2.setScaledContents(True)
         self.logo_label_2.setObjectName("logo_label_2")
         self.horizontalLayout_2.addWidget(self.logo_label_2)
@@ -184,11 +184,50 @@ class Ui_MainWindow(object):
                                                }
                                            """)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/icon/icon/dashboard-5-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon1.addPixmap(QtGui.QPixmap(":/icon/icon/compass-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon1.addPixmap(QtGui.QPixmap("./icon/compass-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("./icon/compass-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
 
-        self.mag_slider = QtWidgets.QSlider()
+        #self.mag_slider = QtWidgets.QSlider()
         
+        self.mag_slider = QRangeSlider(QtCore.Qt.Orientation.Horizontal)
+        self.mag_slider.setValue((4,7))
+        self.mag_slider.setFixedWidth(200)
+        self.mag_slider.setRange(0,10)
+        self.mag_min = QtWidgets.QSpinBox()
+        self.mag_min.setMinimum(0)
+        self.mag_min.setValue(4)
+        self.mag_min.setStyleSheet("""
+                                     QSpinBox {
+                                         color: white;
+                                         background-color: transparent;
+                                         border: 1px solid transparent;
+                                         }
+                                     QAbstractSpinBox::up-button {
+                                         background-color: transparent;
+                                         }
+                                     QAbstractSpinBox::down-button {
+                                         background-color: transparent;
+                                         }
+                                     """)
+        self.mag_min.setAlignment(QtCore.Qt.AlignLeft)
+        self.mag_max = QtWidgets.QSpinBox()
+        self.mag_max.setAlignment(QtCore.Qt.AlignRight)
+        self.mag_max.setMaximum(10)
+        self.mag_max.setValue(7)
+        self.mag_max.setStyleSheet("""
+                                     QSpinBox {
+                                         color: white;
+                                         background-color: transparent;
+                                         border: 1px solid transparent;
+                                         }
+                                     QAbstractSpinBox::up-button {
+                                         background-color: transparent;
+                                         }
+                                     QAbstractSpinBox::down-button {
+                                         background-color: transparent;
+                                         }
+                                     """)
+        '''
         self.mag_value = QtWidgets.QDoubleSpinBox()
         self.mag_value.setValue(5)
         self.mag_value.setAlignment(QtCore.Qt.AlignCenter)
@@ -234,14 +273,21 @@ class Ui_MainWindow(object):
                                          border-radius: 12px;
                                          }
                                     """)
+        '''
+        mag_layout = QtWidgets.QHBoxLayout(self.full_menu_widget)
+        mag_layout.addWidget(self.mag_min)
+        mag_layout.addWidget(self.mag_slider)
+        mag_layout.addWidget(self.mag_max)
         
         self.verticalLayout_2.addWidget(self.magnitude)
-        self.verticalLayout_2.addWidget(self.mag_slider)
-        self.verticalLayout_2.addWidget(self.mag_value)
-        self.verticalLayout_2.addStretch(1)
+        self.verticalLayout_2.addLayout(mag_layout)
+        #self.verticalLayout_2.addWidget(self.mag_slider)
+        #self.verticalLayout_2.addWidget(self.mag_value)
+        #self.verticalLayout_2.addStretch(1)
         
         self.mag_slider.valueChanged.connect(self.update_mag_value)
-        self.mag_value.valueChanged.connect(self.update_mag_slider)
+        self.mag_min.valueChanged.connect(self.update_mag_slider)
+        self.mag_max.valueChanged.connect(self.update_mag_slider)
         
         # %% TIME PERIODE
 
@@ -250,8 +296,8 @@ class Ui_MainWindow(object):
         self.datetime.setStyleSheet("color: white;font-size: 15px;font-weight: bold; padding:15px;")
         
         time_icon = QtGui.QIcon()
-        time_icon.addPixmap(QtGui.QPixmap(":/icon/icon/compass-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        time_icon.addPixmap(QtGui.QPixmap(":/icon/icon/compass-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        time_icon.addPixmap(QtGui.QPixmap("./icon/compass-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        time_icon.addPixmap(QtGui.QPixmap("./icon/compass-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.On)
 
         
         self.start_layout = QtWidgets.QHBoxLayout(self.full_menu_widget)
@@ -364,7 +410,7 @@ class Ui_MainWindow(object):
         
         # %% BOTTOM TOOLBAR
         icon7 = QtGui.QIcon()
-        icon7.addPixmap(QtGui.QPixmap(":/icon/icon/search-13-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon7.addPixmap(QtGui.QPixmap("./icon/search-13-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.search_btn = QtWidgets.QPushButton(self.full_menu_widget)
         self.search_btn.setCursor(QtCore.Qt.PointingHandCursor)
         self.search_btn.clicked.connect(self.get_station)
@@ -421,7 +467,7 @@ class Ui_MainWindow(object):
         self.change_btn.setText("")
         self.change_btn.setCursor(QtCore.Qt.PointingHandCursor)
         icon6 = QtGui.QIcon()
-        icon6.addPixmap(QtGui.QPixmap(":/icon/icon/menu-4-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon6.addPixmap(QtGui.QPixmap("./icon/menu-4-32.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.change_btn.setIcon(icon6)
         self.change_btn.setIconSize(QtCore.QSize(14, 14))
         self.change_btn.setCheckable(True)
@@ -449,7 +495,7 @@ class Ui_MainWindow(object):
         self.user_btn = QtWidgets.QPushButton(self.widget)
         self.user_btn.setText("")
         icon8 = QtGui.QIcon()
-        icon8.addPixmap(QtGui.QPixmap(":/icon/icon/user-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon8.addPixmap(QtGui.QPixmap("./icon/user-48.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.user_btn.setIcon(icon8)
         self.user_btn.setObjectName("user_btn")
         self.horizontalLayout_4.addWidget(self.user_btn)
@@ -562,11 +608,13 @@ class Ui_MainWindow(object):
         self.elevation_slider.setValue((200,800))
         self.elevation_slider.setFixedWidth(150)
         self.elevation_slider.setRange(0,1000)
-        self.elevation_slider.rangeChanged.connect(self.update_spinboxes)
+        self.elevation_slider.valueChanged.connect(self.update_elev_value)
+        
         self.elev_min = QtWidgets.QSpinBox()
         self.elev_min.setMinimum(0)
+        self.elev_min.setMaximum(1000)
         self.elev_min.setValue(200)
-        self.elev_min.valueChanged.connect(self.update_elevation_slider_min)
+        self.elev_min.valueChanged.connect(self.update_elev_slider)
         self.elev_min.setStyleSheet("""
                                      QSpinBox {
                                          color: black;
@@ -584,7 +632,7 @@ class Ui_MainWindow(object):
         self.elev_max = QtWidgets.QSpinBox()
         self.elev_max.setMaximum(1000)
         self.elev_max.setValue(800)
-        self.elev_max.valueChanged.connect(self.update_elevation_slider_max)
+        self.elev_max.valueChanged.connect(self.update_elev_slider)
         self.elev_max.setStyleSheet("""
                                      QSpinBox {
                                          color: black;
@@ -598,7 +646,7 @@ class Ui_MainWindow(object):
                                          background-color: transparent;
                                          }
                                      """)
-        
+        # COORDINATES
         min_lat_label = QtWidgets.QLabel("Lat min:")
         min_lat_label.setFixedWidth(50)
         max_lat_label = QtWidgets.QLabel("Lat max:")
@@ -706,25 +754,38 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         # %%
     def update_mag_value(self,value):
-        self.mag_value.setValue(float(value)/10)
+        min_val, max_val = value
+        self.mag_min.setValue(min_val)
+        self.mag_max.setValue(max_val)
+
         
     def update_mag_slider(self,value):
-        self.mag_slider.setValue(int(value*10))
+
+        min_val = self.mag_min.value()
+        max_val = self.mag_max.value()
+        self.mag_slider.setValue((min_val, max_val))
+        
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         self.logo_label_3.setText(_translate("MainWindow", "Events\nparameters"))
         self.exit_btn_2.setText(_translate("MainWindow", "Exit"))
-        
-    def update_elevation_slider_min(self, value):
-        self.elevation_slider.setValue((value, self.elevation_slider.maximum()))
-    
-    def update_elevation_slider_max(self, value):
-        self.elevation_slider.setValue((self.elevation_slider.minimum(), value))
 
-    def update_spinboxes(self, min_val, max_val):
+    def update_elev_value(self, value):
+        min_val, max_val = value
         self.elev_min.setValue(min_val)
         self.elev_max.setValue(max_val)
+
+    def update_elev_slider(self, value):
+        #self.elev_min.setValue(min_val)
+        #self.elev_max.setValue(max_val)
+        print(self.elevation_slider.value())
+        
+        min_val = self.elev_min.value()
+        max_val = self.elev_max.value()
+        self.elevation_slider.setValue((min_val,max_val))
+        
+        
     
     # %% GET STATION   
     def get_station(self):
@@ -1051,9 +1112,12 @@ class Ui_MainWindow(object):
         # DEBUT DE LA FENETRE SUR LES STATONS
         self.sta_dialog.close()
         client = Client("IRIS")
-        # CONVERT MANGITUDE
-        valueMagMin = self.mag_value.value()
-        magnitude = int(valueMagMin)
+        # CONVERT MAGNITUDE
+        valueMagMin = self.mag_min.value()
+        valueMagMax = self.mag_max.value()
+        
+        min_mag = int(valueMagMin)
+        max_mag = int(valueMagMax)
         
         # CONVERT COORDINATES
         valueMinLat = self.lat_min.value()
@@ -1074,7 +1138,8 @@ class Ui_MainWindow(object):
             minlongitude = longitude_min,
             maxlongitude = longitude_max,
             
-            minmagnitude = magnitude,
+            minmagnitude = min_mag,
+            maxmagnitude = max_mag,
             starttime = self.starttime,
             endtime = self.endtime
             
@@ -1266,12 +1331,18 @@ class Ui_MainWindow(object):
             endtime = eq_start + 14400,
             attach_response = True,
             )
+        
+        # Processing
+        stz = st.select(component="Z")
+        stz.remove_response(output="VEL")
+        stz.filter("bandpass",freqmin=0.05,freqmax=0.2)
+        
         print("now plotting the seismic trace!")
         #name = 'record_section_ev_%s.png' % str(self.starttime)
         name = "essai.png"
-        st.plot();
+        stz.plot();
 
-        self.figure_record_section = plot_record_section_degree(st, self.stations_communes, eq_lat, eq_lon, outfile=name)
+        self.figure_record_section = plot_record_section_degree(stz, self.stations_communes, eq_lat, eq_lon, outfile=name)
         self.canvas_record_section = FigureCanvas(self.figure_record_section)
         
         
