@@ -35,15 +35,6 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import auth, db
 
-'''
-cred = credentials.Certificate("geodpy-project-firebase.json")
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://geodpy-project-applicaiton-default-rtdb.europe-west1.firebasedatabase.app/',
-    'storageBucket': 'geodpy-project-applicaiton.appspot.com'
-    })
-#storage_client = storage.Client()
-'''
-
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
