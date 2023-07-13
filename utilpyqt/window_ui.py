@@ -27,7 +27,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 import os, pytz, random
 
-from config import uid
+#from config import uid
 
 import lxml.etree
 
@@ -65,10 +65,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.logo_label_1 = QtWidgets.QLabel(self.icon_only_widget)
-        self.logo_label_1.setMinimumSize(QtCore.QSize(50, 50))
-        self.logo_label_1.setMaximumSize(QtCore.QSize(50, 50))
+        self.logo_label_1.setMinimumSize(QtCore.QSize(40, 40))
+        self.logo_label_1.setMaximumSize(QtCore.QSize(40, 40))
         self.logo_label_1.setText("")
-        self.logo_label_1.setPixmap(QtGui.QPixmap("./icon/gear-32.png"))
+        self.logo_label_1.setPixmap(QtGui.QPixmap("./icon/services-32.ico"))
         self.logo_label_1.setScaledContents(True)
         self.logo_label_1.setObjectName("logo_label_1")
         self.horizontalLayout_3.addWidget(self.logo_label_1)
@@ -154,10 +154,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.setSpacing(0)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.logo_label_2 = QtWidgets.QLabel(self.full_menu_widget)
-        self.logo_label_2.setMinimumSize(QtCore.QSize(40, 40))
-        self.logo_label_2.setMaximumSize(QtCore.QSize(40, 40))
+        self.logo_label_2.setMinimumSize(QtCore.QSize(50, 50))
+        self.logo_label_2.setMaximumSize(QtCore.QSize(50, 50))
         self.logo_label_2.setText("")
-        self.logo_label_2.setPixmap(QtGui.QPixmap("./icon/gear-32.png"))
+        self.logo_label_2.setPixmap(QtGui.QPixmap("./icon/services-32.ico"))
         self.logo_label_2.setScaledContents(True)
         self.logo_label_2.setObjectName("logo_label_2")
         self.horizontalLayout_2.addWidget(self.logo_label_2)
