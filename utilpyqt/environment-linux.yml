@@ -1,4 +1,4 @@
-name: env_QT
+name: DSM_GUI
 channels:
   - conda-forge
   - anaconda
