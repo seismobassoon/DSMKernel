@@ -8,11 +8,11 @@ git clone https://github.com/LorrN13/DSMKernel.git
 ```
 Then you have to download the conda environment to use the application. If you are using the Windows operating system:
 ```
-conda env create -f /path/to/DSMKernel/utilpyqt/environment_windows.yml
+conda env create -f /path/to/DSMKernel/utilpyqt/environment-windows.yml
 ```
 If you are using the Linux operating system:
 ```
-conda env create -f /path/to/DSMKernel/utilpyqt/environment_linux.yml
+conda env create -f /path/to/DSMKernel/utilpyqt/environment-linux.yml
 ```
 Then, activate the conda environment:
 ```
