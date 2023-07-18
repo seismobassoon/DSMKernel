@@ -974,12 +974,45 @@ class Ui_MainWindow(object):
         self.percent_station = QtWidgets.QSpinBox()
         self.percent_station.setValue(100)
         self.percent_station.setMinimum(0)
-        self.percent_station.setMaximum(100)
-        #self.percent_station.valueChanged.connect(self.remove_markers)
+        self.percent_station.setMaximum(101)
+        self.percent_station.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.percent_station.setStyleSheet("""
+                                           QSpinBox {
+                                               color: black;
+                                               background-color: transparent;
+                                               border: 1px solid transparent;
+                                               width: 10px;
+                                               }
+                                           QAbstractSpinBox::up-button {
+                                               background-color: transparent;
+                                               }
+                                           QAbstractSpinBox::down-button {
+                                               background-color: transparent;
+                                               }
+                                           """)
+        self.percent_btn = QtWidgets.QPushButton("Ok")
+        self.percent_btn.setStyleSheet("""
+                                       QPushButton {
+                                           background-color: #959595;
+                                           border: none;
+                                           border-radius: 5px;
+                                           color: white;
+                                           padding: 10px;
+                                           text-align: center;
+                                           text-decoration: none;
+                                       }
+                                       
+                                       QPushButton:hover {
+                                           background-color: #858585;
+                                       }
+                                       """)
+        self.percent_btn.clicked.connect(self.randomlyUncheckItems)
+        
         percent = QtWidgets.QLabel("%")
         hbox.addWidget(keep_station)
         hbox.addWidget(self.percent_station)
         hbox.addWidget(percent)
+        hbox.addWidget(self.percent_btn)
         layout.addLayout(hbox)
         
         button = QtWidgets.QPushButton("Next step")
@@ -1073,24 +1106,31 @@ class Ui_MainWindow(object):
                         
         #print(checked_items)
         # Créer les répertoires et télécharger les fichiers XML correspondants
-        directory = "stations"
+        '''
+        folder = "stations"
         if not os.path.exists(directory):
             os.makedirs(directory)
-    
-        for parent_name, station_names in self.checked_items.items():
-            parent_directory = os.path.join(directory, parent_name)
-            if not os.path.exists(parent_directory):
-                os.makedirs(parent_directory)
-    
-            for station_name in station_names:
-                net = self.inventory.select(network=network_name)[0]
-                sta = net.select(station=station_name)[0]
-                filename = '{}_{}.xml'.format(net.code, sta.code)
-                file_path = os.path.join(parent_directory, filename)
-    
-                station_inventory = read_inventory(network=net.code, station=sta.code, starttime=self.starttime, endtime=self.endtime, client="IRIS")
-                station_inventory.write(file_path, format="stationxml")
-                    
+        '''
+        directory = QtWidgets.QFileDialog.getExistingDirectory(None, "Sélectionner un dossier de destination")
+        if directory:
+            stations_directory = os.path.join(directory, "stations")  # Dossier parent "stations"
+            if not os.path.exists(stations_directory):
+                os.makedirs(stations_directory)
+        
+            for parent_name, station_names in self.checked_items.items():
+                parent_directory = os.path.join(stations_directory, parent_name)
+                if not os.path.exists(parent_directory):
+                    os.makedirs(parent_directory)
+        
+                for station_name in station_names:
+                    net = self.inventory.select(network=network_name)[0]
+                    sta = net.select(station=station_name)[0]
+                    filename = '{}_{}.xml'.format(net.code, sta.code)
+                    file_path = os.path.join(parent_directory, filename)
+        
+                    station_inventory = read_inventory(network=net.code, station=sta.code, starttime=self.starttime, endtime=self.endtime, client="IRIS")
+                    station_inventory.write(file_path, format="stationxml")
+                        
     '''
     def remove_markers(self):
     # Get the percentage value from the QSpinBox
@@ -1121,6 +1161,37 @@ class Ui_MainWindow(object):
         for idx in sorted(children_to_remove, reverse=True):
             parent.removeRow(idx)
     '''
+    '''
+    def removeRandomItems(self):
+        percentage = self.percent_station.value()/100.0
+        total_items = self.tags_model.rowCount()
+        items_to_remove = int(total_items * percentage)
+        indices = random.sample(range(total_items),items_to_remove)
+        for index in indices:
+            self.tags_model.removeRow(index)
+        self.tags_model.invalidate()
+        self.ui_tags.reset()
+            
+        print("stations removed!")
+        print(dir(self.tags_model))
+    '''
+    def randomlyUncheckItems(self):
+        percentage = self.percent_station.value()
+        num_items = self.tags_model.rowCount()
+        num_items_to_uncheck = int(num_items * percentage / 100)
+        indices_to_uncheck = random.sample(range(num_items), num_items_to_uncheck)
+    
+        # Tri des indices en ordre décroissant pour supprimer les doublons dans le cas où sample() renvoie des doublons
+        indices_to_uncheck = sorted(indices_to_uncheck, reverse=True)
+    
+        source_model = self.tags_model.sourceModel()
+    
+        for index in indices_to_uncheck:
+            source_index = self.tags_model.mapToSource(self.tags_model.index(index, 0))
+            item = source_model.itemFromIndex(source_index)
+            item.setCheckState(QtCore.Qt.Unchecked)
+    
+        self.ui_tags.viewport().update()
     
     def updateListStationWidget(self, text):
         regExp = QtCore.QRegExp(self.ui_search.text(), QtCore.Qt.CaseInsensitive, QtCore.QRegExp.FixedString)
