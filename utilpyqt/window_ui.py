@@ -198,40 +198,46 @@ class Ui_MainWindow(object):
         #self.mag_slider = QtWidgets.QSlider()
         
         self.mag_slider = QRangeSlider(QtCore.Qt.Orientation.Horizontal)
-        self.mag_slider.setValue((4,7))
+        self.mag_slider.setValue((40,70))
         self.mag_slider.setFixedWidth(200)
-        self.mag_slider.setRange(0,10)
-        self.mag_min = QtWidgets.QSpinBox()
+        self.mag_slider.setRange(0,100)
+        self.mag_min = QtWidgets.QDoubleSpinBox()
         self.mag_min.setMinimum(0)
+        self.mag_min.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         self.mag_min.setValue(4)
         self.mag_min.setStyleSheet("""
-                                     QSpinBox {
+                                     QDoubleSpinBox {
                                          color: white;
+                                         width: 20px;
                                          background-color: transparent;
                                          border: 1px solid transparent;
                                          }
-                                     QAbstractSpinBox::up-button {
+                                     QAbstractDoubleSpinBox::up-button {
                                          background-color: transparent;
+                                         color: transparent;
                                          }
-                                     QAbstractSpinBox::down-button {
+                                     QAbstractDoubleSpinBox::down-button {
                                          background-color: transparent;
+                                         color: transparent;
                                          }
                                      """)
         self.mag_min.setAlignment(QtCore.Qt.AlignLeft)
-        self.mag_max = QtWidgets.QSpinBox()
+        self.mag_max = QtWidgets.QDoubleSpinBox()
         self.mag_max.setAlignment(QtCore.Qt.AlignRight)
-        self.mag_max.setMaximum(10)
+        self.mag_max.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.mag_max.setMaximum(100)
         self.mag_max.setValue(7)
         self.mag_max.setStyleSheet("""
-                                     QSpinBox {
+                                     QDoubleSpinBox {
                                          color: white;
                                          background-color: transparent;
                                          border: 1px solid transparent;
+                                         width: 20px;
                                          }
-                                     QAbstractSpinBox::up-button {
+                                     QAbstractDoubleSpinBox::up-button {
                                          background-color: transparent;
                                          }
-                                     QAbstractSpinBox::down-button {
+                                     QAbstractDoubleSpinBox::down-button {
                                          background-color: transparent;
                                          }
                                      """)
@@ -787,14 +793,14 @@ class Ui_MainWindow(object):
         # %%
     def update_mag_value(self,value):
         min_val, max_val = value
-        self.mag_min.setValue(min_val)
-        self.mag_max.setValue(max_val)
+        self.mag_min.setValue(min_val / 10)
+        self.mag_max.setValue(max_val / 10)
 
         
     def update_mag_slider(self,value):
 
-        min_val = self.mag_min.value()
-        max_val = self.mag_max.value()
+        min_val = self.mag_min.value() * 10
+        max_val = self.mag_max.value() * 10
         self.mag_slider.setValue((min_val, max_val))
         
     def update_depth_value(self,value):
