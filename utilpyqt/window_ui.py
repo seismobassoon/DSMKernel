@@ -1512,13 +1512,34 @@ class Ui_MainWindow(object):
             seismic_data_directory = os.path.join(directory, "seismic_data")  # Dossier parent "seismic_data"
             if not os.path.exists(seismic_data_directory):
                 os.makedirs(seismic_data_directory)
-            
-            for tr in self.st:
-                filename = f"{tr.stats.network}_{tr.stats.station}_{tr.stats.starttime.strftime('%Y%m%dT%H%M%S')}.sac"
+
+            format_choices = ["mseed", "sac"]
+            selected_format, _ = QtWidgets.QInputDialog.getItem(None, "Choisir le format des données", "Format:", format_choices, 0, False)
+
+            '''
+            for trace in self.st:
+                filename = f"{trace.stats.station}_{trace.stats.starttime.strftime('%Y%m%dT%H%M%S')}.{selected_format}"
                 filepath = os.path.join(seismic_data_directory, filename)
-                tr.write(filepath, format='SAC')
-            
-            QtWidgets.QMessageBox.information(None, "Download completed", "Seismic data successfully downloaded.")
+                
+                if selected_format == "mseed":
+                    trace.write(filepath, format='MSEED')
+                elif selected_format == "sac":
+                    trace.write(filepath, format='SAC')
+            '''
+            for trace in self.st:
+                network = trace.stats.network
+                station = trace.stats.station
+                start_time = trace.stats.starttime.strftime('%Y%m%dT%H%M%S')
+                for component in trace.stats.channel.split(','):
+                    component = component.strip()  # Remove leading/trailing whitespaces if any
+                    filename = f"{network}_{station}_{component}_{start_time}.{selected_format}"
+                    filepath = os.path.join(seismic_data_directory, filename)
+    
+                    if selected_format == "mseed":
+                        trace.write(filepath, format='MSEED')
+                    elif selected_format == "sac":
+                        trace.write(filepath, format='SAC')
+        QtWidgets.QMessageBox.information(None, "Download completed", "Seismic data successfully downloaded.")
         
         
         
