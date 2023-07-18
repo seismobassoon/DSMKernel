@@ -1130,6 +1130,8 @@ class Ui_MainWindow(object):
         
                     station_inventory = read_inventory(network=net.code, station=sta.code, starttime=self.starttime, endtime=self.endtime, client="IRIS")
                     station_inventory.write(file_path, format="stationxml")
+                    
+        QtWidgets.QMessageBox.information(None, "Download completed", "Stations data successfully downloaded.")
                         
     '''
     def remove_markers(self):
@@ -1453,7 +1455,7 @@ class Ui_MainWindow(object):
         # GET SEISMIC TRACE
         client = Client("IRIS")
         print("Getting seismic traces...")
-        st = client.get_waveforms(
+        self.st = client.get_waveforms(
             network = ",".join(network_set),
             station = ",".join(stations_set),
             location = "00",
@@ -1464,14 +1466,14 @@ class Ui_MainWindow(object):
             )
         
         # Processing
-        stz = st.select(component="Z")
+        stz = self.st.select(component="Z")
         stz.remove_response(output="VEL")
         stz.filter("bandpass",freqmin=0.05,freqmax=0.2)
         
         print("now plotting the seismic trace!")
         #name = 'record_section_ev_%s.png' % str(self.starttime)
         name = "essai.png"
-        stz.plot();
+        #stz.plot();
 
         self.figure_record_section = plot_record_section_degree(stz, self.stations_communes, eq_lat, eq_lon, outfile=name)
         self.canvas_record_section = FigureCanvas(self.figure_record_section)
@@ -1479,7 +1481,7 @@ class Ui_MainWindow(object):
         
         
         download_btn = QtWidgets.QPushButton("Download this section")
-        #download_btn.clicked.connect(self.get_events)
+        download_btn.clicked.connect(self.download_seismic_data)
         download_btn.setCursor(QtCore.Qt.PointingHandCursor)
         download_btn.setStyleSheet("""
                                    QPushButton {
@@ -1497,11 +1499,28 @@ class Ui_MainWindow(object):
                                        background-color: rgb(86, 101, 115);
                                    }
                                        """)
+                                       
         vbox.addWidget(title)
         vbox.addWidget(self.canvas_record_section)    
         vbox.addWidget(download_btn)
         self.section_dialog.setLayout(vbox)
         self.section_dialog.exec_()
+        
+    def download_seismic_data(self):
+        directory = QtWidgets.QFileDialog.getExistingDirectory(None, "Sélectionner un dossier de destination")
+        if directory:
+            seismic_data_directory = os.path.join(directory, "seismic_data")  # Dossier parent "seismic_data"
+            if not os.path.exists(seismic_data_directory):
+                os.makedirs(seismic_data_directory)
+            
+            for tr in self.st:
+                filename = f"{tr.stats.network}_{tr.stats.station}_{tr.stats.starttime.strftime('%Y%m%dT%H%M%S')}.sac"
+                filepath = os.path.join(seismic_data_directory, filename)
+                tr.write(filepath, format='SAC')
+            
+            QtWidgets.QMessageBox.information(None, "Download completed", "Seismic data successfully downloaded.")
+        
+        
         
 import resource_rc
 
