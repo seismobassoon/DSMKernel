@@ -28,8 +28,6 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         
         QtCore.QMetaObject.connectSlotsByName(self)
-
-        self.ui.icon_only_widget.hide()
         
 
 
