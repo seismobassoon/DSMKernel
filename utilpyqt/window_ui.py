@@ -18,22 +18,24 @@ from superqt import QRangeSlider
 
 import obspy
 from obspy import read_inventory
+from obspy.geodetics import gps2dist_azimuth
 from obspy.clients.fdsn import Client
 from DataProcessor_Fonctions import get_depth_color, plot_record_section_degree
 
-from firebase_admin import credentials, storage, auth
+#from firebase_admin import credentials, storage, auth
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 import os, pytz, random
+import numpy as np
 
 #from config import uid
 
-import lxml.etree
+#import lxml.etree
 
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import auth, db
+#import firebase_admin
+#from firebase_admin import credentials
+#from firebase_admin import auth, db
 
 
 class Ui_MainWindow(object):
@@ -199,7 +201,7 @@ class Ui_MainWindow(object):
         
         self.mag_slider = QRangeSlider(QtCore.Qt.Orientation.Horizontal)
         self.mag_slider.setValue((40,70))
-        self.mag_slider.setFixedWidth(200)
+        self.mag_slider.setFixedWidth(150)
         self.mag_slider.setRange(0,100)
         self.mag_min = QtWidgets.QDoubleSpinBox()
         self.mag_min.setMinimum(0)
@@ -270,20 +272,26 @@ class Ui_MainWindow(object):
         
         self.start_layout = QtWidgets.QHBoxLayout(self.full_menu_widget)
         self.start_label = QtWidgets.QLabel()
+        self.start_label.setFixedWidth(50)
         self.start_label.setText("From:")
         self.start_label.setStyleSheet("color:white;")
         
         self.start_edit = QtWidgets.QDateTimeEdit(calendarPopup=True)
+        self.start_edit.setFixedWidth(120)
+        self.start_edit.setDisplayFormat("dd/MM/yyyy hh:mm")
         self.start_edit.setStyleSheet("background-color: transparent; color: white; border: 2px solid white; border-radius: 5px;")
         self.start_layout.addWidget(self.start_label)
         self.start_layout.addWidget(self.start_edit)
         
         self.end_layout = QtWidgets.QHBoxLayout(self.full_menu_widget)
         self.end_label = QtWidgets.QLabel()
+        self.end_label.setFixedWidth(50)
         self.end_label.setText("To:")
         self.end_label.setStyleSheet("color:white;")
         
         self.end_edit = QtWidgets.QDateTimeEdit(calendarPopup=True)
+        self.end_edit.setFixedWidth(120)
+        self.end_edit.setDisplayFormat("dd/MM/yyyy hh:mm")
         self.end_edit.setStyleSheet("background-color: transparent; color: white; border: 2px solid white; border-radius: 5px;")
         self.end_layout.addWidget(self.end_label)
         self.end_layout.addWidget(self.end_edit)
@@ -311,7 +319,7 @@ class Ui_MainWindow(object):
         
         self.depth_slider = QRangeSlider(QtCore.Qt.Orientation.Horizontal)
         self.depth_slider.setValue((50,300))
-        self.depth_slider.setFixedWidth(200)
+        self.depth_slider.setFixedWidth(150)
         self.depth_slider.setRange(0,600)
         self.depth_min = QtWidgets.QSpinBox()
         self.depth_min.setMinimum(0)
@@ -322,6 +330,7 @@ class Ui_MainWindow(object):
                                          color: white;
                                          background-color: transparent;
                                          border: 1px solid transparent;
+                                         width: 20px;
                                          }
                                      QAbstractSpinBox::up-button {
                                          background-color: transparent;
@@ -341,6 +350,7 @@ class Ui_MainWindow(object):
                                          color: white;
                                          background-color: transparent;
                                          border: 1px solid transparent;
+                                         width: 20px;
                                          }
                                      QAbstractSpinBox::up-button {
                                          background-color: transparent;
@@ -414,6 +424,7 @@ class Ui_MainWindow(object):
                                                }
                                           """)
         self.channel_choice = QtWidgets.QComboBox(self.full_menu_widget)
+        self.channel_choice.setFixedWidth(150)
         self.channel_choice.addItems(["BH?","LH?"])
         self.channel_choice.setStyleSheet("""
                                           QComboBox {
@@ -442,7 +453,13 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.channel_label)
         self.verticalLayout_2.addWidget(self.channel_choice)
         
-        self.verticalLayout_4.addLayout(self.verticalLayout_2)
+        # put self.verticalLayout_2 in a qwidget
+        self.verticalLayout_2_widget = QtWidgets.QWidget()
+        self.verticalLayout_2_widget.setLayout(self.verticalLayout_2)
+        self.verticalLayout_2_widget.setFixedWidth(250)
+        
+        #self.verticalLayout_4.addLayout(self.verticalLayout_2)
+        self.verticalLayout_4.addWidget(self.verticalLayout_2_widget)
         spacerItem1 = QtWidgets.QSpacerItem(20, 373, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_4.addItem(spacerItem1)
         
@@ -647,6 +664,39 @@ class Ui_MainWindow(object):
         self.elevation_slider.setFixedWidth(150)
         self.elevation_slider.setRange(0,1000)
         self.elevation_slider.valueChanged.connect(self.update_elev_value)
+        self.elevation_slider.setStyleSheet("""
+                                            QRangeSlider {
+                                                height:20px;
+                                                }
+                                            QRangeSlider::groove:horizontal {
+                                                border-width: 0.5px;
+                                                height: 4px;
+                                                background-color: #d9d9d9;
+                                                border-color: #000000;
+                                                border-radius: 4px;
+                                            }
+                                            QRangeSlider::add-page:horizontal {
+                                                background-color: #d9d9d9;
+                                            }
+                                            QRangeSlider::handle:horizontal {
+                                                border-color: #000000;
+                                                border-width: 3px;
+                                                background-color: #4d4d4d;
+                                                width: 10px;
+                                                height: 22px;
+                                                border-radius: 2px;
+                                            }
+                                            QRangeSlider::handle:hover:horizontal {
+                                                border-color: #4d4d4d;
+                                                background-color: #999999;
+                                            }
+                                            QRangeSlider::handle:horizontal:left {
+                                                background-color: red; /* Couleur à gauche de l'étiquette de gauche */
+                                            }
+                                            QRangeSlider::handle:horizontal:right {
+                                                background-color: #cccccc; /* Couleur à droite de l'étiquette de droite */
+                                            }
+                                            """)
         
         self.elev_min = QtWidgets.QSpinBox()
         self.elev_min.setMinimum(0)
@@ -1131,7 +1181,7 @@ class Ui_MainWindow(object):
                     station_inventory = read_inventory(network=net.code, station=sta.code, starttime=self.starttime, endtime=self.endtime, client="IRIS")
                     station_inventory.write(file_path, format="stationxml")
                     
-        QtWidgets.QMessageBox.information(None, "Download completed", "Stations data successfully downloaded.")
+            QtWidgets.QMessageBox.information(None, "Download completed", "Stations data successfully downloaded.")
                         
     '''
     def remove_markers(self):
@@ -1390,7 +1440,10 @@ class Ui_MainWindow(object):
             index = self.event_list.row(item)
             self.eqo = self.events_center[index].origins[0]
             self.eqoMag = self.events_center[index].magnitudes[0].mag
-            
+            self.eqoLatitude = self.eqo.latitude
+            self.eqoLongitude = self.eqo.longitude
+            print("eqo.latitude =", self.eqoLatitude)
+            print("eqo.longitude =", self.eqoLongitude)
             
             self.record_section_dialog(item)
         else:
@@ -1465,7 +1518,33 @@ class Ui_MainWindow(object):
             attach_response = True,
             )
         
-        # Processing
+        # %% ROTATION PROCESSING
+        print("Rotation now!")
+        back_azimuths = []
+        for station_info in self.stations_communes:
+            network, station, station_latitude, station_longitude, _ = station_info
+        
+            # Calcul du back azimuth à partir des coordonnées
+            _, back_azimuth, _ = gps2dist_azimuth(station_latitude, station_longitude, self.eqoLatitude, self.eqoLongitude)
+            back_azimuths.append(back_azimuth)
+    
+        # Calcul de l'azimut de référence (moyenne des back azimuths)
+        reference_azimuth = sum(back_azimuths) / len(back_azimuths)
+        
+        # Appliquer la rotation horizontale pour chaque station
+        for trace in self.st:
+            trace_station = trace.stats.station
+        
+            # Trouver l'index correspondant à la station dans la liste station_list
+            station_index = next((i for i, station_info in enumerate(self.stations_communes) if station_info[1] == trace_station), None)
+            if station_index is not None:
+                back_azimuth = back_azimuths[station_index]
+        
+                # Appliquer la rotation horizontale avec l'azimut de référence
+                trace.rotate(method="NE->RT", back_azimuth=back_azimuth, inventory=None)
+        self.st.plot()
+        
+        # %% Processing
         stz = self.st.select(component="Z")
         stz.remove_response(output="VEL")
         stz.filter("bandpass",freqmin=0.05,freqmax=0.2)
@@ -1507,14 +1586,14 @@ class Ui_MainWindow(object):
         self.section_dialog.exec_()
         
     def download_seismic_data(self):
-        directory = QtWidgets.QFileDialog.getExistingDirectory(None, "Sélectionner un dossier de destination")
+        directory = QtWidgets.QFileDialog.getExistingDirectory(None, "Select a destination folder")
         if directory:
             seismic_data_directory = os.path.join(directory, "seismic_data")  # Dossier parent "seismic_data"
             if not os.path.exists(seismic_data_directory):
                 os.makedirs(seismic_data_directory)
 
             format_choices = ["mseed", "sac"]
-            selected_format, _ = QtWidgets.QInputDialog.getItem(None, "Choisir le format des données", "Format:", format_choices, 0, False)
+            selected_format, _ = QtWidgets.QInputDialog.getItem(None, "Select the data format", "Format:", format_choices, 0, False)
 
             '''
             for trace in self.st:
@@ -1543,7 +1622,7 @@ class Ui_MainWindow(object):
         
         
         
-import resource_rc
+#import resource_rc
 
 class SearchProxyModel(QtCore.QSortFilterProxyModel):
     def __init__(self, parent=None):
