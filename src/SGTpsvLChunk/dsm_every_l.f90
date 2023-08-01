@@ -311,6 +311,15 @@ subroutine dsm_each_l
   use parameters
   implicit none
 
+  ! The dvec0 are pre-computed
+  
+  l2 = dble(l)*dble(l+1)
+  lsq = dsqrt( l2 )
+  rdvec = dcmplx(0.d0)
+  call caldveczero_l_nonzero(l,rdvec(1:3,-2:2))
+
+  
+
   return
 end subroutine dsm_each_l
 

@@ -1,4 +1,4 @@
-name: geodpy_env
+name: geodpy_env_test
 channels:
   - conda-forge
   - defaults
